@@ -18,7 +18,8 @@ import {
   Calendar,
   HelpCircle,
   Tag,
-  Settings
+  Settings,
+  Telescope
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -29,6 +30,7 @@ const navItems = [
   { href: '/mock-test', label: 'Mock Tests', icon: ClipboardList },
   { href: '/revision-planner', label: 'Revision Planner', icon: Calendar },
   { href: '/tagging', label: 'AI Tagger', icon: Tag },
+  { href: '/topic-explorer', label: 'Topic Explorer', icon: Telescope },
   { href: '/doubt-solver', label: 'Doubt Solver', icon: HelpCircle },
 ];
 
