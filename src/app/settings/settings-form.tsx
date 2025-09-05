@@ -27,6 +27,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Save } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect } from "react";
+import { useProfile } from "@/context/profile-context";
 
 const settingsSchema = z.object({
   // Profile Settings
@@ -46,6 +47,7 @@ type SettingsFormValues = z.infer<typeof settingsSchema>;
 export default function SettingsForm() {
   const { toast } = useToast();
   const { setTheme, theme } = useTheme();
+  const { profile, setProfile } = useProfile();
 
   const form = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsSchema),
@@ -62,12 +64,14 @@ export default function SettingsForm() {
     if (theme) {
       form.setValue("theme", theme as "light" | "dark" | "system");
     }
-  }, [theme, form]);
+    form.setValue("name", profile.name);
+    form.setValue("email", profile.email);
+  }, [theme, profile, form]);
 
 
   function onSubmit(data: SettingsFormValues) {
     setTheme(data.theme);
-    console.log("Settings updated:", data);
+    setProfile({ name: data.name, email: data.email });
     toast({
       title: "Settings Saved",
       description: "Your new settings have been successfully saved.",
