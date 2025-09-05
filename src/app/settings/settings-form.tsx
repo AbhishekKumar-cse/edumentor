@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Save, Send } from "lucide-react";
+import { Save, Send, Share2, Star } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect } from "react";
 import { useProfile } from "@/context/profile-context";
@@ -54,6 +54,12 @@ const reportProblemSchema = z.object({
 
 type ReportProblemFormValues = z.infer<typeof reportProblemSchema>;
 
+const reviewSchema = z.object({
+    review: z.string().min(10, { message: "Review must be at least 10 characters." }),
+});
+
+type ReviewFormValues = z.infer<typeof reviewSchema>;
+
 
 export default function SettingsForm() {
   const { toast } = useToast();
@@ -78,6 +84,13 @@ export default function SettingsForm() {
         description: "",
     }
   });
+
+  const reviewForm = useForm<ReviewFormValues>({
+    resolver: zodResolver(reviewSchema),
+    defaultValues: {
+        review: "",
+    }
+    });
 
   useEffect(() => {
     if (theme) {
@@ -104,6 +117,23 @@ export default function SettingsForm() {
         description: "Thank you for your feedback. We will look into the issue.",
     });
     reportProblemForm.reset();
+  }
+
+  function onReviewSubmit(data: ReviewFormValues) {
+    console.log("Review Submitted:", data);
+    toast({
+        title: "Review Submitted",
+        description: "Thank you for your valuable feedback!",
+    });
+    reviewForm.reset();
+    }
+
+  function handleShare() {
+    navigator.clipboard.writeText(window.location.origin);
+    toast({
+      title: "Link Copied!",
+      description: "The application link has been copied to your clipboard.",
+    });
   }
 
   return (
@@ -237,6 +267,42 @@ export default function SettingsForm() {
 
         <Separator />
         
+        {/* Review and Suggestion Section */}
+        <Form {...reviewForm}>
+            <form onSubmit={reviewForm.handleSubmit(onReviewSubmit)} className="space-y-8">
+                <div className="space-y-4">
+                    <h3 className="text-lg font-medium font-headline flex items-center gap-2">
+                        <Star className="w-5 h-5 text-yellow-500" />
+                        Review and Suggestion
+                    </h3>
+                     <div className="space-y-4 p-4 border rounded-lg">
+                        <FormField
+                            control={reviewForm.control}
+                            name="review"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Your Feedback</FormLabel>
+                                    <FormControl>
+                                        <Textarea placeholder="Tell us what you love or what we can improve..." rows={5} {...field} />
+                                    </FormControl>
+                                    <FormDescription>
+                                        Your feedback helps us make EduMentor AI better for everyone.
+                                    </FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+                </div>
+                 <Button type="submit" variant="default">
+                    <Send className="mr-2 h-4 w-4" />
+                    Submit Feedback
+                </Button>
+            </form>
+        </Form>
+        
+        <Separator />
+
         {/* Report a Problem Section */}
         <Form {...reportProblemForm}>
             <form onSubmit={reportProblemForm.handleSubmit(onReportProblemSubmit)} className="space-y-8">
@@ -283,6 +349,25 @@ export default function SettingsForm() {
                 </Button>
             </form>
         </Form>
+
+        <Separator />
+
+        {/* Share the App Section */}
+        <div className="space-y-4">
+            <h3 className="text-lg font-medium font-headline flex items-center gap-2">
+                <Share2 className="w-5 h-5 text-primary" />
+                Share the App
+            </h3>
+            <div className="p-4 border rounded-lg">
+                <p className="text-sm text-muted-foreground mb-4">
+                    Enjoying EduMentor AI? Share it with your friends!
+                </p>
+                <Button onClick={handleShare} variant="outline">
+                    <Share2 className="mr-2 h-4 w-4" />
+                    Copy Link
+                </Button>
+            </div>
+        </div>
     </div>
   );
 }
