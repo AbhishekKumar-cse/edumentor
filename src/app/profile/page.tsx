@@ -1,28 +1,28 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Settings } from "lucide-react";
-import SettingsForm from "./settings-form";
+import { User } from "lucide-react";
+import ProfileForm from "./profile-form";
 
-export default function SettingsPage() {
+export default function ProfilePage() {
   return (
     <div className="space-y-8">
       <header className="space-y-2">
-        <h1 className="text-4xl font-headline font-bold">Settings</h1>
+        <h1 className="text-4xl font-headline font-bold">Profile</h1>
         <p className="text-muted-foreground">
-          Manage your application settings and provide feedback.
+          Manage your personal information and study goals.
         </p>
       </header>
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-3">
-            <Settings className="w-6 h-6 text-primary" />
-            <span className="font-headline text-2xl">Configuration</span>
+            <User className="w-6 h-6 text-primary" />
+            <span className="font-headline text-2xl">Your Profile</span>
           </CardTitle>
           <CardDescription>
-            Adjust appearance, notifications, and other application preferences.
+            Update your name, email, bio, and study preferences.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <SettingsForm />
+          <ProfileForm />
         </CardContent>
       </Card>
     </div>

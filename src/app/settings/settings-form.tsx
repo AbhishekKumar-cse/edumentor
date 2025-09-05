@@ -27,20 +27,11 @@ import { useToast } from "@/hooks/use-toast";
 import { Save, Send, Share2, Star } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import { useProfile } from "@/context/profile-context";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const settingsSchema = z.object({
-  // Profile Settings
-  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  email: z.string().email({ message: "Please enter a valid email address." }),
-  bio: z.string().max(160, { message: "Bio cannot be longer than 160 characters." }).optional(),
-  avatar: z.string().url({ message: "Please enter a valid URL." }).optional(),
-  studyGoals: z.string().max(200, { message: "Study goals cannot be longer than 200 characters." }).optional(),
-
   // Appearance Settings
   theme: z.enum(["light", "dark", "system"]),
 
@@ -70,18 +61,12 @@ type ReviewFormValues = z.infer<typeof reviewSchema>;
 export default function SettingsForm() {
   const { toast } = useToast();
   const { setTheme, theme } = useTheme();
-  const { profile, setProfile } = useProfile();
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
 
   const settingsForm = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsSchema),
     defaultValues: {
-      name: "Student",
-      email: "student@example.com",
-      bio: "",
-      avatar: "",
-      studyGoals: "",
       theme: "light",
       emailNotifications: true,
       pushNotifications: false,
@@ -108,12 +93,7 @@ export default function SettingsForm() {
     if (theme) {
       settingsForm.setValue("theme", theme as "light" | "dark" | "system");
     }
-    settingsForm.setValue("name", profile.name);
-    settingsForm.setValue("email", profile.email);
-    settingsForm.setValue("bio", profile.bio);
-    settingsForm.setValue("avatar", profile.avatar);
-    settingsForm.setValue("studyGoals", profile.studyGoals);
-  }, [theme, profile, settingsForm]);
+  }, [theme, settingsForm]);
 
   useEffect(() => {
     reviewForm.setValue("rating", rating);
@@ -122,13 +102,6 @@ export default function SettingsForm() {
 
   function onSettingsSubmit(data: SettingsFormValues) {
     setTheme(data.theme);
-    setProfile({ 
-        name: data.name,
-        email: data.email,
-        bio: data.bio || '',
-        avatar: data.avatar || '',
-        studyGoals: data.studyGoals || ''
-     });
     toast({
       title: "Settings Saved",
       description: "Your new settings have been successfully saved.",
@@ -161,186 +134,98 @@ export default function SettingsForm() {
       description: "The application link has been copied to your clipboard.",
     });
   }
-  
-  const avatarUrl = settingsForm.watch("avatar") || profile.avatar;
 
   return (
     <div className="space-y-12">
         <Form {...settingsForm}>
             <form onSubmit={settingsForm.handleSubmit(onSettingsSubmit)} className="space-y-8">
-            {/* Profile Section */}
-            <div className="space-y-4">
-                <h3 className="text-lg font-medium font-headline">Profile</h3>
-                <div className="space-y-4 p-4 border rounded-lg">
-                    <FormField
-                      control={settingsForm.control}
-                      name="avatar"
-                      render={({ field }) => (
-                        <FormItem className="flex items-center gap-4">
-                            <Avatar className="h-20 w-20">
-                                <AvatarImage src={avatarUrl} alt={profile.name} data-ai-hint="student avatar" />
-                                <AvatarFallback>{profile.name.charAt(0).toUpperCase()}</AvatarFallback>
-                            </Avatar>
-                            <div className="w-full space-y-1">
-                                <FormLabel>Avatar URL</FormLabel>
+                {/* Appearance Section */}
+                <div className="space-y-4">
+                    <h3 className="text-lg font-medium font-headline">Appearance</h3>
+                    <div className="space-y-4 p-4 border rounded-lg">
+                        <FormField
+                        control={settingsForm.control}
+                        name="theme"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Theme</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl>
-                                    <Input placeholder="https://example.com/avatar.png" {...field} />
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a theme" />
+                                </SelectTrigger>
                                 </FormControl>
-                                <FormMessage />
+                                <SelectContent>
+                                <SelectItem value="light">Light</SelectItem>
+                                <SelectItem value="dark">Dark</SelectItem>
+                                <SelectItem value="system">System</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormDescription>
+                                Select the theme for the dashboard.
+                            </FormDescription>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                    </div>
+                </div>
+                
+                <Separator />
+
+                {/* Notifications Section */}
+                <div className="space-y-4">
+                    <h3 className="text-lg font-medium font-headline">Notifications</h3>
+                    <div className="space-y-4 p-4 border rounded-lg">
+                        <FormField
+                        control={settingsForm.control}
+                        name="emailNotifications"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between">
+                            <div className="space-y-0.5">
+                                <FormLabel>Email notifications</FormLabel>
+                                <FormDescription>
+                                Receive emails about your account activity.
+                                </FormDescription>
                             </div>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                    control={settingsForm.control}
-                    name="name"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Name</FormLabel>
-                        <FormControl>
-                            <Input placeholder="Your Name" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
-                    <FormField
-                    control={settingsForm.control}
-                    name="email"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                            <Input type="email" placeholder="your.email@example.com" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
-                     <FormField
-                      control={settingsForm.control}
-                      name="bio"
-                      render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Bio</FormLabel>
                             <FormControl>
-                                <Textarea placeholder="Tell us a little bit about yourself" {...field} />
+                                <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                />
                             </FormControl>
-                            <FormDescription>
-                                A short and sweet bio to appear on your profile.
-                            </FormDescription>
-                            <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={settingsForm.control}
-                      name="studyGoals"
-                      render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Study Goals</FormLabel>
+                            </FormItem>
+                        )}
+                        />
+                        <FormField
+                        control={settingsForm.control}
+                        name="pushNotifications"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between">
+                            <div className="space-y-0.5">
+                                <FormLabel>Push notifications</FormLabel>
+                                <FormDescription>
+                                Receive push notifications on your devices.
+                                </FormDescription>
+                            </div>
                             <FormControl>
-                                <Textarea placeholder="What are you hoping to achieve?" {...field} />
+                                <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                disabled
+                                aria-readonly
+                                />
                             </FormControl>
-                             <FormDescription>
-                                Write down your main study goals to stay focused.
-                            </FormDescription>
-                            <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                            </FormItem>
+                        )}
+                        />
+                    </div>
                 </div>
-            </div>
 
-            <Separator />
-
-            {/* Appearance Section */}
-            <div className="space-y-4">
-                <h3 className="text-lg font-medium font-headline">Appearance</h3>
-                <div className="space-y-4 p-4 border rounded-lg">
-                    <FormField
-                    control={settingsForm.control}
-                    name="theme"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Theme</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select a theme" />
-                            </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                            <SelectItem value="light">Light</SelectItem>
-                            <SelectItem value="dark">Dark</SelectItem>
-                            <SelectItem value="system">System</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <FormDescription>
-                            Select the theme for the dashboard.
-                        </FormDescription>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
-                </div>
-            </div>
-            
-            <Separator />
-
-            {/* Notifications Section */}
-            <div className="space-y-4">
-                <h3 className="text-lg font-medium font-headline">Notifications</h3>
-                <div className="space-y-4 p-4 border rounded-lg">
-                    <FormField
-                    control={settingsForm.control}
-                    name="emailNotifications"
-                    render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between">
-                        <div className="space-y-0.5">
-                            <FormLabel>Email notifications</FormLabel>
-                            <FormDescription>
-                            Receive emails about your account activity.
-                            </FormDescription>
-                        </div>
-                        <FormControl>
-                            <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            />
-                        </FormControl>
-                        </FormItem>
-                    )}
-                    />
-                    <FormField
-                    control={settingsForm.control}
-                    name="pushNotifications"
-                    render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between">
-                        <div className="space-y-0.5">
-                            <FormLabel>Push notifications</FormLabel>
-                            <FormDescription>
-                            Receive push notifications on your devices.
-                            </FormDescription>
-                        </div>
-                        <FormControl>
-                            <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            disabled
-                            aria-readonly
-                            />
-                        </FormControl>
-                        </FormItem>
-                    )}
-                    />
-                </div>
-            </div>
-
-            <Button type="submit" variant="accent">
-                <Save className="mr-2 h-4 w-4" />
-                Save Changes
-            </Button>
+                <Button type="submit" variant="accent">
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Changes
+                </Button>
             </form>
         </Form>
 
