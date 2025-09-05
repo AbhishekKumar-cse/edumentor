@@ -15,15 +15,11 @@ import {
   Book,
   ClipboardList,
   Calendar,
-  BrainCircuit,
   HelpCircle,
-  Settings,
   Tag,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { Button } from '../ui/button';
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: Home },
@@ -55,9 +51,8 @@ export default function AppSidebar() {
         <SidebarMenu>
           {navItems.map((item) => (
             <SidebarMenuItem key={item.href}>
-              <Link href={item.href} passHref legacyBehavior>
+              <Link href={item.href}>
                 <SidebarMenuButton
-                  as="a"
                   isActive={pathname === item.href}
                   tooltip={{ children: item.label }}
                 >
