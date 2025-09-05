@@ -32,6 +32,7 @@ const navItems = [
   { href: '/revision-planner', label: 'Revision Planner', icon: Calendar },
   { href: '/tagging', label: 'AI Tagger', icon: Tag },
   { href: '/doubt-solver', label: 'Doubt Solver', icon: HelpCircle },
+  { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
 export default function AppSidebar() {
@@ -69,19 +70,7 @@ export default function AppSidebar() {
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="p-2">
-         <SidebarMenu>
-            <SidebarMenuItem>
-              <Link href="/settings" legacyBehavior passHref>
-                <SidebarMenuButton
-                  isActive={pathname === '/settings'}
-                  tooltip={{ children: 'Settings' }}
-                >
-                  <Settings />
-                  <span>Settings</span>
-                </SidebarMenuButton>
-              </Link>
-            </SidebarMenuItem>
-          </SidebarMenu>
+         {/* Footer content can be added here if needed in the future */}
       </SidebarFooter>
     </Sidebar>
   );
