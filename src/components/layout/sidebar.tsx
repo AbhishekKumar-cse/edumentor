@@ -17,7 +17,6 @@ import {
   Calendar,
   HelpCircle,
   Tag,
-  Settings,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
