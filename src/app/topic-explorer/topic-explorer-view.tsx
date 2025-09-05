@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from 'react';
-import type { Subject, Question } from '@/lib/data';
+import type { Subject, Chapter, Question } from '@/lib/data';
 import { Badge } from '@/components/ui/badge';
 import {
   Accordion,
@@ -10,7 +10,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, Flame } from 'lucide-react';
+import { Check, Flame, Atom, FlaskConical, Book } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -25,6 +25,12 @@ type Concept = {
   questionCount: number;
   pastPaperCount: number;
   questions: Question[];
+};
+
+const subjectIcons: { [key: string]: React.ElementType } = {
+  Physics: Atom,
+  Chemistry: FlaskConical,
+  Mathematics: Book,
 };
 
 const QuestionCard = ({ question, index }: { question: Question; index: number }) => {
@@ -89,14 +95,25 @@ const QuestionCard = ({ question, index }: { question: Question; index: number }
   );
 };
 
+
+type ChapterConceptData = {
+    chapterName: string;
+    concepts: Concept[];
+};
+
+type SubjectConceptData = {
+    subjectName: string;
+    chapters: ChapterConceptData[];
+};
+
 export default function TopicExplorerView({ subjects }: TopicExplorerProps) {
-  const [activeTopic, setActiveTopic] = useState<string | null>(null);
+  const [activeConcept, setActiveConcept] = useState<Concept | null>(null);
 
-  const conceptsData = useMemo(() => {
-    const conceptsMap = new Map<string, Concept>();
-
-    subjects.forEach(subject => {
-      subject.chapters.forEach(chapter => {
+  const structuredConcepts = useMemo(() => {
+    const subjectData: SubjectConceptData[] = subjects.map(subject => {
+      const chapterData: ChapterConceptData[] = subject.chapters.map(chapter => {
+        const conceptsMap = new Map<string, Concept>();
+        
         chapter.questions.forEach(question => {
           question.concepts.forEach(conceptName => {
             const normalizedConcept = conceptName.toLowerCase().trim();
@@ -116,64 +133,94 @@ export default function TopicExplorerView({ subjects }: TopicExplorerProps) {
             concept.questions.push(question);
           });
         });
+        
+        const concepts = Array.from(conceptsMap.values())
+          .filter(c => c.pastPaperCount > 0)
+          .sort((a, b) => b.pastPaperCount - a.pastPaperCount);
+
+        return { chapterName: chapter.name, concepts };
       });
+
+      return { subjectName: subject.name, chapters: chapterData.filter(c => c.concepts.length > 0) };
     });
 
-    return Array.from(conceptsMap.values())
-      .filter(c => c.pastPaperCount > 0) // Only show topics with past paper questions
-      .sort((a, b) => b.pastPaperCount - a.pastPaperCount);
+    return subjectData.filter(s => s.chapters.length > 0);
   }, [subjects]);
 
-  const hotTopics = conceptsData.slice(0, 15);
-  
-  const selectedConcept = useMemo(() => {
-      if(!activeTopic) return null;
-      return conceptsData.find(c => c.name === activeTopic) || null;
-  }, [activeTopic, conceptsData]);
 
   return (
     <div className="space-y-8">
-        <div className="space-y-4">
-            <p className="text-muted-foreground">
-                Click on a topic to see all the practice questions related to it. Topics are sorted by the number of questions that have appeared in past papers.
-            </p>
-            <div className="flex flex-wrap gap-2">
-                {hotTopics.map(concept => (
-                <Badge
-                    key={concept.name}
-                    variant={activeTopic === concept.name ? "default" : "secondary"}
-                    className="cursor-pointer py-2 px-3 text-sm"
-                    onClick={() => setActiveTopic(concept.name)}
-                >
-                    <Flame className={cn("mr-2 h-4 w-4", activeTopic === concept.name ? "text-amber-300" : "text-amber-500")} />
-                    {concept.name} ({concept.pastPaperCount})
-                </Badge>
-                ))}
-            </div>
-        </div>
+      <div className="space-y-4">
+        <p className="text-muted-foreground">
+          Explore important topics chapter-by-chapter. Topics are sorted by the number of questions that have appeared in past papers. Click on a topic to view related questions.
+        </p>
+        <Accordion type="multiple" className="w-full space-y-4">
+          {structuredConcepts.map((subject) => {
+            const Icon = subjectIcons[subject.subjectName] || Book;
+            return (
+              <AccordionItem value={subject.subjectName} key={subject.subjectName} className="border rounded-lg">
+                <AccordionTrigger className="px-6 py-4 font-headline text-xl hover:no-underline">
+                  <div className="flex items-center gap-3">
+                    <Icon className="h-6 w-6 text-primary" />
+                    <span>{subject.subjectName}</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="pl-8 pr-4">
+                    <Accordion type="multiple" className="w-full space-y-2">
+                      {subject.chapters.map(chapter => (
+                        <AccordionItem value={chapter.chapterName} key={chapter.chapterName} className="border-l-2 pl-4">
+                           <AccordionTrigger className="font-semibold hover:no-underline">
+                                {chapter.chapterName}
+                           </AccordionTrigger>
+                           <AccordionContent className="pt-2">
+                                <div className="flex flex-wrap gap-2">
+                                    {chapter.concepts.map(concept => (
+                                        <Badge
+                                            key={concept.name}
+                                            variant={activeConcept?.name === concept.name ? "default" : "secondary"}
+                                            className="cursor-pointer py-2 px-3 text-sm"
+                                            onClick={() => setActiveConcept(concept)}
+                                        >
+                                            <Flame className={cn("mr-2 h-4 w-4", activeConcept?.name === concept.name ? "text-amber-300" : "text-amber-500")} />
+                                            {concept.name} ({concept.pastPaperCount})
+                                        </Badge>
+                                    ))}
+                                </div>
+                           </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            )
+          })}
+        </Accordion>
+      </div>
 
-        {selectedConcept && (
-            <div className="mt-8">
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="font-headline text-2xl flex items-center justify-between">
-                           <span>Questions for: {selectedConcept.name}</span>
-                           <Badge variant="outline">{selectedConcept.questionCount} Questions</Badge>
-                        </CardTitle>
-                        <CardDescription>
-                            {selectedConcept.pastPaperCount} of these questions are from past papers.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            {selectedConcept.questions.map((q, i) => (
-                                <QuestionCard key={q.id} question={q} index={i} />
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-        )}
+      {activeConcept && (
+        <div className="mt-8">
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-headline text-2xl flex items-center justify-between">
+                <span>Questions for: {activeConcept.name}</span>
+                <Badge variant="outline">{activeConcept.questionCount} Questions</Badge>
+              </CardTitle>
+              <CardDescription>
+                {activeConcept.pastPaperCount} of these questions are from past papers.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {activeConcept.questions.map((q, i) => (
+                  <QuestionCard key={q.id} question={q} index={i} />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
