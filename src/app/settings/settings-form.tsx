@@ -25,6 +25,8 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { Save } from "lucide-react";
+import { useTheme } from "next-themes";
+import { useEffect } from "react";
 
 const settingsSchema = z.object({
   // Profile Settings
@@ -43,6 +45,7 @@ type SettingsFormValues = z.infer<typeof settingsSchema>;
 
 export default function SettingsForm() {
   const { toast } = useToast();
+  const { setTheme, theme } = useTheme();
 
   const form = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsSchema),
@@ -55,7 +58,15 @@ export default function SettingsForm() {
     },
   });
 
+  useEffect(() => {
+    if (theme) {
+      form.setValue("theme", theme as "light" | "dark" | "system");
+    }
+  }, [theme, form]);
+
+
   function onSubmit(data: SettingsFormValues) {
+    setTheme(data.theme);
     console.log("Settings updated:", data);
     toast({
       title: "Settings Saved",
@@ -111,7 +122,7 @@ export default function SettingsForm() {
                 render={({ field }) => (
                     <FormItem>
                     <FormLabel>Theme</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                         <SelectTrigger>
                             <SelectValue placeholder="Select a theme" />

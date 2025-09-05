@@ -5,6 +5,7 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import AppSidebar from '@/components/layout/sidebar';
 import Header from '@/components/layout/header';
 import { Toaster } from '@/components/ui/toaster';
+import { ThemeProvider } from "next-themes";
 
 export const metadata: Metadata = {
   title: 'EduMentor AI',
@@ -33,16 +34,23 @@ export default function RootLayout({
       <body
         className={cn('font-body antialiased', 'min-h-screen bg-background')}
       >
-        <SidebarProvider>
-          <div className="flex min-h-screen">
-            <AppSidebar />
-            <div className="flex flex-1 flex-col">
-              <Header />
-              <main className="flex-1 p-4 md:p-8">{children}</main>
+        <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+        >
+            <SidebarProvider>
+            <div className="flex min-h-screen">
+                <AppSidebar />
+                <div className="flex flex-1 flex-col">
+                <Header />
+                <main className="flex-1 p-4 md:p-8">{children}</main>
+                </div>
             </div>
-          </div>
-        </SidebarProvider>
-        <Toaster />
+            </SidebarProvider>
+            <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );
