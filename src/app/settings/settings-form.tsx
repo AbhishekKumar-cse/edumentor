@@ -26,10 +26,11 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { Save, Send, Share2, Star } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useProfile } from "@/context/profile-context";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const settingsSchema = z.object({
   // Profile Settings
@@ -56,6 +57,7 @@ type ReportProblemFormValues = z.infer<typeof reportProblemSchema>;
 
 const reviewSchema = z.object({
     review: z.string().min(10, { message: "Review must be at least 10 characters." }),
+    rating: z.number().min(1, { message: "Please provide a rating." }),
 });
 
 type ReviewFormValues = z.infer<typeof reviewSchema>;
@@ -65,6 +67,8 @@ export default function SettingsForm() {
   const { toast } = useToast();
   const { setTheme, theme } = useTheme();
   const { profile, setProfile } = useProfile();
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
 
   const settingsForm = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsSchema),
@@ -89,6 +93,7 @@ export default function SettingsForm() {
     resolver: zodResolver(reviewSchema),
     defaultValues: {
         review: "",
+        rating: 0,
     }
     });
 
@@ -99,6 +104,10 @@ export default function SettingsForm() {
     settingsForm.setValue("name", profile.name);
     settingsForm.setValue("email", profile.email);
   }, [theme, profile, settingsForm]);
+
+  useEffect(() => {
+    reviewForm.setValue("rating", rating);
+  }, [rating, reviewForm]);
 
 
   function onSettingsSubmit(data: SettingsFormValues) {
@@ -126,6 +135,7 @@ export default function SettingsForm() {
         description: "Thank you for your valuable feedback!",
     });
     reviewForm.reset();
+    setRating(0);
     }
 
   function handleShare() {
@@ -278,6 +288,32 @@ export default function SettingsForm() {
                      <div className="space-y-4 p-4 border rounded-lg">
                         <FormField
                             control={reviewForm.control}
+                            name="rating"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Your Rating</FormLabel>
+                                    <FormControl>
+                                        <div className="flex items-center gap-1">
+                                            {[1, 2, 3, 4, 5].map((star) => (
+                                                <Star
+                                                key={star}
+                                                className={cn(
+                                                    "w-8 h-8 cursor-pointer transition-colors",
+                                                    (hoverRating || rating) >= star ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground/50"
+                                                )}
+                                                onClick={() => setRating(star)}
+                                                onMouseEnter={() => setHoverRating(star)}
+                                                onMouseLeave={() => setHoverRating(0)}
+                                                />
+                                            ))}
+                                        </div>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={reviewForm.control}
                             name="review"
                             render={({ field }) => (
                                 <FormItem>
@@ -371,3 +407,5 @@ export default function SettingsForm() {
     </div>
   );
 }
+
+    
