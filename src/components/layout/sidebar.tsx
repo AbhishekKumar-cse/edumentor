@@ -32,7 +32,6 @@ const navItems = [
   { href: '/revision-planner', label: 'Revision Planner', icon: Calendar },
   { href: '/tagging', label: 'AI Tagger', icon: Tag },
   { href: '/doubt-solver', label: 'Doubt Solver', icon: HelpCircle },
-  { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
 export default function AppSidebar() {
