@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -5,6 +6,7 @@ import type { Subject, Chapter, Question } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Accordion,
   AccordionContent,
@@ -14,7 +16,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Lightbulb, BookCopy } from 'lucide-react';
+import { Lightbulb, BookCopy, Check, X } from 'lucide-react';
 
 interface GeneratorFormProps {
   subjects: Subject[];
@@ -28,10 +30,16 @@ const difficultyVariantMap: { [key: string]: 'default' | 'secondary' | 'destruct
   Hard: 'destructive',
 };
 
+interface TestQuestion extends Question {
+    userAnswer?: string;
+}
+
 export default function GeneratorForm({ subjects }: GeneratorFormProps) {
   const [selectedChapters, setSelectedChapters] = useState<number[]>([]);
   const [selectedDifficulties, setSelectedDifficulties] = useState<string[]>([]);
-  const [generatedTest, setGeneratedTest] = useState<Question[]>([]);
+  const [generatedTest, setGeneratedTest] = useState<TestQuestion[]>([]);
+  const [isTestSubmitted, setIsTestSubmitted] = useState(false);
+  const [score, setScore] = useState(0);
 
   const handleChapterToggle = (chapterId: number) => {
     setSelectedChapters((prev) =>
@@ -63,10 +71,34 @@ export default function GeneratorForm({ subjects }: GeneratorFormProps) {
       allQuestions = allQuestions.filter((q) => selectedDifficulties.includes(q.difficulty));
     }
 
-    // Shuffle and pick a few questions for a "real" test feel
     const shuffled = allQuestions.sort(() => 0.5 - Math.random());
-    setGeneratedTest(shuffled.slice(0, 10)); // Limit to 10 questions for example
+    setGeneratedTest(shuffled.slice(0, 10)); 
+    setIsTestSubmitted(false);
+    setScore(0);
   };
+
+  const handleAnswerChange = (questionId: number, answer: string) => {
+    setGeneratedTest(prev => prev.map(q => q.id === questionId ? {...q, userAnswer: answer} : q));
+  }
+
+  const submitTest = () => {
+    let correctAnswers = 0;
+    generatedTest.forEach(q => {
+        if (q.userAnswer === q.answer) {
+            correctAnswers++;
+        }
+    });
+    setScore(correctAnswers);
+    setIsTestSubmitted(true);
+  }
+
+  const getOptionClass = (option: string, question: TestQuestion) => {
+    if (!isTestSubmitted) return '';
+    if (option === question.answer) return 'text-green-600 dark:text-green-400 font-bold';
+    if (option === question.userAnswer) return 'text-red-600 dark:text-red-400 line-through';
+    return '';
+  };
+
 
   return (
     <div className="space-y-8">
@@ -114,29 +146,58 @@ export default function GeneratorForm({ subjects }: GeneratorFormProps) {
       </div>
       
       <Button onClick={generateTest} variant="default" size="lg" className="bg-accent hover:bg-accent/90">
-        <Lightbulb className="mr-2 h-4 w-4" /> Generate Test
+        <Lightbulb className="mr-2 h-4 w-4" /> Generate New Test
       </Button>
 
       {generatedTest.length > 0 && (
         <div className="mt-8 space-y-6">
           <Card>
             <CardHeader>
-                <CardTitle className="flex items-center gap-3">
-                    <BookCopy className="w-6 h-6 text-primary" />
-                    <span className="font-headline text-2xl">Your Mock Test</span>
+                <CardTitle className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <BookCopy className="w-6 h-6 text-primary" />
+                        <span className="font-headline text-2xl">Your Mock Test</span>
+                    </div>
+                    {isTestSubmitted && (
+                        <div className="text-xl font-bold">Score: {score} / {generatedTest.length}</div>
+                    )}
                 </CardTitle>
               <CardDescription>
-                Here are the {generatedTest.length} questions for your test.
+                {isTestSubmitted ? "Here are your results." : `Here are the ${generatedTest.length} questions for your test.`}
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {generatedTest.map((question, index) => (
                   <div key={question.id} className="p-4 border rounded-lg">
                     <p className="font-semibold">
                       Q{index + 1}: {question.text}
                     </p>
-                    <div className="flex items-center justify-between mt-2 text-sm text-muted-foreground">
+                    <RadioGroup
+                        value={question.userAnswer}
+                        onValueChange={(value) => handleAnswerChange(question.id, value)}
+                        className="space-y-2 my-4"
+                        disabled={isTestSubmitted}
+                    >
+                        {question.options.map((option, i) => (
+                        <div key={i} className="flex items-center space-x-2">
+                            <RadioGroupItem value={option} id={`${question.id}-option-${i}`} />
+                            <Label htmlFor={`${question.id}-option-${i}`} className={cn("cursor-pointer", getOptionClass(option, question))}>
+                            {option}
+                            </Label>
+                        </div>
+                        ))}
+                    </RadioGroup>
+                     {isTestSubmitted && (
+                        <div className={cn(
+                            "mt-4 p-3 rounded-md text-sm flex items-center gap-2",
+                            question.userAnswer === question.answer ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300" : "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300"
+                        )}>
+                           {question.userAnswer === question.answer ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
+                           Correct Answer: <strong>{question.answer}</strong>
+                        </div>
+                    )}
+                    <div className="flex items-center justify-between mt-4 text-sm text-muted-foreground">
                         <Badge
                           variant={difficultyVariantMap[question.difficulty]}
                           className={cn('text-xs', {
@@ -151,6 +212,11 @@ export default function GeneratorForm({ subjects }: GeneratorFormProps) {
                     </div>
                   </div>
                 ))}
+                {!isTestSubmitted && (
+                    <Button onClick={submitTest} size="lg" variant="default" className="w-full">
+                        Submit Test
+                    </Button>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -159,3 +225,4 @@ export default function GeneratorForm({ subjects }: GeneratorFormProps) {
     </div>
   );
 }
+
