@@ -17,6 +17,7 @@ import {
   Calendar,
   HelpCircle,
   Tag,
+  Settings,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -51,15 +52,16 @@ export default function AppSidebar() {
         <SidebarMenu>
           {navItems.map((item) => (
             <SidebarMenuItem key={item.href}>
-              <Link href={item.href}>
+              <Link href={item.href} passHref>
                 <SidebarMenuButton
+                  asChild
                   isActive={pathname === item.href}
                   tooltip={{ children: item.label }}
                 >
-                  <>
+                  <a href={item.href}>
                     <item.icon />
                     <span>{item.label}</span>
-                  </>
+                  </a>
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
