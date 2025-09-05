@@ -31,11 +31,15 @@ import { useProfile } from "@/context/profile-context";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const settingsSchema = z.object({
   // Profile Settings
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   email: z.string().email({ message: "Please enter a valid email address." }),
+  bio: z.string().max(160, { message: "Bio cannot be longer than 160 characters." }).optional(),
+  avatar: z.string().url({ message: "Please enter a valid URL." }).optional(),
+  studyGoals: z.string().max(200, { message: "Study goals cannot be longer than 200 characters." }).optional(),
 
   // Appearance Settings
   theme: z.enum(["light", "dark", "system"]),
@@ -75,6 +79,9 @@ export default function SettingsForm() {
     defaultValues: {
       name: "Student",
       email: "student@example.com",
+      bio: "",
+      avatar: "",
+      studyGoals: "",
       theme: "light",
       emailNotifications: true,
       pushNotifications: false,
@@ -103,6 +110,9 @@ export default function SettingsForm() {
     }
     settingsForm.setValue("name", profile.name);
     settingsForm.setValue("email", profile.email);
+    settingsForm.setValue("bio", profile.bio);
+    settingsForm.setValue("avatar", profile.avatar);
+    settingsForm.setValue("studyGoals", profile.studyGoals);
   }, [theme, profile, settingsForm]);
 
   useEffect(() => {
@@ -112,7 +122,13 @@ export default function SettingsForm() {
 
   function onSettingsSubmit(data: SettingsFormValues) {
     setTheme(data.theme);
-    setProfile({ name: data.name, email: data.email });
+    setProfile({ 
+        name: data.name,
+        email: data.email,
+        bio: data.bio || '',
+        avatar: data.avatar || '',
+        studyGoals: data.studyGoals || ''
+     });
     toast({
       title: "Settings Saved",
       description: "Your new settings have been successfully saved.",
@@ -145,6 +161,8 @@ export default function SettingsForm() {
       description: "The application link has been copied to your clipboard.",
     });
   }
+  
+  const avatarUrl = settingsForm.watch("avatar") || profile.avatar;
 
   return (
     <div className="space-y-12">
@@ -154,6 +172,25 @@ export default function SettingsForm() {
             <div className="space-y-4">
                 <h3 className="text-lg font-medium font-headline">Profile</h3>
                 <div className="space-y-4 p-4 border rounded-lg">
+                    <FormField
+                      control={settingsForm.control}
+                      name="avatar"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center gap-4">
+                            <Avatar className="h-20 w-20">
+                                <AvatarImage src={avatarUrl} alt={profile.name} data-ai-hint="student avatar" />
+                                <AvatarFallback>{profile.name.charAt(0).toUpperCase()}</AvatarFallback>
+                            </Avatar>
+                            <div className="w-full space-y-1">
+                                <FormLabel>Avatar URL</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="https://example.com/avatar.png" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </div>
+                        </FormItem>
+                      )}
+                    />
                     <FormField
                     control={settingsForm.control}
                     name="name"
@@ -179,6 +216,38 @@ export default function SettingsForm() {
                         <FormMessage />
                         </FormItem>
                     )}
+                    />
+                     <FormField
+                      control={settingsForm.control}
+                      name="bio"
+                      render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Bio</FormLabel>
+                            <FormControl>
+                                <Textarea placeholder="Tell us a little bit about yourself" {...field} />
+                            </FormControl>
+                            <FormDescription>
+                                A short and sweet bio to appear on your profile.
+                            </FormDescription>
+                            <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={settingsForm.control}
+                      name="studyGoals"
+                      render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Study Goals</FormLabel>
+                            <FormControl>
+                                <Textarea placeholder="What are you hoping to achieve?" {...field} />
+                            </FormControl>
+                             <FormDescription>
+                                Write down your main study goals to stay focused.
+                            </FormDescription>
+                            <FormMessage />
+                        </FormItem>
+                      )}
                     />
                 </div>
             </div>
@@ -407,5 +476,3 @@ export default function SettingsForm() {
     </div>
   );
 }
-
-    

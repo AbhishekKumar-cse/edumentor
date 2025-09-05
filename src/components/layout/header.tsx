@@ -33,7 +33,7 @@ export default function Header() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-9 w-9 rounded-full">
               <Avatar className="h-9 w-9">
-                <AvatarImage src="https://picsum.photos/100" alt="@student" data-ai-hint="student avatar" />
+                <AvatarImage src={profile.avatar} alt={profile.name} data-ai-hint="student avatar" />
                 <AvatarFallback>{profile.name.charAt(0).toUpperCase()}</AvatarFallback>
               </Avatar>
             </Button>

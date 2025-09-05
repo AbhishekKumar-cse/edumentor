@@ -5,6 +5,9 @@ import React, { createContext, useState, useContext, ReactNode } from 'react';
 type Profile = {
   name: string;
   email: string;
+  bio: string;
+  avatar: string;
+  studyGoals: string;
 };
 
 type ProfileContextType = {
@@ -18,6 +21,9 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
   const [profile, setProfile] = useState<Profile>({
     name: 'Student',
     email: 'student@example.com',
+    bio: 'A passionate learner exploring the world of science and mathematics.',
+    avatar: 'https://picsum.photos/100',
+    studyGoals: 'Ace the upcoming physics exam and master calculus.',
   });
 
   return (
