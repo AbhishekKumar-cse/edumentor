@@ -505,7 +505,7 @@ export const subjects: Subject[] = [
             { id: 103172, text: 'A block of mass m is released from the top of a smooth vertical track, which ends in a circle of radius r. The minimum height h from which the block should be released so that it completes the circle is:', options: ['2r', '2.5r', '3r', '3.5r'], answer: '2.5r', difficulty: 'Hard', pageReference: 73, concepts: ['conservation of energy', 'vertical circular motion'], isPastPaper: false },
             { id: 103173, text: 'A chain is held on a frictionless table with 1/n of its length hanging over the edge. If the chain is released, the speed with which it leaves the table is:', options: ['√(gL(1-1/n²))', '√(gL(1-1/n))', '√(gL/n)', '√(2gL/n)'], answer: '√(gL(1-1/n²))', difficulty: 'Hard', pageReference: 73, concepts: ['conservation of energy', 'centre of mass'], isPastPaper: false },
             { id: 103174, text: 'A body of mass m is projected with velocity v₀ at an angle θ with the horizontal. The power of gravity at time t is:', options: ['mg(v₀sinθ - gt)', '-mg(v₀sinθ - gt)', 'mgv₀cosθ', '0'], answer: '-mg(v₀sinθ - gt)', difficulty: 'Hard', pageReference: 74, concepts: ['power', 'projectile motion'], isPastPaper: false },
-            { id: 103175, text: 'The kinetic energy of a particle moving along a circle of radius R depends on the distance covered s as K = as², where a is a constant. The magnitude of the force acting on the particle as a function of s is:', options: ['2as√(1 + (s/R)²)','2as√(1 - (s/R)²)','2as', '2as²/R'], answer: '2as√(1 + (s/R)²)''', difficulty: 'Hard', pageReference: 68, concepts: ['kinetic energy', 'circular motion', 'force'], isPastPaper: true },
+            { id: 103175, text: 'The kinetic energy of a particle moving along a circle of radius R depends on the distance covered s as K = as², where a is a constant. The magnitude of the force acting on the particle as a function of s is:', options: ['2as√(1 + (s/R)²)','2as√(1 - (s/R)²)','2as', '2as²/R'], answer: '2as√(1 + (s/R)²)', difficulty: 'Hard', pageReference: 68, concepts: ['kinetic energy', 'circular motion', 'force'], isPastPaper: true },
             { id: 103176, text: 'A particle is moving under the potential U(x) = kx³ where k is a positive constant. The particle will be in stable equilibrium at:', options: ['x=0', 'x > 0', 'x < 0', 'No stable equilibrium point'], answer: 'No stable equilibrium point', difficulty: 'Hard', pageReference: 71, concepts: ['potential energy', 'equilibrium'], isPastPaper: false },
             { id: 103177, text: 'A particle of mass m is moving in a potential U(r) = -k/r. The total energy of the particle is E = -k/(2a). The speed of the particle is:', options: ['√(k/(ma))', '√(2k/(ma))', '√(k/(2ma))', '√(k/a)'], answer: '√(k/(ma))', difficulty: 'Hard', pageReference: 73, concepts: ['potential energy', 'total energy'], isPastPaper: false },
             { id: 103178, text: 'A ball is dropped from a height of 10 m. It rebounds to a height of 2.5 m. If the ball is in contact with the floor for 0.01 s, the average acceleration during contact is (g=10 m/s²):', options: ['2100 m/s²', '1400 m/s²', '700 m/s²', '2800 m/s²'], answer: '2100 m/s²', difficulty: 'Hard', pageReference: 77, concepts: ['collision', 'impulse'], isPastPaper: false },
@@ -910,6 +910,8 @@ export const conceptMaps = [
     
 
     
+
+
 
 
 
