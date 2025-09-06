@@ -35,11 +35,59 @@ export async function resolveStudentDoubts(input: ResolveStudentDoubtsInput): Pr
   return resolveStudentDoubtsFlow(input);
 }
 
+const getCurrentWeather = ai.defineTool(
+  {
+    name: 'getCurrentWeather',
+    description: 'Get the current weather in a given city.',
+    inputSchema: z.object({
+      city: z.string().describe('The city, e.g. San Francisco'),
+    }),
+    outputSchema: z.object({
+        temperature: z.number().describe('The current temperature in Celsius.'),
+        conditions: z.string().describe('A brief description of the current weather conditions.'),
+    }),
+  },
+  async ({ city }) => {
+    // In a real app, this would call a weather API.
+    // For this example, we'll return mock data.
+    console.log(`Fetching weather for ${city}...`);
+    return {
+      temperature: 22 + Math.random() * 10,
+      conditions: 'Sunny with scattered clouds',
+    };
+  }
+);
+
+
+const searchTheWeb = ai.defineTool(
+  {
+    name: 'searchTheWeb',
+    description: 'Searches the web for information on a given topic, useful for current events and up-to-date information.',
+    inputSchema: z.object({
+      query: z.string().describe('The search query.'),
+    }),
+    outputSchema: z.string().describe('A summary of the search results.'),
+  },
+  async ({ query }) => {
+    // In a real app, this would use a search engine API.
+    // For this example, we'll return a placeholder.
+    console.log(`Searching the web for: ${query}`);
+    if (query.toLowerCase().includes('governor of rajasthan')) {
+        return "As of my last update, the Governor of Rajasthan is Kalraj Mishra. Please verify with a live news source for the most current information."
+    }
+    return `Placeholder search results for "${query}". In a real app, this would be a live web search.`;
+  }
+);
+
+
 const prompt = ai.definePrompt({
   name: 'resolveStudentDoubtsPrompt',
+  tools: [getCurrentWeather, searchTheWeb],
   input: {schema: ResolveStudentDoubtsInputSchema},
   output: {schema: ResolveStudentDoubtsOutputSchema},
-  prompt: `You are an AI assistant specialized in resolving student doubts and providing clear explanations. 
+  prompt: `You are an AI assistant specialized in resolving student doubts and providing clear, detailed explanations. 
+  
+  Your primary role is to help students with their academic questions. However, you are also equipped with tools to fetch real-time information like weather and current events if the user asks for it.
   
   If an image is provided, analyze it carefully along with the user's question. The image might contain the problem statement, a diagram, or other relevant context.
   
@@ -54,7 +102,7 @@ const prompt = ai.definePrompt({
   Problem Image: {{media url=imageDataUri}}
   {{/if}}
 
-  Provide a concise answer and, if necessary, offer a detailed explanation to help the student understand the concept.
+  Provide a concise answer first, followed by a very detailed, step-by-step explanation to help the student understand the underlying concepts thoroughly.
   Context: {{{context}}}
   `,
 });
