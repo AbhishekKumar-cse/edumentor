@@ -19,7 +19,8 @@ import {
   HelpCircle,
   Tag,
   Settings,
-  Telescope
+  Telescope,
+  Sigma
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -27,6 +28,7 @@ import { usePathname } from 'next/navigation';
 const navItems = [
   { href: '/', label: 'Dashboard', icon: Home },
   { href: '/resources', label: 'Resources', icon: Book },
+  { href: '/formulas', label: 'Formula Sheets', icon: Sigma },
   { href: '/mock-test', label: 'Mock Tests', icon: ClipboardList },
   { href: '/revision-planner', label: 'Revision Planner', icon: Calendar },
   { href: '/tagging', label: 'AI Tagger', icon: Tag },
