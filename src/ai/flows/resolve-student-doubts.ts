@@ -26,7 +26,7 @@ export type ResolveStudentDoubtsInput = z.infer<typeof ResolveStudentDoubtsInput
 
 const ResolveStudentDoubtsOutputSchema = z.object({
   answer: z.string().describe("The AI assistant's answer to the question."),
-  explanation: z.string().optional().describe('A brief explanation of the concept or solution, if necessary.'),
+  explanation: z.string().optional().describe('A detailed, step-by-step explanation of the concept or solution.'),
 });
 export type ResolveStudentDoubtsOutput = z.infer<typeof ResolveStudentDoubtsOutputSchema>;
 
@@ -102,7 +102,7 @@ const prompt = ai.definePrompt({
   Problem Image: {{media url=imageDataUri}}
   {{/if}}
 
-  Provide a concise answer, and a brief explanation if necessary. Avoid overly detailed, step-by-step walkthroughs unless specifically asked.
+  Provide a detailed, step-by-step explanation to help the student understand the concept thoroughly.
   Context: {{{context}}}
   `,
 });
