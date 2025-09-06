@@ -33,11 +33,22 @@ const FormulaSchema = z.object({
     derivation: z.string(),
 });
 
+const QuestionSchema = z.object({
+    id: z.number(),
+    text: z.string(),
+    options: z.array(z.string()),
+    answer: z.string(),
+    difficulty: z.enum(['Easy', 'Medium', 'Hard']),
+    pageReference: z.number(),
+    concepts: z.array(z.string()),
+    isPastPaper: z.boolean(),
+});
+
 const ConceptSchema = z.object({
     name: z.string(),
     explanation: z.string().describe("A detailed explanation of the concept."),
     formulas: z.array(FormulaSchema).describe("A list of important formulas related to this concept."),
-    relatedQuestions: z.array(z.custom<Question>()).describe("A few example questions related to this concept from the question bank.")
+    relatedQuestions: z.array(QuestionSchema).describe("A few example questions related to this concept from the question bank.")
 });
 
 
