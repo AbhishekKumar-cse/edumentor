@@ -11,7 +11,6 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {googleAI} from '@genkit-ai/googleai';
 import {z} from 'zod';
 
 const MessageSchema = z.object({
@@ -34,35 +33,6 @@ const ResolveStudentDoubtsOutputSchema = z.object({
 export type ResolveStudentDoubtsOutput = z.infer<typeof ResolveStudentDoubtsOutputSchema>;
 
 
-const getCurrentWeather = ai.defineTool(
-    {
-      name: 'getCurrentWeather',
-      description: 'Get the current weather in a given location',
-      inputSchema: z.object({
-        location: z.string().describe('The city and state, e.g. San Francisco, CA'),
-      }),
-      outputSchema: z.object({
-        temperature: z.string(),
-        wind: z.string(),
-        description: z.string(),
-      }),
-    },
-    async ({location}) => {
-      // This is a placeholder. In a real app, you would call a weather API.
-      if (location.toLowerCase().includes('tokyo')) {
-        return {temperature: '15°C', wind: '5 km/h', description: 'Cloudy'};
-      } else if (location.toLowerCase().includes('san francisco')) {
-        return {temperature: '20°C', wind: '10 km/h', description: 'Sunny'};
-      }
-      return {
-        temperature: `${Math.floor(Math.random() * 10 + 20)}°C`,
-        wind: `${Math.floor(Math.random() * 10 + 5)} km/h`,
-        description: 'Partly cloudy',
-      };
-    }
-);
-
-
 export async function resolveStudentDoubts(input: ResolveStudentDoubtsInput): Promise<ResolveStudentDoubtsOutput> {
   return resolveStudentDoubtsFlow(input);
 }
@@ -71,13 +41,9 @@ const prompt = ai.definePrompt({
   name: 'resolveStudentDoubtsPrompt',
   input: {schema: ResolveStudentDoubtsInputSchema},
   output: {schema: ResolveStudentDoubtsOutputSchema},
-  tools: [getCurrentWeather],
-  model: googleAI('gemini-2.5-flash-grounded-preview'),
-  prompt: `You are an AI assistant specialized in resolving student doubts and providing clear explanations. You have access to tools that can fetch real-time information like weather and news.
-
+  prompt: `You are an AI assistant specialized in resolving student doubts and providing clear explanations. 
+  
   If an image is provided, analyze it carefully along with the user's question. The image might contain the problem statement, a diagram, or other relevant context.
-  Use your tools when the user asks for current information that you don't know, like current weather. 
-  For questions about current events or facts that might have changed recently (e.g., "who is the governor of rajasthan"), use your internal search capability to find the most up-to-date information before answering. Otherwise, answer their academic questions.
   
   Conversation History:
   {{#each history}}
