@@ -192,6 +192,9 @@ export default function GeneratorForm({ subjects }: GeneratorFormProps) {
                         <SelectValue placeholder="Set duration" />
                     </SelectTrigger>
                     <SelectContent>
+                        <SelectItem value="5">5 minutes</SelectItem>
+                        <SelectItem value="10">10 minutes</SelectItem>
+                        <SelectItem value="20">20 minutes</SelectItem>
                         <SelectItem value="45">45 minutes</SelectItem>
                         <SelectItem value="60">60 minutes</SelectItem>
                         <SelectItem value="90">90 minutes</SelectItem>
