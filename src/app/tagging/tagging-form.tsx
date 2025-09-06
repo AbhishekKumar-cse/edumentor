@@ -11,9 +11,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Cpu, CheckCircle, XCircle } from 'lucide-react';
+import { Loader2, Cpu, CheckCircle, XCircle, BookOpen, BrainCircuit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
 
 const formSchema = z.object({
   questionText: z.string().min(10, {
@@ -82,7 +83,7 @@ export default function TaggingForm() {
       </Form>
 
       {(isLoading || taggingResult) && (
-        <Card>
+        <Card className="mt-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-3">
               <Cpu className="w-6 h-6 text-primary" />
@@ -96,35 +97,59 @@ export default function TaggingForm() {
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
             ) : taggingResult && (
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-semibold mb-2">Difficulty:</h4>
-                  <Badge variant={difficultyVariantMap[taggingResult.difficulty]} className={cn('capitalize text-sm', {
-                        'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800': taggingResult.difficulty === 'easy',
-                        'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-800': taggingResult.difficulty === 'medium',
-                        'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800': taggingResult.difficulty === 'hard',
-                  })}>
-                    {taggingResult.difficulty}
-                  </Badge>
-                </div>
-                <div>
-                  <h4 className="font-semibold mb-2">Concepts:</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {taggingResult.concepts.map((concept, index) => (
-                      <Badge key={index} variant="outline">{concept}</Badge>
-                    ))}
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-semibold mb-2 text-muted-foreground">Difficulty</h4>
+                    <Badge variant={difficultyVariantMap[taggingResult.difficulty]} className={cn('capitalize text-sm', {
+                          'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800': taggingResult.difficulty === 'easy',
+                          'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-800': taggingResult.difficulty === 'medium',
+                          'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800': taggingResult.difficulty === 'hard',
+                    })}>
+                      {taggingResult.difficulty}
+                    </Badge>
+                  </div>
+                   <div>
+                    <h4 className="font-semibold mb-2 text-muted-foreground">Past Paper Details</h4>
+                    <div className="flex items-center gap-2">
+                        {taggingResult.pastPaperDetails.isPastPaper ? (
+                            <CheckCircle className="h-5 w-5 text-green-500" />
+                        ) : (
+                            <XCircle className="h-5 w-5 text-red-500" />
+                        )}
+                        <span>
+                            {taggingResult.pastPaperDetails.isPastPaper 
+                                ? `${taggingResult.pastPaperDetails.exam || 'Past Paper'}, ${taggingResult.pastPaperDetails.year || 'Unknown Year'}`
+                                : 'Not from a known past paper'}
+                        </span>
+                    </div>
                   </div>
                 </div>
+
+                <Separator />
+
                 <div>
-                  <h4 className="font-semibold mb-2">Past Paper Question:</h4>
-                  <div className="flex items-center gap-2">
-                    {taggingResult.isPastPaperQuestion ? (
-                      <CheckCircle className="h-5 w-5 text-green-500" />
-                    ) : (
-                      <XCircle className="h-5 w-5 text-red-500" />
-                    )}
-                    <span>{taggingResult.isPastPaperQuestion ? 'Yes' : 'No'}</span>
-                  </div>
+                    <h4 className="font-semibold mb-3 flex items-center gap-2 text-muted-foreground">
+                        <BrainCircuit className="h-5 w-5" />
+                        Primary Concepts
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                        {taggingResult.concepts.map((concept, index) => (
+                        <Badge key={index} variant="outline">{concept}</Badge>
+                        ))}
+                    </div>
+                </div>
+
+                 <div>
+                    <h4 className="font-semibold mb-3 flex items-center gap-2 text-muted-foreground">
+                        <BookOpen className="h-5 w-5" />
+                        Related Topics for Study
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                        {taggingResult.relatedTopics.map((concept, index) => (
+                        <Badge key={index} variant="secondary">{concept}</Badge>
+                        ))}
+                    </div>
                 </div>
               </div>
             )}
