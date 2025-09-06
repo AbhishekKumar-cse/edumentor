@@ -53,7 +53,7 @@ type ReportProblemFormValues = z.infer<typeof reportProblemSchema>;
 
 const reviewSchema = z.object({
   review: z.string().min(10, { message: "Review must be at least 10 characters." }),
-  rating: z.number().min(1, { message: "Please provide a rating." }),
+  rating: z.number().min(1, { message: "Please provide a rating." }).max(5),
 });
 
 type ReviewFormValues = z.infer<typeof reviewSchema>;
@@ -61,7 +61,6 @@ type ReviewFormValues = z.infer<typeof reviewSchema>;
 export default function SettingsForm() {
   const { toast } = useToast();
   const { setTheme, theme } = useTheme();
-  const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
 
   const appearanceForm = useForm<AppearanceFormValues>({
@@ -94,10 +93,6 @@ export default function SettingsForm() {
       appearanceForm.setValue("theme", theme as "light" | "dark" | "system");
     }
   }, [theme, appearanceForm]);
-
-  useEffect(() => {
-    reviewForm.setValue("rating", rating);
-  }, [rating, reviewForm]);
 
   function onAppearanceSubmit(data: AppearanceFormValues) {
     setTheme(data.theme);
@@ -132,7 +127,6 @@ export default function SettingsForm() {
       description: "Thank you for your valuable feedback!",
     });
     reviewForm.reset();
-    setRating(0);
   }
 
   function handleShare() {
@@ -275,9 +269,9 @@ export default function SettingsForm() {
                                             key={star}
                                             className={cn(
                                             "w-8 h-8 cursor-pointer transition-colors",
-                                            (hoverRating || rating) >= star ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground/50"
+                                            (hoverRating || field.value) >= star ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground/50"
                                             )}
-                                            onClick={() => setRating(star)}
+                                            onClick={() => field.onChange(star)}
                                             onMouseEnter={() => setHoverRating(star)}
                                             onMouseLeave={() => setHoverRating(0)}
                                         />
