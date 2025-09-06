@@ -9,6 +9,8 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
+  SidebarTrigger,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { Logo } from '@/components/icons';
 import {
@@ -20,7 +22,9 @@ import {
   Tag,
   Settings,
   Telescope,
-  Sigma
+  Sigma,
+  PanelLeftClose,
+  PanelRightClose
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -35,6 +39,23 @@ const navItems = [
   { href: '/topic-explorer', label: 'Topic Explorer', icon: Telescope },
   { href: '/doubt-solver', label: 'Doubt Solver', icon: HelpCircle },
 ];
+
+function SidebarCollapseButton() {
+    const { state, toggleSidebar } = useSidebar();
+    const isCollapsed = state === 'collapsed';
+    const Icon = isCollapsed ? PanelRightClose : PanelLeftClose;
+    return (
+        <SidebarMenuButton
+            onClick={toggleSidebar}
+            className="w-full justify-center"
+            tooltip={{children: isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar', side: 'right'}}
+        >
+            <Icon />
+            <span className="sr-only">Toggle Sidebar</span>
+        </SidebarMenuButton>
+    )
+}
+
 
 export default function AppSidebar() {
   const pathname = usePathname();
@@ -71,7 +92,7 @@ export default function AppSidebar() {
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="p-2">
-         {/* Footer content can be added here if needed in the future */}
+         <SidebarCollapseButton />
       </SidebarFooter>
     </Sidebar>
   );
