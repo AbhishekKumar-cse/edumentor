@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -20,6 +21,7 @@ import { useEffect } from "react";
 import { useProfile } from "@/context/profile-context";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const profileSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -31,15 +33,50 @@ const profileSchema = z.object({
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
+const ProfileFormSkeleton = () => (
+    <div className="space-y-8">
+        <div className="space-y-4">
+            <h3 className="text-lg font-medium font-headline"><Skeleton className="h-6 w-40" /></h3>
+            <div className="space-y-4 p-4 border rounded-lg">
+                 <div className="flex items-center gap-4">
+                    <Skeleton className="h-20 w-20 rounded-full" />
+                    <div className="w-full space-y-2">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-10 w-full" />
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="space-y-2">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-10 w-full" />
+                </div>
+                 <div className="space-y-2">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-20 w-full" />
+                </div>
+                 <div className="space-y-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-20 w-full" />
+                </div>
+            </div>
+        </div>
+        <Skeleton className="h-10 w-32" />
+    </div>
+)
+
+
 export default function ProfileForm() {
   const { toast } = useToast();
-  const { profile, setProfile } = useProfile();
+  const { profile, setProfile, isLoading } = useProfile();
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      name: "Student",
-      email: "student@example.com",
+      name: "",
+      email: "",
       bio: "",
       avatar: "",
       studyGoals: "",
@@ -47,14 +84,19 @@ export default function ProfileForm() {
   });
 
   useEffect(() => {
-    form.setValue("name", profile.name);
-    form.setValue("email", profile.email);
-    form.setValue("bio", profile.bio);
-    form.setValue("avatar", profile.avatar);
-    form.setValue("studyGoals", profile.studyGoals);
+    if (profile) {
+      form.reset({
+        name: profile.name,
+        email: profile.email,
+        bio: profile.bio || '',
+        avatar: profile.avatar || '',
+        studyGoals: profile.studyGoals || ''
+      });
+    }
   }, [profile, form]);
 
   function onSubmit(data: ProfileFormValues) {
+    if(!profile) return;
     setProfile({ 
         name: data.name,
         email: data.email,
@@ -68,7 +110,12 @@ export default function ProfileForm() {
     });
   }
   
+  if (isLoading || !profile) {
+    return <ProfileFormSkeleton />;
+  }
+
   const avatarUrl = form.watch("avatar") || profile.avatar;
+  const profileName = form.watch("name") || profile.name;
 
   return (
     <Form {...form}>
@@ -82,8 +129,8 @@ export default function ProfileForm() {
                   render={({ field }) => (
                     <FormItem className="flex items-center gap-4">
                         <Avatar className="h-20 w-20">
-                            <AvatarImage src={avatarUrl} alt={profile.name} data-ai-hint="student avatar" />
-                            <AvatarFallback>{profile.name.charAt(0).toUpperCase()}</AvatarFallback>
+                            <AvatarImage src={avatarUrl} alt={profileName} data-ai-hint="student avatar" />
+                            <AvatarFallback>{profileName.charAt(0).toUpperCase()}</AvatarFallback>
                         </Avatar>
                         <div className="w-full space-y-1">
                             <FormLabel>Avatar URL</FormLabel>

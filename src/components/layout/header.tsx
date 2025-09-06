@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -14,13 +15,25 @@ import {
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, Settings, LogOut } from 'lucide-react';
+import { User, Settings, LogOut, Loader2 } from 'lucide-react';
 import { useProfile } from '@/context/profile-context';
 import Link from 'next/link';
+import { Skeleton } from '../ui/skeleton';
 
 export default function Header() {
-  const { profile } = useProfile();
+  const { profile, isLoading } = useProfile();
   
+  if (isLoading || !profile) {
+    return (
+        <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm md:px-8">
+            <SidebarTrigger className="md:hidden" />
+            <div className="ml-auto">
+                <Skeleton className="h-9 w-9 rounded-full" />
+            </div>
+        </header>
+    );
+  }
+
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm md:px-8">
       <SidebarTrigger className="md:hidden" />
