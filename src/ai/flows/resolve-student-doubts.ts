@@ -22,6 +22,7 @@ const ResolveStudentDoubtsInputSchema = z.object({
   history: z.array(MessageSchema).describe('The conversation history.'),
   question: z.string().describe('The student\'s latest question or problem.'),
   context: z.string().optional().describe('Additional context or information related to the question.'),
+  imageDataUri: z.string().optional().describe("An optional image of the problem, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."),
 });
 export type ResolveStudentDoubtsInput = z.infer<typeof ResolveStudentDoubtsInputSchema>;
 
@@ -96,6 +97,7 @@ const prompt = ai.definePrompt({
   tools: [getCurrentWeather, getLatestNews],
   prompt: `You are an AI assistant specialized in resolving student doubts and providing clear explanations. You have access to tools that can fetch real-time information like weather and news.
 
+  If an image is provided, analyze it carefully along with the user's question. The image might contain the problem statement, a diagram, or other relevant context.
   Use your tools when the user asks for current information. Otherwise, answer their academic questions.
   
   Conversation History:
@@ -105,6 +107,9 @@ const prompt = ai.definePrompt({
   
   A student has asked the following question:
   Question: {{{question}}}
+  {{#if imageDataUri}}
+  Problem Image: {{media url=imageDataUri}}
+  {{/if}}
 
   Provide a concise answer and, if necessary, offer a detailed explanation to help the student understand the concept.
   Context: {{{context}}}
