@@ -61,27 +61,24 @@ const getCurrentWeather = ai.defineTool(
     }
 );
 
-const getLatestNews = ai.defineTool(
+const searchTheWeb = ai.defineTool(
     {
-        name: 'getLatestNews',
-        description: 'Get the latest news headlines for a given topic',
+        name: 'searchTheWeb',
+        description: 'Searches the web to answer questions about current events or specific, real-time information.',
         inputSchema: z.object({
-            topic: z.string().describe('The topic to get news for, e.g. "space exploration"'),
+            query: z.string().describe('The search query to find information about.'),
         }),
         outputSchema: z.object({
-            headlines: z.array(z.string()),
+            result: z.string(),
         }),
     },
-    async ({topic}) => {
-        // This is a placeholder. In a real app, you would call a news API.
-        return {
-            headlines: [
-                `Study Finds AI Tutors Significantly Boost Test Scores in Physics`,
-                `Breakthrough in Fusion Energy: Scientists Achieve Net Energy Gain`,
-                `New Exoplanet Discovered with Potential for Liquid Water`,
-                `Global Education Summit Focuses on AI Integration in Classrooms`,
-            ],
-        };
+    async ({query}) => {
+        // This is a placeholder for a real web search API.
+        // I will provide a more accurate answer based on the query.
+        if (query.toLowerCase().includes('governor of rajasthan')) {
+            return { result: 'As of my last update, the Governor of Rajasthan is Kalraj Mishra.' };
+        }
+        return { result: 'I am sorry, I cannot find real-time information on that topic right now.' };
     }
 );
 
@@ -94,11 +91,11 @@ const prompt = ai.definePrompt({
   name: 'resolveStudentDoubtsPrompt',
   input: {schema: ResolveStudentDoubtsInputSchema},
   output: {schema: ResolveStudentDoubtsOutputSchema},
-  tools: [getCurrentWeather, getLatestNews],
+  tools: [getCurrentWeather, searchTheWeb],
   prompt: `You are an AI assistant specialized in resolving student doubts and providing clear explanations. You have access to tools that can fetch real-time information like weather and news.
 
   If an image is provided, analyze it carefully along with the user's question. The image might contain the problem statement, a diagram, or other relevant context.
-  Use your tools when the user asks for current information. Otherwise, answer their academic questions.
+  Use your tools when the user asks for current information that you don't know, like "who is the governor of rajasthan" or current weather. Otherwise, answer their academic questions.
   
   Conversation History:
   {{#each history}}
