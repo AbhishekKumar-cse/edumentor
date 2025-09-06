@@ -13,7 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Cpu, CheckCircle, XCircle, BookOpen, BrainCircuit, Sigma, MessageSquareQuestion } from 'lucide-react';
+import { Loader2, Cpu, CheckCircle, XCircle, BookOpen, BrainCircuit, Sigma, MessageCircleQuestion } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
@@ -174,7 +174,7 @@ export default function TaggingForm() {
                           {concept.relatedQuestions && concept.relatedQuestions.length > 0 && (
                              <div>
                                 <h5 className="font-semibold mb-2 flex items-center gap-2 text-muted-foreground">
-                                    <MessageSquareQuestion className="h-4 w-4" />
+                                    <MessageCircleQuestion className="h-4 w-4" />
                                     Related Questions
                                 </h5>
                                  <div className="space-y-2">
