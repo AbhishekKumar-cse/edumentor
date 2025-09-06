@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { resolveStudentDoubts } from "@/ai/flows/resolve-student-doubts";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,17 @@ export default function ChatInterface() {
   const [image, setImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+        scrollAreaRef.current.scrollTo({
+            top: scrollAreaRef.current.scrollHeight,
+            behavior: 'smooth'
+        });
+    }
+  }, [messages, isLoading]);
+
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -84,7 +95,7 @@ export default function ChatInterface() {
 
   return (
     <div className="flex flex-col h-full max-h-[70vh]">
-      <ScrollArea className="flex-1 p-6">
+      <ScrollArea className="flex-1 p-6" ref={scrollAreaRef}>
         <div className="space-y-6">
           {messages.length === 0 && (
             <div className="text-center text-muted-foreground py-12">

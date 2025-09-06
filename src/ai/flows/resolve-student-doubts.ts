@@ -26,7 +26,7 @@ export type ResolveStudentDoubtsInput = z.infer<typeof ResolveStudentDoubtsInput
 
 const ResolveStudentDoubtsOutputSchema = z.object({
   answer: z.string().describe("The AI assistant's answer to the question."),
-  explanation: z.string().optional().describe('A detailed explanation of the concept or solution.'),
+  explanation: z.string().optional().describe('A brief explanation of the concept or solution, if necessary.'),
 });
 export type ResolveStudentDoubtsOutput = z.infer<typeof ResolveStudentDoubtsOutputSchema>;
 
@@ -85,11 +85,11 @@ const prompt = ai.definePrompt({
   tools: [getCurrentWeather, searchTheWeb],
   input: {schema: ResolveStudentDoubtsInputSchema},
   output: {schema: ResolveStudentDoubtsOutputSchema},
-  prompt: `You are an AI assistant specialized in resolving student doubts and providing clear, detailed explanations. 
+  prompt: `You are an AI assistant specialized in resolving student doubts. 
   
-  Your primary role is to help students with their academic questions. However, you are also equipped with tools to fetch real-time information like weather and current events if the user asks for it.
+  Your primary role is to help students with their academic questions. You are also equipped with tools to fetch real-time information like weather and current events if the user asks for it.
   
-  If an image is provided, analyze it carefully along with the user's question. The image might contain the problem statement, a diagram, or other relevant context.
+  If an image is provided, analyze it carefully along with the user's question.
   
   Conversation History:
   {{#each history}}
@@ -102,7 +102,7 @@ const prompt = ai.definePrompt({
   Problem Image: {{media url=imageDataUri}}
   {{/if}}
 
-  Provide a concise answer first, followed by a very detailed, step-by-step explanation to help the student understand the underlying concepts thoroughly.
+  Provide a concise answer, and a brief explanation if necessary. Avoid overly detailed, step-by-step walkthroughs unless specifically asked.
   Context: {{{context}}}
   `,
 });
