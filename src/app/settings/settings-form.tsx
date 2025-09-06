@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -31,13 +32,17 @@ import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-const settingsSchema = z.object({
+const appearanceSchema = z.object({
   theme: z.enum(["light", "dark", "system"]),
+});
+type AppearanceFormValues = z.infer<typeof appearanceSchema>;
+
+const notificationsSchema = z.object({
   emailNotifications: z.boolean(),
   pushNotifications: z.boolean(),
 });
+type NotificationsFormValues = z.infer<typeof notificationsSchema>;
 
-type SettingsFormValues = z.infer<typeof settingsSchema>;
 
 const reportProblemSchema = z.object({
   subject: z.string().min(5, { message: "Subject must be at least 5 characters." }),
@@ -59,10 +64,16 @@ export default function SettingsForm() {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
 
-  const settingsForm = useForm<SettingsFormValues>({
-    resolver: zodResolver(settingsSchema),
+  const appearanceForm = useForm<AppearanceFormValues>({
+    resolver: zodResolver(appearanceSchema),
     defaultValues: {
       theme: "system",
+    },
+  });
+
+  const notificationsForm = useForm<NotificationsFormValues>({
+    resolver: zodResolver(notificationsSchema),
+    defaultValues: {
       emailNotifications: true,
       pushNotifications: false,
     },
@@ -80,21 +91,30 @@ export default function SettingsForm() {
 
   useEffect(() => {
     if (theme) {
-      settingsForm.setValue("theme", theme as "light" | "dark" | "system");
+      appearanceForm.setValue("theme", theme as "light" | "dark" | "system");
     }
-  }, [theme, settingsForm]);
+  }, [theme, appearanceForm]);
 
   useEffect(() => {
     reviewForm.setValue("rating", rating);
   }, [rating, reviewForm]);
 
-  function onSettingsSubmit(data: SettingsFormValues) {
+  function onAppearanceSubmit(data: AppearanceFormValues) {
     setTheme(data.theme);
     toast({
-      title: "Settings Saved",
-      description: "Your new settings have been successfully saved.",
+      title: "Appearance Settings Saved",
+      description: "Your new theme settings have been saved.",
     });
   }
+
+  function onNotificationsSubmit(data: NotificationsFormValues) {
+    console.log("Notification settings submitted:", data);
+    toast({
+      title: "Notification Settings Saved",
+      description: "Your notification preferences have been updated.",
+    });
+  }
+
 
   function onReportProblemSubmit(data: ReportProblemFormValues) {
     console.log("Problem Report:", data);
@@ -138,10 +158,10 @@ export default function SettingsForm() {
                 <CardDescription>Customize the look and feel of the application.</CardDescription>
             </CardHeader>
             <CardContent>
-                <Form {...settingsForm}>
-                    <form onSubmit={settingsForm.handleSubmit(onSettingsSubmit)} className="space-y-8">
+                <Form {...appearanceForm}>
+                    <form onSubmit={appearanceForm.handleSubmit(onAppearanceSubmit)} className="space-y-8">
                         <FormField
-                            control={settingsForm.control}
+                            control={appearanceForm.control}
                             name="theme"
                             render={({ field }) => (
                             <FormItem>
@@ -179,11 +199,11 @@ export default function SettingsForm() {
                 <CardDescription>Manage how you receive notifications from us.</CardDescription>
             </CardHeader>
             <CardContent>
-                <Form {...settingsForm}>
-                    <form onSubmit={settingsForm.handleSubmit(onSettingsSubmit)} className="space-y-8">
+                 <Form {...notificationsForm}>
+                    <form onSubmit={notificationsForm.handleSubmit(onNotificationsSubmit)} className="space-y-8">
                         <div className="space-y-4 rounded-lg">
                             <FormField
-                                control={settingsForm.control}
+                                control={notificationsForm.control}
                                 name="emailNotifications"
                                 render={({ field }) => (
                                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
@@ -203,7 +223,7 @@ export default function SettingsForm() {
                                 )}
                             />
                             <FormField
-                                control={settingsForm.control}
+                                control={notificationsForm.control}
                                 name="pushNotifications"
                                 render={({ field }) => (
                                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
