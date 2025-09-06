@@ -1,5 +1,3 @@
-// Implemented Genkit flow for AI-powered doubt resolution to assist students with their questions and conceptual understanding.
-
 'use server';
 
 /**
@@ -20,14 +18,14 @@ const MessageSchema = z.object({
 
 const ResolveStudentDoubtsInputSchema = z.object({
   history: z.array(MessageSchema).describe('The conversation history.'),
-  question: z.string().describe('The student\'s latest question or problem.'),
+  question: z.string().describe("The student's latest question or problem."),
   context: z.string().optional().describe('Additional context or information related to the question.'),
   imageDataUri: z.string().optional().describe("An optional image of the problem, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."),
 });
 export type ResolveStudentDoubtsInput = z.infer<typeof ResolveStudentDoubtsInputSchema>;
 
 const ResolveStudentDoubtsOutputSchema = z.object({
-  answer: z.string().describe('The AI assistant\'s answer to the question.'),
+  answer: z.string().describe("The AI assistant's answer to the question."),
   explanation: z.string().optional().describe('A detailed explanation of the concept or solution.'),
 });
 export type ResolveStudentDoubtsOutput = z.infer<typeof ResolveStudentDoubtsOutputSchema>;
