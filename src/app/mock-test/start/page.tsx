@@ -10,8 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Timer, Flag, Eye, CheckCircle, XCircle } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Timer, Flag } from 'lucide-react';
 
 interface TestQuestion extends Question {
   userAnswer?: string;
@@ -160,6 +160,7 @@ export default function TestPage() {
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction onClick={submitTest}>Confirm & Submit</AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -237,5 +238,3 @@ export default function TestPage() {
     </div>
   );
 }
-
-

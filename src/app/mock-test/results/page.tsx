@@ -8,8 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Check, X, Flag, BarChart, FileText, ArrowLeft } from 'lucide-react';
+import { Check, X, Flag, BarChart, FileText, ArrowLeft, Lightbulb } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+
 
 interface TestQuestion extends Question {
   userAnswer?: string;
@@ -57,7 +59,8 @@ export default function ResultsPage() {
     setCorrectAnswers(correct);
     setIncorrectAnswers(incorrect);
     setUnanswered(notAttempted);
-    setScore(correct);
+    // JEE Main marking: +4 for correct, -1 for incorrect
+    setScore(correct * 4 - incorrect * 1);
   }, [router]);
 
   const getOptionClass = (option: string, question: TestQuestion) => {
@@ -75,6 +78,8 @@ export default function ResultsPage() {
         </div>
       );
   }
+  
+  const totalMarks = results.length * 4;
 
   return (
     <div className="space-y-8 p-4 md:p-8">
@@ -100,7 +105,7 @@ export default function ResultsPage() {
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card className="p-4">
-            <CardTitle className="text-4xl font-bold text-primary">{score} / {results.length}</CardTitle>
+            <CardTitle className="text-4xl font-bold text-primary">{score} / {totalMarks}</CardTitle>
             <CardDescription>Your Score</CardDescription>
           </Card>
           <Card className="p-4">
@@ -133,7 +138,7 @@ export default function ResultsPage() {
             <span className="font-headline text-2xl">Question Review</span>
           </CardTitle>
           <CardDescription>
-            Review each question, your answer, and the correct solution.
+            Review each question, your answer, and the correct solution with a detailed explanation.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -182,6 +187,25 @@ export default function ResultsPage() {
                     </>
                  )}
               </div>
+              
+                <Accordion type="single" collapsible className="w-full mt-4">
+                  <AccordionItem value="explanation">
+                    <AccordionTrigger className='text-sm font-semibold text-primary hover:no-underline'>
+                       <div className='flex items-center gap-2'>
+                        <Lightbulb className='h-4 w-4' />
+                        Show Explanation
+                       </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="pt-2 text-sm text-muted-foreground prose dark:prose-invert">
+                        {question.explanation ? (
+                            <p>{question.explanation}</p>
+                        ) : (
+                            <p>No explanation available for this question.</p>
+                        )}
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+
 
               <div className="flex items-center justify-between mt-4 text-sm text-muted-foreground">
                 <Badge
@@ -203,4 +227,3 @@ export default function ResultsPage() {
     </div>
   );
 }
-

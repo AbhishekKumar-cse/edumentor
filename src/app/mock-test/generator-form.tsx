@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import type { Subject, Chapter } from '@/lib/data';
+import type { Subject } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -15,7 +15,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Lightbulb, BookCopy, FileText, Atom, FlaskConical, AlertTriangle } from 'lucide-react';
+import { Lightbulb, BookCopy, FileText, Atom, FlaskConical } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 
