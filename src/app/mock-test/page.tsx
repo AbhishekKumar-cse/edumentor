@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ClipboardList } from "lucide-react";
 import { subjects } from "@/lib/data";
@@ -9,7 +10,7 @@ export default function MockTestPage() {
       <header className="space-y-2">
         <h1 className="text-4xl font-headline font-bold">Mock Test Generator</h1>
         <p className="text-muted-foreground">
-          Create custom mock tests based on your needs.
+          Create custom mock tests to simulate exam conditions and assess your knowledge.
         </p>
       </header>
       <Card>
@@ -19,7 +20,7 @@ export default function MockTestPage() {
             <span className="font-headline text-2xl">Configure Your Test</span>
           </CardTitle>
           <CardDescription>
-            Select subjects, chapters, and difficulty levels to generate a mock test.
+            Choose a test pattern, select subjects and chapters, and set a timer to begin.
           </CardDescription>
         </CardHeader>
         <CardContent>
