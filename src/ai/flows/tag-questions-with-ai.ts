@@ -106,31 +106,17 @@ export async function tagQuestionsWithAI(input: TagQuestionsWithAIInput): Promis
   return result;
 }
 
-const BaseConceptSchema = z.object({
-    name: z.string(),
-    explanation: z.string().describe("A detailed explanation of the concept."),
-});
-
-const BaseOutputSchema = z.object({
-  difficulty: z
-    .enum(['easy', 'medium', 'hard'])
-    .describe('The difficulty level of the question.'),
-  concepts: z.array(BaseConceptSchema).describe('A list of relevant concepts or topics covered in the question with their explanations.'),
-  pastPaperDetails: PastPaperDetailsSchema,
-  relatedTopics: z.array(z.string()).describe("A list of related topics for further study or to understand the question's context better.")
-});
-
 
 const tagQuestionsWithAIPrompt = ai.definePrompt({
   name: 'tagQuestionsWithAIPrompt',
   input: {schema: TagQuestionsWithAIInputSchema},
-  output: {schema: BaseOutputSchema},
+  output: {schema: TagQuestionsWithAIOutputSchema},
   prompt: `You are an expert AI assistant for educators, specializing in analyzing and tagging academic questions for competitive exams like the JEE.
 
   Analyze the provided question text based on the following criteria:
 
   1.  **Difficulty**: Classify the question's difficulty level as 'easy', 'medium', or 'hard'.
-  2.  **Concepts**: Identify the primary concepts or topics required to answer the question. For each concept, provide a detailed explanation suitable for a student preparing for competitive exams.
+  2.  **Concepts**: Identify the primary concepts or topics required to answer the question. For each concept, provide a detailed explanation suitable for a student preparing for competitive exams. You do not need to populate the formulas or relatedQuestions fields, they will be handled by the system.
   3.  **Past Paper Analysis**: Determine if the question is from a past paper. If it is, specify the year and the exam name (e.g., "JEE Main", "JEE Advanced"). If it is not a past paper question or if the details are unknown, indicate that.
   4.  **Related Topics**: Suggest a few related topics that a student should study to have a comprehensive understanding of the question's subject matter.
 
@@ -146,7 +132,6 @@ const tagQuestionsWithAIFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await tagQuestionsWithAIPrompt(input);
-    // This casting is safe because we will add the missing fields in the wrapper function
-    return output! as TagQuestionsWithAIOutput;
+    return output!;
   }
 );
