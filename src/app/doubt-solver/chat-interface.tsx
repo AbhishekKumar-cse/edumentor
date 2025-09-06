@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 
 type Message = {
   id: number;
-  role: "user" | "assistant";
+  role: "user" | "assistant" | "model";
   content: string;
 };
 
@@ -29,12 +29,19 @@ export default function ChatInterface() {
       role: "user",
       content: input,
     };
-    setMessages((prev) => [...prev, userMessage]);
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
     setInput("");
     setIsLoading(true);
 
     try {
-      const result = await resolveStudentDoubts({ question: input });
+      // The history needs to be in the format the model expects.
+      const history = newMessages.slice(0, -1).map(msg => ({
+          role: msg.role === 'assistant' ? 'model' : 'user',
+          content: msg.content,
+      }));
+
+      const result = await resolveStudentDoubts({ question: input, history });
       const assistantMessage: Message = {
         id: Date.now() + 1,
         role: "assistant",
@@ -60,7 +67,7 @@ export default function ChatInterface() {
           {messages.length === 0 && (
             <div className="text-center text-muted-foreground py-12">
                 <Bot className="mx-auto h-12 w-12 mb-4" />
-                <p>No messages yet. Start the conversation!</p>
+                <p>No messages yet. Ask me anything!</p>
             </div>
           )}
           {messages.map((message) => (
