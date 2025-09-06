@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -5,16 +6,18 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { tagQuestionsWithAI, type TagQuestionsWithAIOutput } from '@/ai/flows/tag-questions-with-ai';
+import type { Question } from '@/lib/data';
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Cpu, CheckCircle, XCircle, BookOpen, BrainCircuit } from 'lucide-react';
+import { Loader2, Cpu, CheckCircle, XCircle, BookOpen, BrainCircuit, Sigma, MessageSquareQuestion } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 const formSchema = z.object({
   questionText: z.string().min(10, {
@@ -27,6 +30,17 @@ const difficultyVariantMap: { [key: string]: 'default' | 'secondary' | 'destruct
   medium: 'default',
   hard: 'destructive',
 };
+
+const QuestionCard = ({ question }: { question: Question }) => {
+    return (
+        <div className="p-4 border rounded-lg bg-secondary/30">
+            <p className="font-semibold">{question.text}</p>
+            <div className="mt-2 text-sm text-muted-foreground">
+                <span className="font-medium text-primary">Answer:</span> {question.answer}
+            </div>
+        </div>
+    )
+}
 
 export default function TaggingForm() {
   const [taggingResult, setTaggingResult] = useState<TagQuestionsWithAIOutput | null>(null);
@@ -127,27 +141,64 @@ export default function TaggingForm() {
                 </div>
 
                 <Separator />
-
+                
                 <div>
-                    <h4 className="font-semibold mb-3 flex items-center gap-2 text-muted-foreground">
-                        <BrainCircuit className="h-5 w-5" />
-                        Primary Concepts
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                        {taggingResult.concepts.map((concept, index) => (
-                        <Badge key={index} variant="outline">{concept}</Badge>
-                        ))}
-                    </div>
+                  <h4 className="font-headline text-lg mb-4 flex items-center gap-2">
+                    <BrainCircuit className="h-5 w-5 text-primary" />
+                    Key Concepts & Study material
+                  </h4>
+                  <Accordion type="single" collapsible className="w-full space-y-3">
+                    {taggingResult.concepts.map((concept, index) => (
+                      <AccordionItem value={`concept-${index}`} key={index} className="border rounded-lg px-4">
+                        <AccordionTrigger className="font-semibold text-base">{concept.name}</AccordionTrigger>
+                        <AccordionContent className="space-y-4">
+                          <p className="text-sm text-muted-foreground">{concept.explanation}</p>
+                          
+                          {concept.formulas && concept.formulas.length > 0 && (
+                            <div>
+                                <h5 className="font-semibold mb-2 flex items-center gap-2 text-muted-foreground">
+                                    <Sigma className="h-4 w-4" />
+                                    Important Formulas
+                                </h5>
+                                <div className="space-y-2">
+                                {concept.formulas.map((formula, fIndex) => (
+                                    <div key={fIndex} className="p-3 bg-secondary/50 rounded-md text-sm">
+                                        <p className="font-semibold">{formula.name}</p>
+                                        <code className="block my-1 p-2 rounded bg-muted font-code text-primary">{formula.formula}</code>
+                                    </div>
+                                ))}
+                                </div>
+                            </div>
+                          )}
+
+                          {concept.relatedQuestions && concept.relatedQuestions.length > 0 && (
+                             <div>
+                                <h5 className="font-semibold mb-2 flex items-center gap-2 text-muted-foreground">
+                                    <MessageSquareQuestion className="h-4 w-4" />
+                                    Related Questions
+                                </h5>
+                                 <div className="space-y-2">
+                                    {concept.relatedQuestions.map(q => (
+                                        <QuestionCard key={q.id} question={q} />
+                                    ))}
+                                 </div>
+                             </div>
+                          )}
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
                 </div>
 
+
                  <div>
-                    <h4 className="font-semibold mb-3 flex items-center gap-2 text-muted-foreground">
-                        <BookOpen className="h-5 w-5" />
-                        Related Topics for Study
+                    <h4 className="font-headline text-lg mb-3 flex items-center gap-2">
+                        <BookOpen className="h-5 w-5 text-primary" />
+                        Suggested Related Topics
                     </h4>
                     <div className="flex flex-wrap gap-2">
-                        {taggingResult.relatedTopics.map((concept, index) => (
-                        <Badge key={index} variant="secondary">{concept}</Badge>
+                        {taggingResult.relatedTopics.map((topic, index) => (
+                        <Badge key={index} variant="secondary">{topic}</Badge>
                         ))}
                     </div>
                 </div>

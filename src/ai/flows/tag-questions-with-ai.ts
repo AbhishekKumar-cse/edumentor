@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview This file implements an AI-powered question tagging flow.
@@ -11,6 +12,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { subjects, formulas, Question } from '@/lib/data';
 
 const TagQuestionsWithAIInputSchema = z.object({
   questionText: z.string().describe('The text of the question to be tagged.'),
@@ -25,30 +27,110 @@ const PastPaperDetailsSchema = z.object({
   exam: z.string().optional().describe('The name of the exam (e.g., JEE Main, NEET), if known.'),
 });
 
+const FormulaSchema = z.object({
+    name: z.string(),
+    formula: z.string(),
+    derivation: z.string(),
+});
+
+const ConceptSchema = z.object({
+    name: z.string(),
+    explanation: z.string().describe("A detailed explanation of the concept."),
+    formulas: z.array(FormulaSchema).describe("A list of important formulas related to this concept."),
+    relatedQuestions: z.array(z.custom<Question>()).describe("A few example questions related to this concept from the question bank.")
+});
+
+
 const TagQuestionsWithAIOutputSchema = z.object({
   difficulty: z
     .enum(['easy', 'medium', 'hard'])
     .describe('The difficulty level of the question.'),
-  concepts: z.array(z.string()).describe('A list of relevant concepts or topics covered in the question.'),
+  concepts: z.array(ConceptSchema).describe('A list of relevant concepts covered in the question, including explanations, formulas, and related questions.'),
   pastPaperDetails: PastPaperDetailsSchema,
   relatedTopics: z.array(z.string()).describe("A list of related topics for further study or to understand the question's context better.")
 });
 export type TagQuestionsWithAIOutput = z.infer<typeof TagQuestionsWithAIOutputSchema>;
 
-export async function tagQuestionsWithAI(input: TagQuestionsWithAIInput): Promise<TagQuestionsWithAIOutput> {
-  return tagQuestionsWithAIFlow(input);
+// Helper function to find related questions
+const findRelatedQuestions = (conceptName: string): Question[] => {
+    const related: Question[] = [];
+    const lowerCaseConcept = conceptName.toLowerCase();
+    for (const subject of subjects) {
+        for (const chapter of subject.chapters) {
+            for (const question of chapter.questions) {
+                if (question.concepts.some(c => c.toLowerCase().includes(lowerCaseConcept))) {
+                    related.push(question);
+                    if (related.length >= 3) return related; // Limit to 3 example questions
+                }
+            }
+        }
+    }
+    return related;
+};
+
+// Helper function to find related formulas
+const findRelatedFormulas = (conceptName: string) => {
+    const related: z.infer<typeof FormulaSchema>[] = [];
+     const lowerCaseConcept = conceptName.toLowerCase();
+    for (const subject of formulas) {
+        for (const topic of subject.topics) {
+             if (topic.name.toLowerCase().includes(lowerCaseConcept)) {
+                related.push(...topic.formulae);
+             }
+             for (const formula of topic.formulae) {
+                if (formula.name.toLowerCase().includes(lowerCaseConcept)) {
+                    related.push(formula);
+                }
+             }
+        }
+    }
+    // Remove duplicates
+    return related.filter((v,i,a)=>a.findIndex(t=>(t.name === v.name))===i);
 }
+
+
+export async function tagQuestionsWithAI(input: TagQuestionsWithAIInput): Promise<TagQuestionsWithAIOutput> {
+  const result = await tagQuestionsWithAIFlow(input);
+
+  // Post-process to add related questions and formulas
+  if (result.concepts) {
+    result.concepts = result.concepts.map(concept => {
+        return {
+            ...concept,
+            relatedQuestions: findRelatedQuestions(concept.name),
+            formulas: findRelatedFormulas(concept.name)
+        }
+    });
+  }
+
+  return result;
+}
+
+const BaseConceptSchema = z.object({
+    name: z.string(),
+    explanation: z.string().describe("A detailed explanation of the concept."),
+});
+
+const BaseOutputSchema = z.object({
+  difficulty: z
+    .enum(['easy', 'medium', 'hard'])
+    .describe('The difficulty level of the question.'),
+  concepts: z.array(BaseConceptSchema).describe('A list of relevant concepts or topics covered in the question with their explanations.'),
+  pastPaperDetails: PastPaperDetailsSchema,
+  relatedTopics: z.array(z.string()).describe("A list of related topics for further study or to understand the question's context better.")
+});
+
 
 const tagQuestionsWithAIPrompt = ai.definePrompt({
   name: 'tagQuestionsWithAIPrompt',
   input: {schema: TagQuestionsWithAIInputSchema},
-  output: {schema: TagQuestionsWithAIOutputSchema},
+  output: {schema: BaseOutputSchema},
   prompt: `You are an expert AI assistant for educators, specializing in analyzing and tagging academic questions for competitive exams like the JEE.
 
   Analyze the provided question text based on the following criteria:
 
   1.  **Difficulty**: Classify the question's difficulty level as 'easy', 'medium', or 'hard'.
-  2.  **Concepts**: Identify and list the primary concepts or topics required to answer the question.
+  2.  **Concepts**: Identify the primary concepts or topics required to answer the question. For each concept, provide a detailed explanation suitable for a student preparing for competitive exams.
   3.  **Past Paper Analysis**: Determine if the question is from a past paper. If it is, specify the year and the exam name (e.g., "JEE Main", "JEE Advanced"). If it is not a past paper question or if the details are unknown, indicate that.
   4.  **Related Topics**: Suggest a few related topics that a student should study to have a comprehensive understanding of the question's subject matter.
 
@@ -64,6 +146,7 @@ const tagQuestionsWithAIFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await tagQuestionsWithAIPrompt(input);
-    return output!;
+    // This casting is safe because we will add the missing fields in the wrapper function
+    return output! as TagQuestionsWithAIOutput;
   }
 );
