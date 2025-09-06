@@ -23,11 +23,34 @@ interface GeneratorFormProps {
   subjects: Subject[];
 }
 
-const testPatterns = {
-  jeeMain: { name: 'JEE Main', questions: 30, duration: 60 }, // 30 questions, 60 minutes
-  jeeAdvanced: { name: 'JEE Advanced', questions: 40, duration: 90 }, // 40 questions, 90 minutes
+const testPatterns: { [key: string]: { name: string; questions: number; duration: number } } = {
+  jeeMain: { name: 'JEE Main (Random)', questions: 30, duration: 60 },
+  jeeAdvanced: { name: 'JEE Advanced (Random)', questions: 40, duration: 90 },
   custom: { name: 'Custom', questions: 20, duration: 45 },
+  // 2024 Mocks
+  'jeeMain-2024-1': { name: 'JEE Main 2024 - Mock 1', questions: 30, duration: 60 },
+  'jeeMain-2024-2': { name: 'JEE Main 2024 - Mock 2', questions: 30, duration: 60 },
+  'jeeMain-2024-3': { name: 'JEE Main 2024 - Mock 3', questions: 30, duration: 60 },
+  'jeeMain-2024-4': { name: 'JEE Main 2024 - Mock 4', questions: 30, duration: 60 },
+  'jeeMain-2024-5': { name: 'JEE Main 2024 - Mock 5', questions: 30, duration: 60 },
+  'jeeMain-2024-6': { name: 'JEE Main 2024 - Mock 6', questions: 30, duration: 60 },
+  'jeeMain-2024-7': { name: 'JEE Main 2024 - Mock 7', questions: 30, duration: 60 },
+  'jeeMain-2024-8': { name: 'JEE Main 2024 - Mock 8', questions: 30, duration: 60 },
+  'jeeMain-2024-9': { name: 'JEE Main 2024 - Mock 9', questions: 30, duration: 60 },
+  'jeeMain-2024-10': { name: 'JEE Main 2024 - Mock 10', questions: 30, duration: 60 },
+  // 2025 Mocks
+  'jeeMain-2025-1': { name: 'JEE Main 2025 - Mock 1', questions: 30, duration: 60 },
+  'jeeMain-2025-2': { name: 'JEE Main 2025 - Mock 2', questions: 30, duration: 60 },
+  'jeeMain-2025-3': { name: 'JEE Main 2025 - Mock 3', questions: 30, duration: 60 },
+  'jeeMain-2025-4': { name: 'JEE Main 2025 - Mock 4', questions: 30, duration: 60 },
+  'jeeMain-2025-5': { name: 'JEE Main 2025 - Mock 5', questions: 30, duration: 60 },
+  'jeeMain-2025-6': { name: 'JEE Main 2025 - Mock 6', questions: 30, duration: 60 },
+  'jeeMain-2025-7': { name: 'JEE Main 2025 - Mock 7', questions: 30, duration: 60 },
+  'jeeMain-2025-8': { name: 'JEE Main 2025 - Mock 8', questions: 30, duration: 60 },
+  'jeeMain-2025-9': { name: 'JEE Main 2025 - Mock 9', questions: 30, duration: 60 },
+  'jeeMain-2025-10': { name: 'JEE Main 2025 - Mock 10', questions: 30, duration: 60 },
 };
+
 
 const subjectIcons: { [key: string]: React.ElementType } = {
   Physics: Atom,
@@ -66,10 +89,19 @@ export default function GeneratorForm({ subjects }: GeneratorFormProps) {
     }
   };
 
+  const handlePatternChange = (pattern: string) => {
+    setSelectedPattern(pattern);
+    const newDuration = testPatterns[pattern as keyof typeof testPatterns].duration;
+    setDuration(newDuration);
+    if(pattern.startsWith('jeeMain-')) {
+        setTestType('full');
+    }
+  }
+
   const generateTest = () => {
     const questionCount = testPatterns[selectedPattern as keyof typeof testPatterns].questions;
 
-    if (testType === 'chapters' && selectedChapters.length === 0) {
+    if (testType === 'chapters' && selectedChapters.length === 0 && !selectedPattern.startsWith('jeeMain-')) {
       toast({
         title: 'Selection Required',
         description: 'Please select at least one chapter to generate a test.',
@@ -77,11 +109,14 @@ export default function GeneratorForm({ subjects }: GeneratorFormProps) {
       });
       return;
     }
+    
+    const isPredefinedMock = selectedPattern.startsWith('jeeMain-');
+    const finalTestType = isPredefinedMock ? 'full' : testType;
 
     const testConfig = {
       pattern: selectedPattern,
-      type: testType,
-      chapters: testType === 'chapters' ? selectedChapters : 'all',
+      type: finalTestType,
+      chapters: finalTestType === 'chapters' ? selectedChapters : 'all',
       duration,
       questionCount,
     };
@@ -103,7 +138,7 @@ export default function GeneratorForm({ subjects }: GeneratorFormProps) {
             <CardDescription>Select the exam pattern you want to follow.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Select value={selectedPattern} onValueChange={setSelectedPattern}>
+            <Select value={selectedPattern} onValueChange={handlePatternChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a pattern" />
               </SelectTrigger>
@@ -128,10 +163,10 @@ export default function GeneratorForm({ subjects }: GeneratorFormProps) {
             <CardDescription>Choose between a full syllabus test or select specific chapters.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs value={testType} onValueChange={setTestType}>
+            <Tabs value={selectedPattern.startsWith('jeeMain-') ? 'full' : testType} onValueChange={setTestType}>
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="chapters">Chapter-wise</TabsTrigger>
-                <TabsTrigger value="full">Full Syllabus</TabsTrigger>
+                <TabsTrigger value="chapters" disabled={selectedPattern.startsWith('jeeMain-')}>Chapter-wise</TabsTrigger>
+                <TabsTrigger value="full" disabled={selectedPattern.startsWith('jeeMain-')}>Full Syllabus</TabsTrigger>
               </TabsList>
               <TabsContent value="chapters" className="mt-4">
                 <Accordion type="multiple" className="w-full space-y-2">
