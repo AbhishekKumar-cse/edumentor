@@ -42,14 +42,10 @@ const examCategories = [
   { name: 'Boards', logo: 'https://picsum.photos/40/40', tag: 'New', tagColor: 'bg-pink-500/20 text-pink-400 border-pink-500/30', href: '/mock-test' },
   { name: 'NTA Abhyas (JEE Main)', logo: 'https://picsum.photos/40/40', tag: 'COMING SOON', tagColor: 'bg-gray-500/20 text-gray-400 border-gray-500/30', href: '#' },
   { name: 'MHT CET', logo: 'https://picsum.photos/40/40', tag: 'COMING SOON', tagColor: 'bg-gray-500/20 text-gray-400 border-gray-500/30', href: '#' },
-  { name: 'COMEDK', logo: 'https://picsum.photos/40/40', tag: 'COMING SOON', tagColor: 'bg-gray-500/20 text-gray-400 border-gray-500/30', href: '#' },
   { name: 'BITSAT', logo: 'https://picsum.photos/40/40', tag: 'COMING SOON', tagColor: 'bg-gray-500/20 text-gray-400 border-gray-500/30', href: '#' },
   { name: 'NDA', logo: 'https://picsum.photos/40/40', tag: 'COMING SOON', tagColor: 'bg-gray-500/20 text-gray-400 border-gray-500/30', href: '#' },
-  { name: 'TS EAMCET', logo: 'https://picsum.photos/40/40', tag: 'COMING SOON', tagColor: 'bg-gray-500/20 text-gray-400 border-gray-500/30', href: '#' },
   { name: 'VITEEE', logo: 'https://picsum.photos/40/40', tag: 'COMING SOON', tagColor: 'bg-gray-500/20 text-gray-400 border-gray-500/30', href: '#' },
-  { name: 'Manipal (MET)', logo: 'https://picsum.photos/40/40', tag: 'COMING SOON', tagColor: 'bg-gray-500/20 text-gray-400 border-gray-500/30', href: '#' },
   { name: 'IAT (IISER)', logo: 'https://picsum.photos/40/40', tag: 'COMING SOON', tagColor: 'bg-gray-500/20 text-gray-400 border-gray-500/30', href: '#' },
-  { name: 'NEST (NISER)', logo: 'https://picsum.photos/40/40', tag: 'COMING SOON', tagColor: 'bg-gray-500/20 text-gray-400 border-gray-500/30', href: '#' },
   { name: 'CUET', logo: 'https://picsum.photos/40/40', tag: 'COMING SOON', tagColor: 'bg-gray-500/20 text-gray-400 border-gray-500/30', href: '#' },
 ];
 
