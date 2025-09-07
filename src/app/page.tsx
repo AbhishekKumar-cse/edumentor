@@ -236,7 +236,7 @@ export default function HomePage() {
             <div className="flex justify-between items-center">
                 <div className="flex flex-col">
                     <h3 className="font-bold text-2xl">Solve DPPs</h3>
-                    <p className="text-lg text-muted-foreground">681+ aspirants solved DPP in 1 last hr! <Flame className="inline w-5 h-5 text-amber-500" /></p>
+                    <p className="text-lg text-muted-foreground">many aspirants solved DPP in 1 last hr! <Flame className="inline w-5 h-5 text-amber-500" /></p>
                 </div>
                 <div className="flex items-center gap-2">
                     <Badge variant="outline" className="border-amber-400 text-amber-400 bg-amber-900/50 text-base">PREMIUM</Badge>
