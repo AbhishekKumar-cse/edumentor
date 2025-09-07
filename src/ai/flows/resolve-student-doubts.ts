@@ -125,7 +125,7 @@ const searchTheWeb = ai.defineTool(
 const prompt = ai.definePrompt({
   name: 'resolveStudentDoubtsPrompt',
   tools: [getCurrentWeather, searchTheWeb, getQuestionsFromBank],
-  input: {schema: ResolveStudentDoubtsInputSchema.extend({ pdfContent: z.string().optional() })},
+  input: {schema: ResolveStudentDoubtsInputSchema },
   output: {schema: ResolveStudentDoubtsOutputSchema},
   prompt: `You are an AI assistant specialized in resolving student doubts. 
   
@@ -133,7 +133,7 @@ const prompt = ai.definePrompt({
   
   If the user asks for example questions, a question list, or practice problems on a certain topic, use the 'getQuestionsFromBank' tool to find relevant questions from the database and present them to the user in a clear format.
 
-  If a PDF document is provided, its content will be in the 'pdfContent' field. Prioritize answering questions based on the content of this document.
+  If a PDF document's content is prepended to the question, prioritize answering questions based on the content of that document.
   
   If an image is provided, analyze it carefully along with the user's question.
   
@@ -144,12 +144,7 @@ const prompt = ai.definePrompt({
   
   A student has asked the following question:
   Question: {{{question}}}
-  {{#if pdfContent}}
-  Document Context:
-  ---
-  {{{pdfContent}}}
-  ---
-  {{/if}}
+  
   {{#if imageDataUri}}
   Problem Image: {{media url=imageDataUri}}
   {{/if}}
@@ -166,20 +161,24 @@ const resolveStudentDoubtsFlow = ai.defineFlow(
     outputSchema: ResolveStudentDoubtsOutputSchema,
   },
   async input => {
-    let pdfContent: string | undefined = undefined;
+    let finalInput = {...input};
     if (input.pdfDataUri) {
         try {
             const pdf = (await import('pdf-parse')).default;
             const pdfBuffer = Buffer.from(input.pdfDataUri.split(',')[1], 'base64');
             const data = await pdf(pdfBuffer);
-            pdfContent = data.text;
+            const pdfContent = data.text;
+            
+            // Prepend the PDF content to the question for the AI to process
+            finalInput.question = `Answer the following question based on this document:\n\n---\n${pdfContent}\n---\n\nQuestion: ${input.question}`;
+
         } catch (e) {
             console.error("Failed to parse PDF", e);
             // Don't fail the whole flow, just proceed without PDF context.
         }
     }
     
-    const {output} = await prompt({...input, pdfContent });
+    const {output} = await prompt(finalInput);
     return output!;
   }
 );
