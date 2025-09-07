@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Send, User, Bot, Loader2, Paperclip, X, FileText, PlusCircle, Trash2, MessageSquare } from "lucide-react";
+import { Send, User, Bot, Loader2, Paperclip, X, FileText, PlusCircle, Trash2, MessageSquare, History } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -20,8 +20,15 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
+import { Separator } from "@/components/ui/separator";
 
 type Message = {
   id: string;
@@ -118,6 +125,26 @@ export default function ChatInterface() {
     toast({
         title: "History Cleared",
         description: "All your chats have been deleted.",
+    })
+  }
+
+  const handleDeleteChat = (chatId: string) => {
+    setChats(prev => {
+        const newChats = {...prev};
+        delete newChats[chatId];
+        return newChats;
+    });
+    if (activeChatId === chatId) {
+        const remainingChatIds = Object.keys(chats).filter(id => id !== chatId);
+        if (remainingChatIds.length > 0) {
+            setActiveChatId(remainingChatIds[0]);
+        } else {
+            handleNewChat();
+        }
+    }
+    toast({
+        title: "Chat Deleted",
+        description: "The selected chat has been removed.",
     })
   }
 
@@ -224,53 +251,84 @@ export default function ChatInterface() {
   const chatHistory = Object.values(chats).sort((a,b) => parseInt(b.id) - parseInt(a.id));
 
   return (
-    <div className="flex h-full w-full">
-        {/* History Sidebar */}
-        <aside className="w-64 flex-shrink-0 border-r bg-secondary/50 p-4 flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-headline font-semibold">History</h2>
-                <Button variant="ghost" size="icon" onClick={handleNewChat}>
-                    <PlusCircle className="h-5 w-5" />
-                </Button>
-            </div>
-            <ScrollArea className="flex-1 -mx-4">
-                <div className="px-4 space-y-2">
-                 {chatHistory.map(chat => (
-                    <Button
-                        key={chat.id}
-                        variant={activeChatId === chat.id ? "secondary" : "ghost"}
-                        className="w-full justify-start gap-2"
-                        onClick={() => setActiveChatId(chat.id)}
-                    >
-                        <MessageSquare className="h-4 w-4" />
-                        <span className="truncate">{chat.title}</span>
+    <div className="flex h-full w-full flex-col bg-background">
+        <header className="flex items-center justify-between p-4 border-b">
+             <Sheet>
+                <SheetTrigger asChild>
+                    <Button variant="outline">
+                        <History className="mr-2 h-4 w-4" />
+                        Chat History
                     </Button>
-                 ))}
-                </div>
-            </ScrollArea>
-             <AlertDialog>
-                <AlertDialogTrigger asChild>
-                    <Button variant="destructive" className="mt-4">
-                        <Trash2 className="mr-2 h-4 w-4" /> Clear History
-                    </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        This will permanently delete all your chat history. This action cannot be undone.
-                    </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleClearHistory}>Confirm</AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-        </aside>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-80 p-0">
+                    <SheetHeader className="p-4 border-b">
+                        <SheetTitle>Conversation History</SheetTitle>
+                    </SheetHeader>
+                    <div className="p-4 space-y-2">
+                        {chatHistory.map(chat => (
+                            <div key={chat.id} className="flex items-center group">
+                                <Button
+                                    variant={activeChatId === chat.id ? "secondary" : "ghost"}
+                                    className="w-full justify-start gap-2 truncate"
+                                    onClick={() => setActiveChatId(chat.id)}
+                                >
+                                    <MessageSquare className="h-4 w-4" />
+                                    <span className="truncate">{chat.title}</span>
+                                </Button>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100">
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                     <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                        <AlertDialogTitle>Delete this chat?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            This will permanently delete "{chat.title}". This action cannot be undone.
+                                        </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => handleDeleteChat(chat.id)}>Confirm Delete</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </div>
+                        ))}
+                    </div>
+                     <Separator />
+                      <div className="p-4">
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="destructive" className="w-full">
+                                    <Trash2 className="mr-2 h-4 w-4" /> Clear All History
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This will permanently delete all your chat history. This action cannot be undone.
+                                </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleClearHistory}>Confirm Delete All</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    </div>
+                </SheetContent>
+            </Sheet>
+            <h1 className="text-xl font-semibold">{activeChat?.title || "Doubt Solver"}</h1>
+            <Button variant="outline" size="icon" onClick={handleNewChat}>
+                <PlusCircle className="h-5 w-5" />
+            </Button>
+        </header>
 
         {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col bg-background">
+        <div className="flex-1 flex flex-col">
           <ScrollArea className="flex-1 p-6" ref={scrollAreaRef}>
             <div className="space-y-6">
               {(!activeChat || activeChat.messages.length === 0) && (
