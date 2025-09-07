@@ -12,6 +12,8 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'zod';
 import { subjects, Question } from '@/lib/data';
+import pdf from 'pdf-parse';
+
 
 const MessageSchema = z.object({
   role: z.enum(['user', 'model']),
@@ -23,6 +25,7 @@ const ResolveStudentDoubtsInputSchema = z.object({
   question: z.string().describe("The student's latest question or problem."),
   context: z.string().optional().describe('Additional context or information related to the question.'),
   imageDataUri: z.string().optional().describe("An optional image of the problem, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."),
+  pdfDataUri: z.string().optional().describe("An optional PDF document, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:application/pdf;base64,<encoded_data>'."),
 });
 export type ResolveStudentDoubtsInput = z.infer<typeof ResolveStudentDoubtsInputSchema>;
 
@@ -123,13 +126,15 @@ const searchTheWeb = ai.defineTool(
 const prompt = ai.definePrompt({
   name: 'resolveStudentDoubtsPrompt',
   tools: [getCurrentWeather, searchTheWeb, getQuestionsFromBank],
-  input: {schema: ResolveStudentDoubtsInputSchema},
+  input: {schema: ResolveStudentDoubtsInputSchema.extend({ pdfContent: z.string().optional() })},
   output: {schema: ResolveStudentDoubtsOutputSchema},
   prompt: `You are an AI assistant specialized in resolving student doubts. 
   
   Your primary role is to help students with their academic questions. You are also equipped with tools to fetch real-time information like weather and current events if the user asks for it.
   
   If the user asks for example questions, a question list, or practice problems on a certain topic, use the 'getQuestionsFromBank' tool to find relevant questions from the database and present them to the user in a clear format.
+
+  If a PDF document is provided, its content will be in the 'pdfContent' field. Prioritize answering questions based on the content of this document.
   
   If an image is provided, analyze it carefully along with the user's question.
   
@@ -140,6 +145,12 @@ const prompt = ai.definePrompt({
   
   A student has asked the following question:
   Question: {{{question}}}
+  {{#if pdfContent}}
+  Document Context:
+  ---
+  {{{pdfContent}}}
+  ---
+  {{/if}}
   {{#if imageDataUri}}
   Problem Image: {{media url=imageDataUri}}
   {{/if}}
@@ -156,7 +167,19 @@ const resolveStudentDoubtsFlow = ai.defineFlow(
     outputSchema: ResolveStudentDoubtsOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    let pdfContent: string | undefined = undefined;
+    if (input.pdfDataUri) {
+        try {
+            const pdfBuffer = Buffer.from(input.pdfDataUri.split(',')[1], 'base64');
+            const data = await pdf(pdfBuffer);
+            pdfContent = data.text;
+        } catch (e) {
+            console.error("Failed to parse PDF", e);
+            // Don't fail the whole flow, just proceed without PDF context.
+        }
+    }
+    
+    const {output} = await prompt({...input, pdfContent});
     return output!;
   }
 );

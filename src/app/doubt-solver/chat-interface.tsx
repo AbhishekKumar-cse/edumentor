@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Send, User, Bot, Loader2, Paperclip, X } from "lucide-react";
+import { Send, User, Bot, Loader2, Paperclip, X, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Message = {
@@ -15,14 +15,17 @@ type Message = {
   role: "user" | "assistant" | "model";
   content: string;
   image?: string;
+  pdf?: { name: string };
 };
 
 export default function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [image, setImage] = useState<string | null>(null);
+  const [pdf, setPdf] = useState<{name: string, data: string} | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const pdfInputRef = useRef<HTMLInputElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -41,25 +44,41 @@ export default function ChatInterface() {
       const reader = new FileReader();
       reader.onload = (loadEvent) => {
         setImage(loadEvent.target?.result as string);
+        setPdf(null); // Clear PDF if image is selected
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  const handlePdfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type === "application/pdf") {
+      const reader = new FileReader();
+      reader.onload = (loadEvent) => {
+          setPdf({ name: file.name, data: loadEvent.target?.result as string});
+          setImage(null); // Clear image if PDF is selected
       };
       reader.readAsDataURL(file);
     }
   };
 
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if ((!input.trim() && !image) || isLoading) return;
+    if ((!input.trim() && !image && !pdf) || isLoading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
       role: "user",
       content: input,
       ...(image && { image }),
+      ...(pdf && { pdf: { name: pdf.name } }),
     };
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setInput("");
     setImage(null);
+    setPdf(null);
     setIsLoading(true);
 
     try {
@@ -72,6 +91,7 @@ export default function ChatInterface() {
         question: input,
         history,
         imageDataUri: image || undefined,
+        pdfDataUri: pdf?.data || undefined,
        });
 
       const assistantMessage: Message = {
@@ -131,6 +151,12 @@ export default function ChatInterface() {
                         <Image src={message.image} alt="User upload" fill className="object-contain"/>
                     </div>
                 )}
+                 {message.pdf && (
+                    <div className="flex items-center gap-2 p-2 rounded-md bg-primary/10 mb-2">
+                        <FileText className="h-5 w-5 text-primary-foreground/80" />
+                        <span className="text-sm font-medium truncate">{message.pdf.name}</span>
+                    </div>
+                )}
                 <p className="whitespace-pre-wrap text-sm">{message.content}</p>
               </div>
                {message.role === "user" && (
@@ -158,37 +184,71 @@ export default function ChatInterface() {
       </ScrollArea>
       <div className="border-t p-4 bg-background">
         <form onSubmit={handleSendMessage} className="space-y-4">
-          {image && (
-            <div className="relative w-32 h-32 group">
-              <Image src={image} alt="Selected image" layout="fill" className="rounded-md object-cover" />
-              <Button
-                type="button"
-                size="icon"
-                variant="destructive"
-                className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={() => setImage(null)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
+            <div className="flex items-start gap-4">
+              {image && (
+                <div className="relative w-32 h-32 group">
+                  <Image src={image} alt="Selected image" layout="fill" className="rounded-md object-cover" />
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="destructive"
+                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => setImage(null)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+               {pdf && (
+                <div className="relative w-48 group bg-secondary p-3 rounded-lg flex items-center gap-2">
+                  <FileText className="h-6 w-6 text-secondary-foreground" />
+                  <p className="text-sm truncate flex-1">{pdf.name}</p>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="destructive"
+                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => setPdf(null)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
             </div>
-          )}
           <div className="flex items-center gap-4">
              <Button
                 type="button"
                 variant="outline"
                 size="icon"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isLoading}
+                onClick={() => imageInputRef.current?.click()}
+                disabled={isLoading || !!pdf}
               >
                 <Paperclip className="h-4 w-4" />
                 <span className="sr-only">Upload Image</span>
               </Button>
               <Input
                 type="file"
-                ref={fileInputRef}
+                ref={imageInputRef}
                 onChange={handleImageChange}
                 className="hidden"
                 accept="image/*"
+              />
+               <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={() => pdfInputRef.current?.click()}
+                disabled={isLoading || !!image}
+              >
+                <FileText className="h-4 w-4" />
+                <span className="sr-only">Upload PDF</span>
+              </Button>
+              <Input
+                type="file"
+                ref={pdfInputRef}
+                onChange={handlePdfChange}
+                className="hidden"
+                accept="application/pdf"
               />
             <Input
               value={input}
@@ -197,7 +257,7 @@ export default function ChatInterface() {
               className="flex-1"
               disabled={isLoading}
             />
-            <Button type="submit" size="icon" disabled={isLoading || (!input.trim() && !image)}>
+            <Button type="submit" size="icon" disabled={isLoading || (!input.trim() && !image && !pdf)}>
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               <span className="sr-only">Send</span>
             </Button>
