@@ -1,5 +1,6 @@
 
 import { electrostaticsQuestions } from './data/electrostatics';
+import { moleConceptQuestions } from './data/mole-concept';
 
 export type Question = {
   id: number;
@@ -296,7 +297,7 @@ export const subjects: Subject[] = [
             { id: 102172, text: 'A block of mass 1kg slides down on an inclined plane of inclination 30°, starting from rest. The coefficient of kinetic friction is 0.2. The distance travelled by the block in 4s is (g=9.8 m/s²):', options: ['13.8 m', '25.9 m', '32.1 m', '9.8 m'], answer: '25.9 m', difficulty: 'Hard', pageReference: 53, concepts: ['inclined plane', 'friction', 'kinematics'], isPastPaper: false },
             { id: 102173, text: 'A block rests on a rough inclined plane making an angle of 30° with the horizontal. The coefficient of static friction between the block and the plane is 0.8. If the frictional force on the block is 10 N, the mass of the block (in kg) is (take g = 10 m/s²):', options: ['2.0', '4.0', '1.6', '2.5'], answer: '2.0', difficulty: 'Hard', pageReference: 53, concepts: ['friction', 'inclined plane'], isPastPaper: true },
             { id: 102174, text: 'A small block of mass M is released from the top of a frictionless incline. The incline is placed on a smooth horizontal floor. The block takes time t to reach the bottom. If the incline is fixed and the block is released from the top, it takes t/2 time to reach the bottom. The ratio of the mass of the block to the mass of the incline is:', options: ['1/3', '1/4', '1/2', '2/3'], answer: '1/3', difficulty: 'Hard', pageReference: 53, concepts: ['conservation of momentum', 'relative motion'], isPastPaper: false },
-            { id: 102175, text: 'A plumb line is hanging from the ceiling of a car. If the car moves with an acceleration a, the angle made by the string with the vertical is:', options: ['tan⁻¹(g/a)', 'tan⁻¹(a/g)', 'sin⁻¹(a/g)', 'cos⁻¹(a/g)'], answer: 'tan⁻¹(a/g)', difficulty: 'Hard', pageReference: 50, concepts: ['pseudo force'], isPastPaper: false },
+            { id: 102175, text: 'A plumb line is hanging from the ceiling of a car. If the car begins to move with a constant acceleration a, the angle made by the string with the vertical is:', options: ['tan⁻¹(g/a)', 'tan⁻¹(a/g)', 'sin⁻¹(a/g)', 'cos⁻¹(a/g)'], answer: 'tan⁻¹(a/g)', difficulty: 'Hard', pageReference: 50, concepts: ['pseudo force'], isPastPaper: false },
             { id: 102176, text: 'A particle is projected with a velocity u at an angle θ with the horizontal. The power of the gravitational force at the highest point of the trajectory is:', options: ['mg u cosθ', 'mg u sinθ', 'Zero', '-mg u sinθ'], answer: 'Zero', difficulty: 'Hard', pageReference: 47, concepts: ['power', 'projectile motion'], isPastPaper: false },
             { id: 102177, text: 'A block of mass m is placed on a wedge of mass M. The wedge is placed on a horizontal surface. All surfaces are frictionless. The block is released from rest. The acceleration of the wedge is:', options: ['mg sinθ / (M+m sin²θ)', 'mg cosθ / (M+m cos²θ)', 'mg sinθ cosθ / (M+m sin²θ)', 'mg / (M+m)'], answer: 'mg sinθ cosθ / (M+m sin²θ)', difficulty: 'Hard', pageReference: 54, concepts: ['connected bodies', 'constraints'], isPastPaper: false },
             { id: 102178, text: 'A rope of length L is pulled by a constant force F. What is the tension in the rope at a distance x from the end where the force is applied?', options: ['F(L-x)/L', 'F(L-x)/x', 'FL/x', 'Fx/L'], answer: 'F(L-x)/L', difficulty: 'Hard', pageReference: 54, concepts: ['tension', 'newton second law'], isPastPaper: false },
@@ -1118,13 +1119,7 @@ export const subjects: Subject[] = [
     id: 2,
     name: 'Chemistry',
     chapters: [
-      {
-        id: 201,
-        name: 'Some Basic Concepts of Chemistry',
-        questions: [
-            { id: 201001, text: 'What is matter?', options: ['Anything that has mass and occupies space', 'Anything that can be seen', 'Only solids and liquids', 'Energy'], answer: 'Anything that has mass and occupies space', difficulty: 'Easy', pageReference: 2, concepts: ['matter'], isPastPaper: false },
-        ]
-      },
+      moleConceptQuestions,
     ]
   },
   {
