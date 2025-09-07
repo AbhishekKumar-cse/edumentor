@@ -35,6 +35,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { Checkbox } from '@/components/ui/checkbox';
+
+const timeSlots = [
+    { id: 'morning', label: 'Morning (9am - 12pm)' },
+    { id: 'afternoon', label: 'Afternoon (1pm - 5pm)' },
+    { id: 'evening', label: 'Evening (6pm - 10pm)' },
+];
 
 const formSchema = z.object({
   performanceData: z.string().min(1, {
@@ -46,6 +53,7 @@ const formSchema = z.object({
   frequency: z.enum(['daily', 'weekly', 'monthly'], {
     required_error: "You need to select a revision frequency."
   }),
+  preferredTimeSlots: z.array(z.string()).optional(),
 });
 
 interface ChartData {
@@ -64,6 +72,7 @@ export default function PlannerForm() {
       performanceData: '',
       examDate: '',
       frequency: 'weekly',
+      preferredTimeSlots: ['evening']
     },
   });
 
@@ -196,6 +205,54 @@ export default function PlannerForm() {
                     </FormItem>
                   )}
                 />
+                 <FormField
+                    control={form.control}
+                    name="preferredTimeSlots"
+                    render={() => (
+                        <FormItem>
+                        <div className="mb-4">
+                            <FormLabel className="text-base">Preferred Study Time</FormLabel>
+                            <FormDescription>
+                            Select when you'd like to study.
+                            </FormDescription>
+                        </div>
+                        {timeSlots.map((item) => (
+                            <FormField
+                            key={item.id}
+                            control={form.control}
+                            name="preferredTimeSlots"
+                            render={({ field }) => {
+                                return (
+                                <FormItem
+                                    key={item.id}
+                                    className="flex flex-row items-start space-x-3 space-y-0"
+                                >
+                                    <FormControl>
+                                    <Checkbox
+                                        checked={field.value?.includes(item.id)}
+                                        onCheckedChange={(checked) => {
+                                        return checked
+                                            ? field.onChange([...(field.value || []), item.id])
+                                            : field.onChange(
+                                                field.value?.filter(
+                                                (value) => value !== item.id
+                                                )
+                                            )
+                                        }}
+                                    />
+                                    </FormControl>
+                                    <FormLabel className="font-normal">
+                                        {item.label}
+                                    </FormLabel>
+                                </FormItem>
+                                )
+                            }}
+                            />
+                        ))}
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
              </div>
            </div>
 

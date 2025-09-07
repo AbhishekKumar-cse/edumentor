@@ -20,11 +20,13 @@ const RevisionScheduleInputSchema = z.object({
     ),
   examDate: z
     .string()
+
     .describe('The date of the exam in YYYY-MM-DD format.'),
   currentDate: z
     .string()
     .describe('The current date in YYYY-MM-DD format, which will be the start date for the schedule.'),
   frequency: z.enum(['daily', 'weekly', 'monthly']).describe('The desired frequency of revision sessions.'),
+  preferredTimeSlots: z.array(z.string()).optional().describe('An array of preferred time slots for studying (e.g., ["Morning (9am-12pm)", "Afternoon (1pm-5pm)", "Evening (6pm-10pm)"]).'),
 });
 
 export type RevisionScheduleInput = z.infer<typeof RevisionScheduleInputSchema>;
@@ -63,12 +65,17 @@ const prompt = ai.definePrompt({
   Current Date: {{{currentDate}}}
   Exam Date: {{{examDate}}}
   Desired Frequency: {{{frequency}}}
+  {{#if preferredTimeSlots}}
+  Preferred Time Slots: {{#each preferredTimeSlots}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
+  - Schedule study sessions within these preferred time slots.
+  {{else}}
+  - Schedule study sessions in the evening, typically between 18:00 and 22:00.
+  {{/if}}
 
   The schedule should be an array of objects, each with a date, topic, a specific task, a start time, an end time, and the duration in hours.
   - Prioritize topics where the student has lower scores or has noted difficulty.
   - Use spaced repetition: schedule reviews for a topic at increasing intervals (e.g., 1 day, 3 days, 7 days, 14 days later). The density of sessions should reflect the desired frequency.
   - Include a mix of tasks: "Review Notes", "Practice Problems", "Solve Past Paper", "Concept Mapping".
-  - Schedule study sessions in the evening, typically between 18:00 and 22:00.
   - Sessions should be between 1 to 2.5 hours long.
   - Ensure the schedule is realistic and spread out, leading up to the exam date.
 
