@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Check, X, Flag, BarChart, FileText, ArrowLeft, Lightbulb } from 'lucide-react';
+import { Check, X, Flag, BarChart, FileText, ArrowLeft, Lightbulb, Clock } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
@@ -16,6 +16,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 interface TestQuestion extends Question {
   userAnswer?: string;
   status: 'unanswered' | 'answered' | 'review';
+  timeTaken: number;
 }
 
 const difficultyVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive' } = {
@@ -24,23 +25,35 @@ const difficultyVariantMap: { [key: string]: 'default' | 'secondary' | 'destruct
   Hard: 'destructive',
 };
 
+const formatTime = (seconds: number) => {
+    if (seconds < 60) return `${Math.round(seconds)}s`;
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.round(seconds % 60);
+    return `${mins}m ${secs}s`;
+}
+
 export default function ResultsPage() {
   const [results, setResults] = useState<TestQuestion[]>([]);
   const [score, setScore] = useState(0);
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [incorrectAnswers, setIncorrectAnswers] = useState(0);
   const [unanswered, setUnanswered] = useState(0);
+  const [totalTime, setTotalTime] = useState(0);
 
   const router = useRouter();
 
   useEffect(() => {
     const resultsStr = sessionStorage.getItem('testResults');
+    const timeStr = sessionStorage.getItem('totalTimeTaken');
+
     if (!resultsStr) {
       router.replace('/mock-test');
       return;
     }
     const testResults: TestQuestion[] = JSON.parse(resultsStr);
     setResults(testResults);
+    setTotalTime(timeStr ? JSON.parse(timeStr) : 0);
+
 
     let correct = 0;
     let incorrect = 0;
@@ -69,7 +82,11 @@ export default function ResultsPage() {
     return 'border-border';
   };
 
-  const accuracy = results.length > 0 ? ((correctAnswers / (results.length-unanswered)) * 100) : 0;
+  const accuracy = results.length > 0 && (results.length - unanswered) > 0 
+    ? ((correctAnswers / (results.length - unanswered)) * 100) 
+    : 0;
+
+  const averageTime = results.length > 0 ? totalTime / results.length : 0;
   
   if (results.length === 0) {
     return (
@@ -104,30 +121,42 @@ export default function ResultsPage() {
               <span className="font-headline text-2xl">Performance Summary</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="p-4">
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Card className="p-4 flex flex-col justify-center">
               <CardTitle className="text-4xl font-bold text-primary">{score} / {totalMarks}</CardTitle>
               <CardDescription>Your Score</CardDescription>
             </Card>
-            <Card className="p-4">
-              <CardTitle className="text-4xl font-bold text-green-500">{correctAnswers}</CardTitle>
-              <CardDescription>Correct Answers</CardDescription>
-            </Card>
-            <Card className="p-4">
-              <CardTitle className="text-4xl font-bold text-red-500">{incorrectAnswers}</CardTitle>
-              <CardDescription>Incorrect Answers</CardDescription>
-            </Card>
-            <Card className="p-4">
-              <CardTitle className="text-4xl font-bold text-muted-foreground">{unanswered}</CardTitle>
-              <CardDescription>Not Answered</CardDescription>
-            </Card>
-             <Card className="md:col-span-2 lg:col-span-4 p-4 space-y-2">
-               <div className="flex justify-between items-center">
-                  <CardDescription>Accuracy</CardDescription>
-                  <CardTitle className="text-2xl font-bold">{isNaN(accuracy) ? 0 : accuracy.toFixed(2)}%</CardTitle>
-               </div>
-               <Progress value={accuracy} />
+             <Card className="md:col-span-2 lg:col-span-2 p-4 grid grid-cols-3 gap-4">
+                <div className="text-center">
+                    <p className="text-3xl font-bold text-green-500">{correctAnswers}</p>
+                    <p className="text-sm text-muted-foreground">Correct</p>
+                </div>
+                <div className="text-center">
+                    <p className="text-3xl font-bold text-red-500">{incorrectAnswers}</p>
+                    <p className="text-sm text-muted-foreground">Incorrect</p>
+                </div>
+                <div className="text-center">
+                    <p className="text-3xl font-bold text-muted-foreground">{unanswered}</p>
+                    <p className="text-sm text-muted-foreground">Unanswered</p>
+                </div>
              </Card>
+            
+             <Card className="p-4 flex flex-col justify-center">
+               <CardTitle className="text-4xl font-bold">{isNaN(accuracy) ? 0 : accuracy.toFixed(2)}%</CardTitle>
+               <CardDescription>Accuracy</CardDescription>
+               <Progress value={accuracy} className="mt-2" />
+             </Card>
+
+              <Card className="p-4 flex flex-col justify-center">
+                <CardTitle className="text-3xl font-bold">{formatTime(totalTime)}</CardTitle>
+                <CardDescription>Total Time Taken</CardDescription>
+              </Card>
+
+              <Card className="p-4 flex flex-col justify-center">
+                <CardTitle className="text-3xl font-bold">{formatTime(averageTime)}</CardTitle>
+                <CardDescription>Avg. Time / Question</CardDescription>
+              </Card>
+
           </CardContent>
         </Card>
 
@@ -146,10 +175,28 @@ export default function ResultsPage() {
             {results.map((question, index) => (
               <div key={question.id} className="p-4 border rounded-lg bg-secondary/30">
                 <div className="flex justify-between items-start">
-                  <p className="font-semibold text-base mb-2">
-                    Q{index + 1}: {question.text}
-                  </p>
-                  {question.status === 'review' && <Badge variant="outline" className="bg-purple-100 text-purple-800 border-purple-300"><Flag className="mr-1.5 h-3.5 w-3.5" />Marked for Review</Badge>}
+                    <div className='flex-1'>
+                        <p className="font-semibold text-base mb-2">
+                            Q{index + 1}: {question.text}
+                        </p>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                             <Badge
+                                variant={difficultyVariantMap[question.difficulty]}
+                                className={cn('text-xs', {
+                                'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800': question.difficulty === 'Easy',
+                                'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-800': question.difficulty === 'Medium',
+                                'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800': question.difficulty === 'Hard',
+                                })}
+                            >
+                                {question.difficulty}
+                            </Badge>
+                             <div className="flex items-center gap-1.5">
+                                <Clock className="h-4 w-4" />
+                                <span>Time taken: {formatTime(question.timeTaken)}</span>
+                            </div>
+                        </div>
+                    </div>
+                  {question.status === 'review' && <Badge variant="outline" className="bg-purple-100 text-purple-800 border-purple-300 flex-shrink-0 ml-4"><Flag className="mr-1.5 h-3.5 w-3.5" />Marked for Review</Badge>}
                 </div>
 
                 <div className="space-y-2 my-4">
@@ -206,21 +253,6 @@ export default function ResultsPage() {
                       </AccordionContent>
                     </AccordionItem>
                   </Accordion>
-
-
-                <div className="flex items-center justify-between mt-4 text-sm text-muted-foreground">
-                  <Badge
-                    variant={difficultyVariantMap[question.difficulty]}
-                    className={cn('text-xs', {
-                      'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800': question.difficulty === 'Easy',
-                      'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-800': question.difficulty === 'Medium',
-                      'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800': question.difficulty === 'Hard',
-                    })}
-                  >
-                    {question.difficulty}
-                  </Badge>
-                  <span className='text-xs'>Ref: p.{question.pageReference}</span>
-                </div>
               </div>
             ))}
           </CardContent>

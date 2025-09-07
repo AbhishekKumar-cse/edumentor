@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { subjects, type Question } from '@/lib/data';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,7 @@ import { Timer, Flag } from 'lucide-react';
 interface TestQuestion extends Question {
   userAnswer?: string;
   status: 'unanswered' | 'answered' | 'review';
+  timeTaken: number; // in seconds
 }
 
 interface TestConfig {
@@ -32,6 +33,10 @@ export default function TestPage() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [timeLeft, setTimeLeft] = useState(0);
   const router = useRouter();
+  
+  const questionTimers = useRef<number[]>([]);
+  const questionStartTime = useRef<number>(Date.now());
+  const totalTimeTaken = useRef<number>(0);
 
   useEffect(() => {
     const configStr = sessionStorage.getItem('mockTestConfig');
@@ -62,8 +67,11 @@ export default function TestPage() {
     const selectedQuestions = shuffled.slice(0, config.questionCount).map(q => ({
       ...q,
       status: 'unanswered' as 'unanswered',
+      timeTaken: 0,
     }));
     setTestQuestions(selectedQuestions);
+    questionTimers.current = new Array(selectedQuestions.length).fill(0);
+    questionStartTime.current = Date.now();
   }, [router]);
 
   useEffect(() => {
@@ -74,10 +82,23 @@ export default function TestPage() {
     if (timeLeft > 0) {
       const timer = setInterval(() => {
         setTimeLeft(prevTime => prevTime - 1);
+        totalTimeTaken.current += 1;
       }, 1000);
       return () => clearInterval(timer);
     }
   }, [timeLeft, testQuestions.length]);
+
+  const updateQuestionTime = (index: number) => {
+      const timeSpent = (Date.now() - questionStartTime.current) / 1000;
+      setTestQuestions(prev => {
+         const newQuestions = [...prev];
+         if(newQuestions[index]) {
+            newQuestions[index].timeTaken += timeSpent;
+         }
+         return newQuestions;
+      });
+      questionStartTime.current = Date.now();
+  }
 
   const handleAnswerChange = (answer: string) => {
     setTestQuestions(prev => {
@@ -101,18 +122,32 @@ export default function TestPage() {
 
   const handleNext = () => {
     if (currentQuestionIndex < testQuestions.length - 1) {
+      updateQuestionTime(currentQuestionIndex);
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     }
   };
 
   const handlePrevious = () => {
     if (currentQuestionIndex > 0) {
+       updateQuestionTime(currentQuestionIndex);
       setCurrentQuestionIndex(currentQuestionIndex - 1);
     }
   };
 
+  const handlePaletteClick = (index: number) => {
+    if(index !== currentQuestionIndex) {
+        updateQuestionTime(currentQuestionIndex);
+        setCurrentQuestionIndex(index);
+    }
+  }
+
   const submitTest = () => {
-    sessionStorage.setItem('testResults', JSON.stringify(testQuestions));
+    updateQuestionTime(currentQuestionIndex); // Final update for the last question
+    
+    // Save results with time taken
+    const resultsToStore = testQuestions.map(q => ({...q})); // creates a new copy to avoid state issues
+    sessionStorage.setItem('testResults', JSON.stringify(resultsToStore));
+    sessionStorage.setItem('totalTimeTaken', JSON.stringify(totalTimeTaken.current));
     sessionStorage.removeItem('mockTestConfig');
     router.replace('/mock-test/results');
   };
@@ -221,7 +256,7 @@ export default function TestPage() {
                     getStatusColor(q.status),
                     index === currentQuestionIndex && 'ring-2 ring-primary ring-offset-2'
                   )}
-                  onClick={() => setCurrentQuestionIndex(index)}
+                  onClick={() => handlePaletteClick(index)}
                 >
                   {index + 1}
                 </Button>
