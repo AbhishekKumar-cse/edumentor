@@ -56,15 +56,6 @@ const subjects = [
   { name: 'Mathematics', icon: <Calculator className="w-5 h-5" /> },
 ];
 
-const digitalBooks = [
-  { title: 'Backlog से Azadi', exam: 'JEE MAIN 2026', image: 'https://picsum.photos/200/280', hint: 'book cover', available: true },
-  { title: 'Most Important Questions', exam: 'JEE MAIN 2026', image: 'https://picsum.photos/200/280', hint: 'book cover', available: false },
-  { title: 'Rank Booster Questions', exam: 'JEE ADVANCED 2026', image: 'https://picsum.photos/200/280', hint: 'book cover', available: false },
-  { title: 'Triumph MHT-CET', exam: 'Question Bank', image: 'https://picsum.photos/200/280', hint: 'book cover', available: false },
-  { title: '2026 BITSAT Prep Guide', exam: 'PREP GUIDE', image: 'https://picsum.photos/200/280', hint: 'book cover', available: false },
-  { title: '2026 WBJEE Chapterwise Explorer', exam: 'CHAPTERWISE EXPLORER', image: 'https://picsum.photos/200/280', hint: 'book cover', available: false },
-];
-
 const formulaChapters = {
   physics: [
     { title: 'Current Electricity', questionCount: 39, icon: <CurrentElectricityIcon />, color: 'bg-sky-500' },
@@ -228,40 +219,6 @@ export default function HomePage() {
             </div>
           </div>
         </Card>
-      </section>
-
-      <section className="space-y-6">
-        <div className="flex justify-between items-center">
-            <h2 className="text-4xl font-headline font-bold">
-                Most Important Digital Books
-            </h2>
-            <Button variant="link" className="text-primary text-lg">VIEW ALL</Button>
-        </div>
-        <p className="text-xl text-muted-foreground">No need to buy bulky physical books. Get them all in one place!</p>
-        <div className="relative">
-            <Carousel opts={{ align: 'start', dragFree: true }}>
-                <CarouselContent className="-ml-4">
-                {digitalBooks.map((book, index) => (
-                    <CarouselItem key={index} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6 pl-4">
-                        <Card className="bg-secondary/30 border-0">
-                            <CardContent className="p-0 aspect-[2/3] relative">
-                                <Image src={book.image} alt={book.title} fill className="object-cover rounded-md" data-ai-hint={book.hint} />
-                                {!book.available && (
-                                    <div className="absolute bottom-0 w-full text-center bg-red-600 text-white text-xs font-bold py-1.5">
-                                        COMING SOON
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                         <div className="mt-2 text-center">
-                            <p className="font-semibold text-lg truncate">{book.title}</p>
-                            <p className="text-base text-muted-foreground">{book.exam}</p>
-                        </div>
-                    </CarouselItem>
-                ))}
-                </CarouselContent>
-            </Carousel>
-        </div>
       </section>
 
       <section className="space-y-6">
