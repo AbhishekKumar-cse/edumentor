@@ -85,7 +85,7 @@ export default function HomePage() {
 
    const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
      if (e.key === 'Enter' && searchQuery.trim()) {
-       router.push(`/topic-explorer?q=${encodeURIComponent(searchQuery.trim())}`);
+       router.push(`/tagging?q=${encodeURIComponent(searchQuery.trim())}`);
      }
    };
 
@@ -152,7 +152,7 @@ export default function HomePage() {
                       alt="JEE Advanced Banner"
                       fill
                       className="object-cover"
-                      data-ai-hint="IIT building"
+                      data-ai-hint="NIT campus"
                     />
                      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent p-8 md:p-12 flex flex-col justify-center items-start text-white">
                         <Badge className="mb-2 bg-red-600 text-white border-0">JEE Advanced 2025</Badge>

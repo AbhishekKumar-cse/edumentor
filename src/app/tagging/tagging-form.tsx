@@ -1,12 +1,13 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { tagQuestionsWithAI, type TagQuestionsWithAIOutput } from '@/ai/flows/tag-questions-with-ai';
 import type { Question } from '@/lib/data';
+import { useSearchParams } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -46,6 +47,7 @@ export default function TaggingForm() {
   const [taggingResult, setTaggingResult] = useState<TagQuestionsWithAIOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const searchParams = useSearchParams();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -53,8 +55,8 @@ export default function TaggingForm() {
       questionText: '',
     },
   });
-
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  
+  const handleFormSubmit = useCallback(async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     setTaggingResult(null);
     try {
@@ -70,12 +72,22 @@ export default function TaggingForm() {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [toast]);
+
+  useEffect(() => {
+    const query = searchParams.get('q');
+    if (query) {
+      form.setValue('questionText', query);
+      handleFormSubmit({ questionText: query });
+    }
+  }, [searchParams, form, handleFormSubmit]);
+
+
 
   return (
     <div className="space-y-8">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
           <FormField
             control={form.control}
             name="questionText"
