@@ -23,7 +23,8 @@ import {
   Telescope,
   Sigma,
   PanelLeftClose,
-  PanelRightClose
+  PanelRightClose,
+  FileQuestion
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -32,6 +33,7 @@ const navItems = [
   { href: '/', label: 'Dashboard', icon: Home },
   { href: '/resources', label: 'Resources', icon: Book },
   { href: '/formulas', label: 'Formula Sheets', icon: Sigma },
+  { href: '/question-bank', label: 'Question Bank', icon: FileQuestion },
   { href: '/mock-test', label: 'Mock Tests', icon: ClipboardList },
   { href: '/revision-planner', label: 'Revision Planner', icon: Calendar },
   { href: '/tagging', label: 'AI Tagger', icon: Tag },
