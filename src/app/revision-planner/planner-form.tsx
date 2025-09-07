@@ -28,8 +28,8 @@ import { Badge } from '@/components/ui/badge';
 import { getISOWeek, format, parseISO } from 'date-fns';
 
 const formSchema = z.object({
-  performanceData: z.string().min(50, {
-    message: 'Please provide detailed performance data (at least 50 characters).',
+  performanceData: z.string().min(1, {
+    message: 'Please provide some performance data.',
   }),
   examDate: z.string().refine((date) => !isNaN(Date.parse(date)), {
     message: 'Please select a valid exam date.',
@@ -168,7 +168,7 @@ export default function PlannerForm() {
                 <div className="space-y-8">
                     <div>
                         <h3 className="font-headline text-xl mb-4">Weekly Sessions Overview</h3>
-                        <div className="h-[250px]">
+                        <div className="h-[250px] w-full">
                            <ChartContainer config={chartConfig} className="w-full h-full">
                                 <BarChart accessibilityLayer data={chartData}>
                                     <CartesianGrid vertical={false} />
