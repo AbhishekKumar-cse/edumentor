@@ -1,6 +1,6 @@
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Award, Medal, Zap, Calendar, Target, ShieldCheck, Moon, Sun } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Award, Medal, Zap, Calendar, Target, ShieldCheck, Moon, Sun, Trophy } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -81,12 +81,14 @@ export default function AchievementsPage() {
                     <Card 
                         key={index}
                         className={cn(
-                            "p-6 flex flex-col items-center text-center gap-4 transition-all",
-                            achievement.unlocked ? "bg-secondary/50 border-primary/20" : "bg-secondary/20 opacity-60"
+                            "p-6 flex flex-col items-center text-center gap-4 transition-all duration-300 ease-in-out",
+                            achievement.unlocked 
+                                ? "bg-secondary/50 border-primary/20 hover:scale-105 hover:shadow-lg hover:shadow-primary/20" 
+                                : "bg-secondary/20 opacity-60 hover:opacity-80"
                         )}
                     >
                         <div className={cn(
-                            "w-20 h-20 rounded-full flex items-center justify-center bg-gradient-to-br",
+                            "w-20 h-20 rounded-full flex items-center justify-center bg-gradient-to-br transition-all",
                             achievement.unlocked ? "from-yellow-400/20 to-primary/20" : "from-muted/20 to-muted/30"
                         )}>
                             {achievement.icon}
@@ -95,7 +97,7 @@ export default function AchievementsPage() {
                             <h3 className="text-lg font-bold font-headline">{achievement.title}</h3>
                             <p className="text-sm text-muted-foreground">{achievement.description}</p>
                         </div>
-                         <Badge variant={achievement.unlocked ? "default" : "outline"} className={cn(achievement.unlocked ? "bg-green-500/80 border-green-500" : "")}>
+                         <Badge variant={achievement.unlocked ? "default" : "outline"} className={cn("transition-colors", achievement.unlocked ? "bg-green-500/80 border-green-500" : "")}>
                             {achievement.unlocked ? "Unlocked" : "Locked"}
                         </Badge>
                     </Card>
