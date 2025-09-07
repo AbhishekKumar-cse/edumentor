@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -10,6 +11,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'zod';
+import { subjects, Question } from '@/lib/data';
 
 const MessageSchema = z.object({
   role: z.enum(['user', 'model']),
@@ -34,6 +36,44 @@ export type ResolveStudentDoubtsOutput = z.infer<typeof ResolveStudentDoubtsOutp
 export async function resolveStudentDoubts(input: ResolveStudentDoubtsInput): Promise<ResolveStudentDoubtsOutput> {
   return resolveStudentDoubtsFlow(input);
 }
+
+const getQuestionsFromBank = ai.defineTool(
+  {
+    name: 'getQuestionsFromBank',
+    description: 'Searches the question bank for questions related to a specific topic or concept.',
+    inputSchema: z.object({
+      topic: z.string().describe('The topic or concept to search for questions on.'),
+      count: z.number().optional().default(3).describe('The maximum number of questions to return.'),
+    }),
+    outputSchema: z.array(z.object({
+        text: z.string(),
+        answer: z.string(),
+        difficulty: z.string(),
+    })),
+  },
+  async ({ topic, count }) => {
+    console.log(`Searching for questions on: ${topic}`);
+    const related: Question[] = [];
+    const lowerCaseTopic = topic.toLowerCase();
+    for (const subject of subjects) {
+      for (const chapter of subject.chapters) {
+        for (const question of chapter.questions) {
+          if (
+            question.text.toLowerCase().includes(lowerCaseTopic) ||
+            question.concepts.some(c => c.toLowerCase().includes(lowerCaseTopic))
+          ) {
+            related.push(question);
+            if (related.length >= count) break;
+          }
+        }
+        if (related.length >= count) break;
+      }
+      if (related.length >= count) break;
+    }
+    return related.map(q => ({ text: q.text, answer: q.answer, difficulty: q.difficulty }));
+  }
+);
+
 
 const getCurrentWeather = ai.defineTool(
   {
@@ -82,12 +122,14 @@ const searchTheWeb = ai.defineTool(
 
 const prompt = ai.definePrompt({
   name: 'resolveStudentDoubtsPrompt',
-  tools: [getCurrentWeather, searchTheWeb],
+  tools: [getCurrentWeather, searchTheWeb, getQuestionsFromBank],
   input: {schema: ResolveStudentDoubtsInputSchema},
   output: {schema: ResolveStudentDoubtsOutputSchema},
   prompt: `You are an AI assistant specialized in resolving student doubts. 
   
   Your primary role is to help students with their academic questions. You are also equipped with tools to fetch real-time information like weather and current events if the user asks for it.
+  
+  If the user asks for example questions, a question list, or practice problems on a certain topic, use the 'getQuestionsFromBank' tool to find relevant questions from the database and present them to the user in a clear format.
   
   If an image is provided, analyze it carefully along with the user's question.
   
