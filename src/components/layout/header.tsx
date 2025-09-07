@@ -88,9 +88,11 @@ export default function Header() {
           </DropdownMenu>
           
            <div className='hidden md:flex items-center gap-2'>
-             <Button variant="outline" size="icon" className="rounded-full">
-                <Trophy className="h-5 w-5" />
-             </Button>
+             <Link href="/achievements">
+                <Button variant="outline" size="icon" className="rounded-full">
+                    <Trophy className="h-5 w-5" />
+                </Button>
+             </Link>
            </div>
         </div>
       </div>

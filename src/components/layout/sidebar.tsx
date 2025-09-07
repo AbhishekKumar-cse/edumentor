@@ -24,7 +24,8 @@ import {
   Sigma,
   PanelLeftClose,
   PanelRightClose,
-  FileQuestion
+  FileQuestion,
+  Trophy
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -39,6 +40,7 @@ const navItems = [
   { href: '/tagging', label: 'AI Tagger', icon: Tag },
   { href: '/topic-explorer', label: 'Topic Explorer', icon: Telescope },
   { href: '/doubt-solver', label: 'Doubt Solver', icon: HelpCircle },
+  { href: '/achievements', label: 'Achievements', icon: Trophy },
 ];
 
 function SidebarCollapseButton() {
