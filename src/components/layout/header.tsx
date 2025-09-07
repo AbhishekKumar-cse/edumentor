@@ -35,7 +35,7 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm md:px-8">
+    <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b border-slate-700 bg-background/80 px-4 backdrop-blur-sm md:px-8">
       <SidebarTrigger className="md:hidden" />
 
       <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
