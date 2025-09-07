@@ -22,12 +22,12 @@ export default function ExamCard({ name, logo, tag, href, tagColor }: ExamCardPr
         <Link href={isComingSoon ? '#' : href} className="flex flex-col group">
             <Card className="bg-secondary/30 group-hover:bg-primary/10 group-hover:border-primary transition-all duration-300 cursor-pointer h-full flex-1 flex flex-col">
                 <CardContent className="p-4 flex flex-col items-center justify-center text-center gap-3 flex-1">
-                <div className="relative h-16 w-16 bg-background/50 rounded-full flex items-center justify-center p-2 group-hover:bg-primary/20 transition-all">
+                <div className="relative h-14 w-14 bg-background/50 rounded-full flex items-center justify-center p-2 group-hover:bg-primary/20 transition-all">
                     <Image
                     src={logo}
                     alt={`${name} logo`}
-                    width={40}
-                    height={40}
+                    width={32}
+                    height={32}
                     className="object-contain"
                     />
                 </div>
