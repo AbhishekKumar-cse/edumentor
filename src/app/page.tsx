@@ -33,6 +33,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ChapterCard } from '@/components/ui/chapter-card';
 import { Input } from '@/components/ui/input';
 import { AlternatingCurrentIcon, CurrentElectricityIcon, OscillationsIcon, RotationalMotionIcon, SemiconductorsIcon } from '@/components/icons';
+import { cn } from '@/lib/utils';
 
 
 const examCategories = [
@@ -94,16 +95,16 @@ export default function HomePage() {
   return (
     <div className="space-y-8 pb-12">
       {isLoading || !profile ? (
-        <header className="space-y-2">
-            <Skeleton className="h-9 w-48" />
-            <Skeleton className="h-6 w-64" />
+        <header className="space-y-4">
+            <Skeleton className="h-10 w-64" />
+            <Skeleton className="h-7 w-72" />
         </header>
       ) : (
          <header className="space-y-2">
-            <h1 className="text-3xl font-headline font-bold">
+            <h1 className="text-4xl font-headline font-bold">
               Hey, {profile.name}!
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-lg text-muted-foreground">
               Let's practice and conquer your exams.
             </p>
          </header>
@@ -131,14 +132,14 @@ export default function HomePage() {
                     />
                      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent p-8 md:p-12 flex flex-col justify-center items-start text-white">
                         <Badge className="mb-2 bg-red-600 text-white border-0">Just Launched</Badge>
-                        <p className="font-semibold">With Premium Filters</p>
-                        <h2 className="text-4xl md:text-5xl font-extrabold tracking-tighter">
+                        <p className="font-semibold text-lg">With Premium Filters</p>
+                        <h2 className="text-5xl md:text-6xl font-extrabold tracking-tighter">
                             Find Your <span className="text-yellow-400">Weak chapters</span>
                         </h2>
                      </div>
                       <div className="absolute right-8 md:right-12 top-1/2 -translate-y-1/2 text-center text-black bg-white/90 p-4 rounded-lg">
-                        <p className="font-bold text-lg">Unlock Now</p>
-                        <p className="text-sm">at 50% OFF</p>
+                        <p className="font-bold text-xl">Unlock Now</p>
+                        <p className="text-base">at 50% OFF</p>
                       </div>
                   </div>
                 </CardContent>
@@ -152,15 +153,20 @@ export default function HomePage() {
 
       <section className="space-y-4">
         <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-headline font-bold">
+            <h2 className="text-3xl font-headline font-bold">
             Chapter wise PYQ Bank
             </h2>
             <Button variant="link" className="text-primary">VIEW ALL</Button>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 gap-4">
-          {examCategories.map((exam) => (
-            <ExamCard key={exam.name} {...exam} />
-          ))}
+        <div 
+            className="relative w-full overflow-hidden"
+            style={{ maskImage: "linear-gradient(to right, transparent, black 10%, black 90%, transparent)"}}
+        >
+            <div className="flex w-max animate-[scroll_40s_linear_infinite]">
+            {[...examCategories, ...examCategories].map((exam, index) => (
+                <ExamCard key={`${exam.name}-${index}`} {...exam} />
+            ))}
+            </div>
         </div>
       </section>
 
@@ -168,10 +174,10 @@ export default function HomePage() {
         <Card className="p-6 bg-secondary/30">
           <div className="flex flex-col md:flex-row gap-6 items-center">
             <div className="flex-1 space-y-2">
-              <h2 className="text-2xl font-headline font-bold">
+              <h2 className="text-3xl font-headline font-bold">
                 India's Best 99%iler's Question Bank
               </h2>
-              <p className="text-muted-foreground">
+              <p className="text-lg text-muted-foreground">
                 Practice the most relevant questions to get the best results in
                 your exams.
               </p>
@@ -190,12 +196,12 @@ export default function HomePage() {
 
       <section className="space-y-4">
         <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-headline font-bold">
+            <h2 className="text-3xl font-headline font-bold">
                 Most Important Digital Books
             </h2>
             <Button variant="link" className="text-primary">VIEW ALL</Button>
         </div>
-        <p className="text-muted-foreground">No need to buy bulky physical books. Get them all in one place!</p>
+        <p className="text-lg text-muted-foreground">No need to buy bulky physical books. Get them all in one place!</p>
         <div className="relative">
             <Carousel opts={{ align: 'start', dragFree: true }}>
                 <CarouselContent className="-ml-4">
@@ -212,8 +218,8 @@ export default function HomePage() {
                             </CardContent>
                         </Card>
                          <div className="mt-2 text-center">
-                            <p className="font-semibold text-sm truncate">{book.title}</p>
-                            <p className="text-xs text-muted-foreground">{book.exam}</p>
+                            <p className="font-semibold text-base truncate">{book.title}</p>
+                            <p className="text-sm text-muted-foreground">{book.exam}</p>
                         </div>
                     </CarouselItem>
                 ))}
@@ -226,8 +232,8 @@ export default function HomePage() {
         <Card className="p-4 bg-gradient-to-r from-secondary/30 to-background border-amber-500/30">
             <div className="flex justify-between items-center">
                 <div className="flex flex-col">
-                    <h3 className="font-bold text-lg">Solve DPPs</h3>
-                    <p className="text-sm text-muted-foreground">681+ aspirants solved DPP in 1 last hr! <Flame className="inline w-4 h-4 text-amber-500" /></p>
+                    <h3 className="font-bold text-xl">Solve DPPs</h3>
+                    <p className="text-base text-muted-foreground">681+ aspirants solved DPP in 1 last hr! <Flame className="inline w-5 h-5 text-amber-500" /></p>
                 </div>
                 <div className="flex items-center gap-2">
                     <Badge variant="outline" className="border-amber-400 text-amber-400 bg-amber-900/50">PREMIUM</Badge>
@@ -240,9 +246,9 @@ export default function HomePage() {
                  <div className="flex justify-between items-center">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-primary/20 rounded-lg">
-                           <BookCopy className="w-5 h-5 text-primary" />
+                           <BookCopy className="w-6 h-6 text-primary" />
                         </div>
-                        <h3 className="font-bold text-lg">PYQ Mock Tests</h3>
+                        <h3 className="font-bold text-xl">PYQ Mock Tests</h3>
                     </div>
                     <div className="flex items-center gap-2">
                         <Badge variant="secondary" className="bg-red-500/20 text-red-400 border-red-500/30">NEW</Badge>
@@ -254,9 +260,9 @@ export default function HomePage() {
                 <div className="flex justify-between items-center">
                     <div className="flex items-center gap-3">
                          <div className="p-2 bg-primary/20 rounded-lg">
-                           <PencilRuler className="w-5 h-5 text-primary" />
+                           <PencilRuler className="w-6 h-6 text-primary" />
                         </div>
-                        <h3 className="font-bold text-lg">Create Your Own Test</h3>
+                        <h3 className="font-bold text-xl">Create Your Own Test</h3>
                     </div>
                      <div className="flex items-center gap-2">
                         <Badge variant="secondary" className="bg-blue-500/20 text-blue-400 border-blue-500/30">UPDATED</Badge>
@@ -265,7 +271,7 @@ export default function HomePage() {
                 </div>
              </Card>
          </div>
-         <Button variant="link" className="w-full">
+         <Button variant="link" className="w-full text-base">
             Formula Cards <Badge variant="secondary" className="ml-2 bg-red-500/20 text-red-400 border-red-500/30">NEW</Badge>
          </Button>
       </section>
@@ -273,7 +279,7 @@ export default function HomePage() {
       <section>
         <Card className="p-6 bg-secondary/30">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-headline font-bold flex items-center gap-2">
+            <h2 className="text-3xl font-headline font-bold flex items-center gap-2">
               Formula Cards <Badge variant="destructive">NEW</Badge>
             </h2>
           </div>
@@ -285,7 +291,7 @@ export default function HomePage() {
             </TabsList>
             <div className="mt-4">
               <div className="flex justify-between items-center mb-2">
-                <h3 className="font-semibold text-lg">Recent chapters</h3>
+                <h3 className="font-semibold text-xl">Recent chapters</h3>
                 <Button variant="link" className="text-primary">VIEW ALL</Button>
               </div>
               <TabsContent value="physics">
@@ -310,7 +316,7 @@ export default function HomePage() {
 
       <section>
         <Card className="p-6 bg-secondary/30">
-            <h2 className="text-2xl font-headline font-bold mb-4">
+            <h2 className="text-3xl font-headline font-bold mb-4">
               Concept-wise Notes
             </h2>
             <div className="relative">
@@ -325,10 +331,10 @@ export default function HomePage() {
         <Card className="p-6 bg-secondary/30">
             <div className="flex items-center gap-4 mb-4">
                 <div>
-                   <h2 className="text-2xl font-headline font-bold text-purple-400">NCERT</h2>
-                   <h2 className="text-3xl font-headline font-bold">Toolbox</h2>
+                   <h2 className="text-3xl font-headline font-bold text-purple-400">NCERT</h2>
+                   <h2 className="text-4xl font-headline font-bold">Toolbox</h2>
                 </div>
-                <p className="text-sm text-muted-foreground">For future Doctors and Engineers</p>
+                <p className="text-base text-muted-foreground">For future Doctors and Engineers</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card className="p-4 bg-background/50 hover:bg-primary/10 hover:border-primary transition-all cursor-pointer">
@@ -337,7 +343,7 @@ export default function HomePage() {
                            <ListTree className="w-6 h-6 text-primary" />
                         </div>
                         <div className="flex flex-col">
-                            <h3 className="font-bold text-lg">NCERT Line by Line Qs</h3>
+                            <h3 className="font-bold text-xl">NCERT Line by Line Qs</h3>
                         </div>
                     </div>
                 </Card>
@@ -347,7 +353,7 @@ export default function HomePage() {
                            <FileQuestion className="w-6 h-6 text-primary" />
                         </div>
                         <div className="flex flex-col">
-                           <h3 className="font-bold text-lg">NCERT & Exampler Qs</h3>
+                           <h3 className="font-bold text-xl">NCERT & Exampler Qs</h3>
                         </div>
                     </div>
                 </Card>
@@ -357,7 +363,7 @@ export default function HomePage() {
                            <ImageIcon className="w-6 h-6 text-primary" />
                         </div>
                         <div className="flex flex-col">
-                           <h3 className="font-bold text-lg">Diagram Based Qs</h3>
+                           <h3 className="font-bold text-xl">Diagram Based Qs</h3>
                         </div>
                     </div>
                 </Card>
@@ -368,4 +374,3 @@ export default function HomePage() {
     </div>
   );
 }
-
