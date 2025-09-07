@@ -22,6 +22,9 @@ import {
   BookText,
   FileQuestion,
   GalleryVertical,
+  ArrowRight,
+  ClipboardList,
+  FilePlus2,
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ChapterCard } from '@/components/ui/chapter-card';
@@ -31,7 +34,9 @@ import {
   AlternatingCurrentIcon,
   RotationalMotionIcon,
   OscillationsIcon,
+  FlameIcon,
 } from '@/components/icons';
+import Link from 'next/link';
 
 const examCategories = [
   {
@@ -65,6 +70,45 @@ const subjects = [
   { name: 'Chemistry', icon: <FlaskConical className="w-5 h-5" /> },
   { name: 'Mathematics', icon: <Calculator className="w-5 h-5" /> },
 ];
+
+const digitalBooks = [
+    {
+        title: 'Backlog से Azadi',
+        exam: 'JEE MAIN 2026',
+        image: 'https://picsum.photos/200/280',
+        aiHint: 'book cover'
+    },
+    {
+        title: 'Most Important Questions',
+        exam: 'JEE MAIN 2026',
+        image: 'https://picsum.photos/200/280',
+        aiHint: 'book cover'
+    },
+    {
+        title: 'Rank Booster Questions',
+        exam: 'JEE ADVANCED 2026',
+        image: 'https://picsum.photos/200/280',
+        aiHint: 'book cover'
+    },
+    {
+        title: 'TRIUMPH MHT-CET Question Bank',
+        exam: '2026',
+        image: 'https://picsum.photos/200/280',
+        aiHint: 'book cover'
+    },
+    {
+        title: '2026 BITSAT PREP GUIDE',
+        exam: '',
+        image: 'https://picsum.photos/200/280',
+        aiHint: 'book cover'
+    },
+    {
+        title: '2026 WBJEE CHAPTERWISE EXPLORER',
+        exam: '',
+        image: 'https://picsum.photos/200/280',
+        aiHint: 'book cover'
+    },
+]
 
 export default function HomePage() {
   return (
@@ -152,6 +196,78 @@ export default function HomePage() {
 
       {/* New Section from Image */}
       <section className="space-y-8 pt-8">
+        <Card className="p-6 bg-slate-800/50 border-slate-700">
+          <div className="flex items-center justify-between gap-4 mb-6">
+            <h2 className="text-2xl font-headline font-bold text-white">
+              Most Important Digital Books
+            </h2>
+             <Button variant="link" className="text-blue-400">
+                VIEW ALL
+            </Button>
+          </div>
+           <p className="text-muted-foreground mb-6 -mt-4">
+              No need to buy bulky physical books. Get them all in one place!
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {digitalBooks.map((book, index) => (
+                    <div key={index} className="space-y-2">
+                        <div className="aspect-[5/7] bg-secondary rounded-lg overflow-hidden">
+                           <Image src={book.image} alt={book.title} width={200} height={280} className="w-full h-full object-cover" data-ai-hint={book.aiHint}/>
+                        </div>
+                        <div className="bg-red-600 text-center py-1 rounded-sm">
+                            <p className="text-xs font-bold text-white">COMING SOON</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </Card>
+
+        <Card className="p-4 bg-slate-800/50 border-orange-400/50 hover:bg-slate-800 transition-colors cursor-pointer">
+            <Link href="#" className="flex items-center justify-between gap-4">
+                <div>
+                    <h3 className="text-lg font-bold text-white">Solve DPPs</h3>
+                    <p className="text-sm text-muted-foreground flex items-center gap-2">
+                        681+ aspirants solved DPP in 1 last hr! <FlameIcon className="text-orange-400"/>
+                    </p>
+                </div>
+                <div className="flex items-center gap-4">
+                     <Badge className="bg-orange-200 text-orange-900 hover:bg-orange-300">
+                        <Image src="https://picsum.photos/20/20" alt="Premium" width={16} height={16} className="mr-1.5" data-ai-hint="crown icon"/>
+                        PREMIUM
+                    </Badge>
+                    <ArrowRight className="text-muted-foreground"/>
+                </div>
+            </Link>
+        </Card>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <Card className="p-4 bg-slate-800/50 border-purple-400/50 hover:bg-slate-800 transition-colors cursor-pointer">
+                <Link href="/mock-test" className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        <ClipboardList className="text-purple-400"/>
+                        <p className="font-bold text-white">PYQ Mock Tests</p>
+                    </div>
+                     <div className="flex items-center gap-4">
+                        <Badge variant="destructive">NEW</Badge>
+                        <ArrowRight className="text-muted-foreground"/>
+                    </div>
+                </Link>
+            </Card>
+             <Card className="p-4 bg-slate-800/50 border-cyan-400/50 hover:bg-slate-800 transition-colors cursor-pointer">
+                <Link href="/mock-test" className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        <FilePlus2 className="text-cyan-400"/>
+                        <p className="font-bold text-white">Create Your Own Test</p>
+                    </div>
+                     <div className="flex items-center gap-4">
+                        <Badge className="bg-cyan-500 text-white border-cyan-500">UPDATED</Badge>
+                        <ArrowRight className="text-muted-foreground"/>
+                    </div>
+                </Link>
+            </Card>
+        </div>
+
+
         <Card className="p-6 bg-slate-800/50 border-slate-700">
           <div className="flex items-center gap-4 mb-6">
             <h2 className="text-2xl font-headline font-bold text-white">
