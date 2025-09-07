@@ -40,15 +40,15 @@ import { useRouter } from 'next/navigation';
 
 
 const examCategories = [
-  { name: 'JEE Main', logo: 'https://picsum.photos/40/40', tag: '2025 QS ADDED', tagColor: 'bg-red-500/20 text-red-400 border-red-500/30', href: '/mock-test' },
-  { name: 'JEE Advanced', logo: 'https://picsum.photos/40/40', tag: '2025 QS ADDED', tagColor: 'bg-red-500/20 text-red-400 border-red-500/30', href: '/mock-test' },
-  { name: 'Boards', logo: 'https://picsum.photos/40/40', tag: 'New', tagColor: 'bg-pink-500/20 text-pink-400 border-pink-500/30', href: '/mock-test' },
-  { name: 'NTA Abhyas (JEE Main)', logo: 'https://picsum.photos/40/40', tag: 'COMING SOON', tagColor: 'bg-gray-500/20 text-gray-400 border-gray-500/30', href: '#' },
-  { name: 'BITSAT', logo: 'https://picsum.photos/40/40', tag: 'COMING SOON', tagColor: 'bg-gray-500/20 text-gray-400 border-gray-500/30', href: '#' },
-  { name: 'NDA', logo: 'https://picsum.photos/40/40', tag: 'COMING SOON', tagColor: 'bg-gray-500/20 text-gray-400 border-gray-500/30', href: '#' },
-  { name: 'VITEEE', logo: 'https://picsum.photos/40/40', tag: 'COMING SOON', tagColor: 'bg-gray-500/20 text-gray-400 border-gray-500/30', href: '#' },
-  { name: 'IAT (IISER)', logo: 'https://picsum.photos/40/40', tag: 'COMING SOON', tagColor: 'bg-gray-500/20 text-gray-400 border-gray-500/30', href: '#' },
-  { name: 'CUET', logo: 'https://picsum.photos/40/40', tag: 'COMING SOON', tagColor: 'bg-gray-500/20 text-gray-400 border-gray-500/30', href: '#' },
+  { name: 'JEE Main', logo: 'https://picsum.photos/seed/jee-main/40/40', tag: '2025 QS ADDED', tagColor: 'bg-red-500/20 text-red-400 border-red-500/30', href: '/mock-test' },
+  { name: 'JEE Advanced', logo: 'https://picsum.photos/seed/jee-advanced/40/40', tag: '2025 QS ADDED', tagColor: 'bg-red-500/20 text-red-400 border-red-500/30', href: '/mock-test' },
+  { name: 'Boards', logo: 'https://picsum.photos/seed/boards/40/40', tag: 'New', tagColor: 'bg-pink-500/20 text-pink-400 border-pink-500/30', href: '/mock-test' },
+  { name: 'NTA Abhyas (JEE Main)', logo: 'https://picsum.photos/seed/nta/40/40', tag: 'COMING SOON', tagColor: 'bg-gray-500/20 text-gray-400 border-gray-500/30', href: '#' },
+  { name: 'BITSAT', logo: 'https://picsum.photos/seed/bitsat/40/40', tag: 'COMING SOON', tagColor: 'bg-gray-500/20 text-gray-400 border-gray-500/30', href: '#' },
+  { name: 'NDA', logo: 'https://picsum.photos/seed/nda/40/40', tag: 'COMING SOON', tagColor: 'bg-gray-500/20 text-gray-400 border-gray-500/30', href: '#' },
+  { name: 'VITEEE', logo: 'https://picsum.photos/seed/viteee/40/40', tag: 'COMING SOON', tagColor: 'bg-gray-500/20 text-gray-400 border-gray-500/30', href: '#' },
+  { name: 'IAT (IISER)', logo: 'https://picsum.photos/seed/iiser/40/40', tag: 'COMING SOON', tagColor: 'bg-gray-500/20 text-gray-400 border-gray-500/30', href: '#' },
+  { name: 'CUET', logo: 'https://picsum.photos/seed/cuet/40/40', tag: 'COMING SOON', tagColor: 'bg-gray-500/20 text-gray-400 border-gray-500/30', href: '#' },
 ];
 
 
@@ -200,7 +200,7 @@ export default function HomePage() {
             </h2>
             <Button variant="link" className="text-primary text-lg">VIEW ALL</Button>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-6">
             {examCategories.map((exam, index) => (
                 <ExamCard key={`${exam.name}-${index}`} {...exam} />
             ))}
