@@ -200,7 +200,7 @@ export default function HomePage() {
             </h2>
             <Button variant="link" className="text-primary text-lg">VIEW ALL</Button>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-4">
             {examCategories.map((exam, index) => (
                 <ExamCard key={`${exam.name}-${index}`} {...exam} />
             ))}
