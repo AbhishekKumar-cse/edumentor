@@ -19,7 +19,7 @@ export const ChapterCard = ({
   return (
     <div
       className={cn(
-        'p-4 rounded-lg flex flex-col justify-between h-36 relative overflow-hidden',
+        'p-4 rounded-lg flex flex-col justify-between h-36 relative overflow-hidden group cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg',
         color
       )}
     >
@@ -29,7 +29,7 @@ export const ChapterCard = ({
           <BookCopy className="w-4 h-4" />
           <span>{questionCount}</span>
         </div>
-        <div className="w-8 h-8 flex items-center justify-center bg-white/20 rounded-full">
+        <div className="w-8 h-8 flex items-center justify-center bg-white/20 rounded-full group-hover:bg-white/30 transition-colors">
           {icon}
         </div>
       </div>

@@ -46,9 +46,9 @@ export default function ResourcesPage() {
                   <AccordionContent>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
                           {subjectData.maps.map((map) => (
-                              <div key={map.name} className="space-y-2">
+                              <div key={map.name} className="space-y-2 group">
                                   <h4 className="font-semibold">{map.name}</h4>
-                                  <div className="relative aspect-video w-full overflow-hidden rounded-lg border">
+                                  <div className="relative aspect-video w-full overflow-hidden rounded-lg border group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-primary/20 transition-all duration-300">
                                       <Image
                                       src={map.imageUrl}
                                       alt={map.name}

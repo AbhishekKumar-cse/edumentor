@@ -232,7 +232,7 @@ export default function HomePage() {
       </section>
 
       <section className="space-y-6">
-        <Card className="p-6 bg-gradient-to-r from-secondary/30 to-background border-amber-500/30">
+        <Card className="p-6 bg-gradient-to-r from-secondary/30 to-background border-amber-500/30 hover:shadow-lg hover:shadow-amber-500/20 transition-shadow duration-300">
             <div className="flex justify-between items-center">
                 <div className="flex flex-col">
                     <h3 className="font-bold text-2xl">Solve DPPs</h3>
@@ -245,7 +245,7 @@ export default function HomePage() {
             </div>
         </Card>
          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-             <Card className="p-6 bg-secondary/30 hover:bg-primary/10 hover:border-primary transition-all cursor-pointer">
+             <Card className="p-6 bg-secondary/30 hover:bg-primary/10 hover:border-primary transition-all cursor-pointer hover:shadow-lg hover:shadow-primary/20">
                  <div className="flex justify-between items-center">
                     <div className="flex items-center gap-4">
                         <div className="p-3 bg-primary/20 rounded-lg">
@@ -259,7 +259,7 @@ export default function HomePage() {
                     </div>
                  </div>
              </Card>
-             <Card className="p-6 bg-secondary/30 hover:bg-primary/10 hover:border-primary transition-all cursor-pointer">
+             <Card className="p-6 bg-secondary/30 hover:bg-primary/10 hover:border-primary transition-all cursor-pointer hover:shadow-lg hover:shadow-primary/20">
                 <div className="flex justify-between items-center">
                     <div className="flex items-center gap-4">
                          <div className="p-3 bg-primary/20 rounded-lg">
@@ -346,7 +346,7 @@ export default function HomePage() {
                 <p className="text-lg text-muted-foreground">For future Doctors and Engineers</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="p-6 bg-background/50 hover:bg-primary/10 hover:border-primary transition-all cursor-pointer">
+                <Card className="p-6 bg-background/50 hover:bg-primary/10 hover:border-primary transition-all cursor-pointer hover:shadow-lg hover:shadow-primary/20">
                     <div className="flex items-center gap-4">
                         <div className="p-3 bg-primary/20 rounded-lg">
                            <ListTree className="w-8 h-8 text-primary" />
@@ -356,7 +356,7 @@ export default function HomePage() {
                         </div>
                     </div>
                 </Card>
-                <Card className="p-6 bg-background/50 hover:bg-primary/10 hover:border-primary transition-all cursor-pointer">
+                <Card className="p-6 bg-background/50 hover:bg-primary/10 hover:border-primary transition-all cursor-pointer hover:shadow-lg hover:shadow-primary/20">
                     <div className="flex items-center gap-4">
                          <div className="p-3 bg-primary/20 rounded-lg">
                            <FileQuestion className="w-8 h-8 text-primary" />
@@ -366,7 +366,7 @@ export default function HomePage() {
                         </div>
                     </div>
                 </Card>
-                 <Card className="p-6 bg-background/50 hover:bg-primary/10 hover:border-primary transition-all cursor-pointer">
+                 <Card className="p-6 bg-background/50 hover:bg-primary/10 hover:border-primary transition-all cursor-pointer hover:shadow-lg hover:shadow-primary/20">
                     <div className="flex items-center gap-4">
                          <div className="p-3 bg-primary/20 rounded-lg">
                            <ImageIcon className="w-8 h-8 text-primary" />

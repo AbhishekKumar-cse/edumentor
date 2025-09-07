@@ -53,7 +53,7 @@ const QuestionCard = ({ question, index }: { question: Question; index: number }
   };
 
   return (
-    <div className="p-4 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors border">
+    <div className="p-4 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors border hover:border-primary/50 hover:shadow-md hover:shadow-primary/10">
        <div className="flex justify-between items-start mb-2">
             <p className="font-semibold flex-1">
                 Q{index + 1}: {question.text}
