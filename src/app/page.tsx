@@ -35,6 +35,8 @@ import { Input } from '@/components/ui/input';
 import { AlternatingCurrentIcon, CurrentElectricityIcon, OscillationsIcon, RotationalMotionIcon, SemiconductorsIcon } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import Autoplay from "embla-carousel-autoplay";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 
 const examCategories = [
@@ -78,6 +80,14 @@ const formulaChapters = {
 
 export default function HomePage() {
    const { profile, isLoading } = useProfile();
+   const [searchQuery, setSearchQuery] = useState('');
+   const router = useRouter();
+
+   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+     if (e.key === 'Enter' && searchQuery.trim()) {
+       router.push(`/topic-explorer?q=${encodeURIComponent(searchQuery.trim())}`);
+     }
+   };
 
   return (
     <div className="space-y-10 pb-12 px-6 md:px-10">
@@ -314,7 +324,13 @@ export default function HomePage() {
             </h2>
             <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-6 h-6" />
-                <Input placeholder="Get clarity on any topic" className="pl-12 pr-12 h-14 rounded-full bg-background text-lg" />
+                <Input 
+                    placeholder="Get clarity on any topic" 
+                    className="pl-12 pr-12 h-14 rounded-full bg-background text-lg" 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={handleSearch}
+                />
                 <Mic className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground w-6 h-6" />
             </div>
         </Card>

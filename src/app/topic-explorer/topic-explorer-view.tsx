@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type { Subject, Chapter, Question } from '@/lib/data';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { useSearchParams } from 'next/navigation';
 
 interface TopicExplorerProps {
   subjects: Subject[];
@@ -26,6 +27,8 @@ type Concept = {
   questionCount: number;
   pastPaperCount: number;
   questions: Question[];
+  chapterName: string;
+  subjectName: string;
 };
 
 const subjectIcons: { [key: string]: React.ElementType } = {
@@ -109,44 +112,81 @@ type SubjectConceptData = {
 
 export default function TopicExplorerView({ subjects }: TopicExplorerProps) {
   const [activeConcept, setActiveConcept] = useState<Concept | null>(null);
+  const [activeAccordionItems, setActiveAccordionItems] = useState<string[]>([]);
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get('q');
+
+  const allConcepts = useMemo(() => {
+    const conceptList: Concept[] = [];
+    subjects.forEach(subject => {
+        subject.chapters.forEach(chapter => {
+            const conceptsMap = new Map<string, Concept>();
+            chapter.questions.forEach(question => {
+                question.concepts.forEach(conceptName => {
+                    const normalizedConcept = conceptName.toLowerCase().trim();
+                    if (!conceptsMap.has(normalizedConcept)) {
+                        conceptsMap.set(normalizedConcept, {
+                            name: conceptName,
+                            questionCount: 0,
+                            pastPaperCount: 0,
+                            questions: [],
+                            chapterName: chapter.name,
+                            subjectName: subject.name,
+                        });
+                    }
+                    const concept = conceptsMap.get(normalizedConcept)!;
+                    concept.questionCount++;
+                    if (question.isPastPaper) {
+                        concept.pastPaperCount++;
+                    }
+                    concept.questions.push(question);
+                });
+            });
+            conceptList.push(...Array.from(conceptsMap.values()));
+        });
+    });
+    return conceptList;
+  }, [subjects]);
+
+
+  useEffect(() => {
+    if (searchQuery) {
+        const foundConcept = allConcepts.find(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()));
+        if (foundConcept) {
+            setActiveConcept(foundConcept);
+            setActiveAccordionItems([foundConcept.subjectName, foundConcept.chapterName]);
+        }
+    }
+  }, [searchQuery, allConcepts]);
 
   const structuredConcepts = useMemo(() => {
-    const subjectData: SubjectConceptData[] = subjects.map(subject => {
-      const chapterData: ChapterConceptData[] = subject.chapters.map(chapter => {
-        const conceptsMap = new Map<string, Concept>();
-        
-        chapter.questions.forEach(question => {
-          question.concepts.forEach(conceptName => {
-            const normalizedConcept = conceptName.toLowerCase().trim();
-            if (!conceptsMap.has(normalizedConcept)) {
-              conceptsMap.set(normalizedConcept, {
-                name: conceptName,
-                questionCount: 0,
-                pastPaperCount: 0,
-                questions: [],
-              });
-            }
-            const concept = conceptsMap.get(normalizedConcept)!;
-            concept.questionCount++;
-            if (question.isPastPaper) {
-              concept.pastPaperCount++;
-            }
-            concept.questions.push(question);
-          });
-        });
-        
-        const concepts = Array.from(conceptsMap.values())
-          .filter(c => c.pastPaperCount > 0)
-          .sort((a, b) => b.pastPaperCount - a.pastPaperCount);
+    const subjectDataMap = new Map<string, Map<string, Concept[]>>();
 
-        return { chapterName: chapter.name, concepts };
-      });
+    allConcepts.forEach(concept => {
+        if (!subjectDataMap.has(concept.subjectName)) {
+            subjectDataMap.set(concept.subjectName, new Map<string, Concept[]>());
+        }
+        const chapterMap = subjectDataMap.get(concept.subjectName)!;
 
-      return { subjectName: subject.name, chapters: chapterData.filter(c => c.concepts.length > 0) };
+        if (!chapterMap.has(concept.chapterName)) {
+            chapterMap.set(concept.chapterName, []);
+        }
+        chapterMap.get(concept.chapterName)!.push(concept);
     });
 
+    const subjectData: SubjectConceptData[] = Array.from(subjectDataMap.entries()).map(([subjectName, chapterMap]) => ({
+        subjectName,
+        chapters: Array.from(chapterMap.entries()).map(([chapterName, concepts]) => ({
+            chapterName,
+            concepts: concepts
+              .filter(c => c.pastPaperCount > 0)
+              .sort((a, b) => b.pastPaperCount - a.pastPaperCount),
+        })).filter(c => c.concepts.length > 0),
+    }));
+
     return subjectData.filter(s => s.chapters.length > 0);
-  }, [subjects]);
+
+  }, [allConcepts]);
 
 
   return (
@@ -155,7 +195,7 @@ export default function TopicExplorerView({ subjects }: TopicExplorerProps) {
         <p className="text-muted-foreground">
           Explore important topics chapter-by-chapter. Topics are sorted by the number of questions that have appeared in past papers. Click on a topic to view related questions.
         </p>
-        <Accordion type="multiple" className="w-full space-y-4">
+        <Accordion type="multiple" className="w-full space-y-4" value={activeAccordionItems} onValueChange={setActiveAccordionItems}>
           {structuredConcepts.map((subject) => {
             const Icon = subjectIcons[subject.subjectName] || Book;
             return (
@@ -168,7 +208,7 @@ export default function TopicExplorerView({ subjects }: TopicExplorerProps) {
                 </AccordionTrigger>
                 <AccordionContent>
                   <div className="pl-8 pr-4">
-                    <Accordion type="multiple" className="w-full space-y-2">
+                    <Accordion type="multiple" className="w-full space-y-2" value={activeAccordionItems} onValueChange={setActiveAccordionItems}>
                       {subject.chapters.map(chapter => (
                         <AccordionItem value={chapter.chapterName} key={chapter.chapterName} className="border-l-2 pl-4">
                            <AccordionTrigger className="font-semibold hover:no-underline">
