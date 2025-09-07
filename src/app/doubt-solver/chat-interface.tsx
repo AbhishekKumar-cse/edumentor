@@ -3,12 +3,12 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { resolveStudentDoubts } from "@/ai/flows/resolve-student-doubts";
+import { resolveStudentDoubts, ResolveStudentDoubtsOutput } from "@/ai/flows/resolve-student-doubts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Send, User, Bot, Loader2, Paperclip, X, FileText, PlusCircle, Trash2, MessageSquare, History } from "lucide-react";
+import { Send, User, Bot, Loader2, Paperclip, X, FileText, PlusCircle, Trash2, MessageSquare, History, Lightbulb, HelpCircle, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -30,6 +30,9 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
 
 type Message = {
   id: string;
@@ -37,6 +40,7 @@ type Message = {
   content: string;
   image?: string;
   pdf?: { name: string };
+  analysis?: Omit<ResolveStudentDoubtsOutput, 'answer' | 'explanation'>;
 };
 
 type Chat = {
@@ -222,6 +226,11 @@ export default function ChatInterface() {
         id: (Date.now() + 1).toString(),
         role: "assistant",
         content: result.answer + (result.explanation ? `\n\n**Explanation:**\n${result.explanation}` : ''),
+        analysis: {
+            summary: result.summary,
+            keyConcepts: result.keyConcepts,
+            practiceQuestions: result.practiceQuestions,
+        }
       };
        setChats(prev => ({
         ...prev,
@@ -336,6 +345,7 @@ export default function ChatInterface() {
                 <div className="text-center text-muted-foreground py-12 flex flex-col items-center justify-center h-full">
                     <Bot className="mx-auto h-12 w-12 mb-4" />
                     <p>No messages yet. Ask me anything!</p>
+                     <p className="text-sm mt-2">You can also upload a PDF and ask for a summary.</p>
                 </div>
               )}
               {activeChat?.messages.map((message) => (
@@ -355,7 +365,7 @@ export default function ChatInterface() {
                   )}
                   <div
                     className={cn(
-                      "max-w-md rounded-lg px-4 py-3 shadow-sm",
+                      "max-w-2xl w-full rounded-lg px-4 py-3 shadow-sm",
                       message.role === "user"
                         ? "bg-primary text-primary-foreground"
                         : "bg-secondary"
@@ -373,6 +383,50 @@ export default function ChatInterface() {
                         </div>
                     )}
                     <p className="whitespace-pre-wrap text-sm">{message.content}</p>
+
+                     {message.analysis && (message.analysis.summary || (message.analysis.keyConcepts && message.analysis.keyConcepts.length > 0) || (message.analysis.practiceQuestions && message.analysis.practiceQuestions.length > 0)) && (
+                        <Card className="mt-4 bg-background/50">
+                            <CardHeader>
+                                <CardTitle className="text-lg font-headline">Detailed Analysis</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {message.analysis.summary && (
+                                    <div>
+                                        <h4 className="font-semibold text-base mb-2 flex items-center"><BookOpen className="w-4 h-4 mr-2" />Summary</h4>
+                                        <p className="text-sm text-muted-foreground prose prose-sm dark:prose-invert">{message.analysis.summary}</p>
+                                    </div>
+                                )}
+                                {message.analysis.keyConcepts && message.analysis.keyConcepts.length > 0 && (
+                                     <div>
+                                        <h4 className="font-semibold text-base mb-2 flex items-center"><Lightbulb className="w-4 h-4 mr-2" />Key Concepts</h4>
+                                        <Accordion type="single" collapsible className="w-full">
+                                            {message.analysis.keyConcepts.map((item, index) => (
+                                                <AccordionItem value={`concept-${index}`} key={index}>
+                                                    <AccordionTrigger>{item.concept}</AccordionTrigger>
+                                                    <AccordionContent className="text-muted-foreground">
+                                                        {item.explanation}
+                                                    </AccordionContent>
+                                                </AccordionItem>
+                                            ))}
+                                        </Accordion>
+                                    </div>
+                                )}
+                                {message.analysis.practiceQuestions && message.analysis.practiceQuestions.length > 0 && (
+                                    <div>
+                                        <h4 className="font-semibold text-base mb-2 flex items-center"><HelpCircle className="w-4 h-4 mr-2" />Practice Questions</h4>
+                                        <div className="space-y-2">
+                                            {message.analysis.practiceQuestions.map((item, index) => (
+                                                <div key={index} className="p-3 bg-secondary/50 rounded-md">
+                                                    <p className="font-medium">Q: {item.question}</p>
+                                                    <p className="text-sm text-green-600 dark:text-green-400 mt-1">A: {item.answer}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                     )}
                   </div>
                    {message.role === "user" && (
                     <Avatar className="h-8 w-8 border border-accent">
@@ -468,7 +522,7 @@ export default function ChatInterface() {
                 <Input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Type your question..."
+                  placeholder="Type your question or ask to summarize a PDF..."
                   className="flex-1"
                   disabled={isLoading}
                 />

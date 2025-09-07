@@ -28,9 +28,23 @@ const ResolveStudentDoubtsInputSchema = z.object({
 });
 export type ResolveStudentDoubtsInput = z.infer<typeof ResolveStudentDoubtsInputSchema>;
 
+const KeyConceptSchema = z.object({
+    concept: z.string().describe("The name of the key concept."),
+    explanation: z.string().describe("A brief explanation of the concept."),
+});
+
+const PracticeQuestionSchema = z.object({
+    question: z.string().describe("A practice question related to the content."),
+    answer: z.string().describe("The correct answer to the practice question."),
+});
+
+
 const ResolveStudentDoubtsOutputSchema = z.object({
   answer: z.string().describe("The AI assistant's answer to the question."),
   explanation: z.string().optional().describe('A detailed, step-by-step explanation of the concept or solution.'),
+  summary: z.string().optional().describe('A brief summary of the provided document, if requested.'),
+  keyConcepts: z.array(KeyConceptSchema).optional().describe('A list of key concepts extracted from the document, if requested.'),
+  practiceQuestions: z.array(PracticeQuestionSchema).optional().describe('A list of practice questions based on the document, if requested.'),
 });
 export type ResolveStudentDoubtsOutput = z.infer<typeof ResolveStudentDoubtsOutputSchema>;
 
@@ -127,29 +141,37 @@ const prompt = ai.definePrompt({
   tools: [getCurrentWeather, searchTheWeb, getQuestionsFromBank],
   input: {schema: ResolveStudentDoubtsInputSchema },
   output: {schema: ResolveStudentDoubtsOutputSchema},
-  prompt: `You are an AI assistant specialized in resolving student doubts. 
+  prompt: `You are an AI assistant specialized in resolving student doubts. Your primary role is to help students with their academic questions.
   
-  Your primary role is to help students with their academic questions. You are also equipped with tools to fetch real-time information like weather and current events if the user asks for it.
-  
-  If the user asks for example questions, a question list, or practice problems on a certain topic, use the 'getQuestionsFromBank' tool to find relevant questions from the database and present them to the user in a clear format.
+  Your capabilities include:
+  - Answering direct questions.
+  - Providing step-by-step explanations.
+  - Analyzing text from uploaded documents (PDFs) and images.
+  - Searching a pre-existing question bank for relevant practice problems.
+  - Fetching real-time information like weather and current events.
 
-  If a PDF document's content is prepended to the question, prioritize answering questions based on the content of that document.
+  **Instructions:**
+
+  1.  **Standard Questions:** If the user asks a regular question, provide a clear 'answer' and, if helpful, a more detailed 'explanation'.
+  2.  **Document Analysis:** 
+      - If the user's question is based on an uploaded document (its content will be prepended to the question), prioritize answering based on that document.
+      - If the user asks for a summary, key concepts, or practice questions from the document, populate the 'summary', 'keyConcepts', or 'practiceQuestions' fields in your output. For other questions, you can leave these fields empty.
+  3.  **Image Analysis:** If an image is provided, analyze it carefully along with the user's question.
+  4.  **Question Bank Tool:** If the user asks for "example questions," a "question list," or "practice problems" on a certain topic, use the 'getQuestionsFromBank' tool to find relevant questions and present them clearly in your answer.
+  5.  **Real-time Info:** Use the 'getCurrentWeather' or 'searchTheWeb' tools only when the user's query explicitly asks for that kind of information.
   
-  If an image is provided, analyze it carefully along with the user's question.
-  
-  Conversation History:
+  **Conversation History:**
   {{#each history}}
     {{role}}: {{content}}
   {{/each}}
   
-  A student has asked the following question:
+  **Student's Request:**
   Question: {{{question}}}
   
   {{#if imageDataUri}}
   Problem Image: {{media url=imageDataUri}}
   {{/if}}
 
-  Provide a detailed, step-by-step explanation to help the student understand the concept thoroughly.
   Context: {{{context}}}
   `,
 });
