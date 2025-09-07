@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -5,7 +6,7 @@ import { generatePersonalizedRevisionSchedule, RevisionScheduleOutput } from '@/
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip } from 'recharts';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -22,7 +23,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Loader2, CalendarCheck, Lightbulb, ChevronsRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 import { Badge } from '@/components/ui/badge';
 import { getISOWeek, format, parseISO } from 'date-fns';
 
@@ -168,8 +169,8 @@ export default function PlannerForm() {
                     <div>
                         <h3 className="font-headline text-xl mb-4">Weekly Sessions Overview</h3>
                         <div className="h-[250px]">
-                           <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={chartData}>
+                           <ChartContainer config={chartConfig} className="w-full h-full">
+                                <BarChart accessibilityLayer data={chartData}>
                                     <CartesianGrid vertical={false} />
                                     <XAxis
                                         dataKey="name"
@@ -184,7 +185,7 @@ export default function PlannerForm() {
                                     />
                                     <Bar dataKey="sessions" fill="var(--color-sessions)" radius={4} />
                                 </BarChart>
-                           </ResponsiveContainer>
+                           </ChartContainer>
                         </div>
                     </div>
                     <div>
