@@ -93,18 +93,18 @@ export default function HomePage() {
    const { profile, isLoading } = useProfile();
 
   return (
-    <div className="space-y-8 pb-12">
+    <div className="space-y-10 pb-12">
       {isLoading || !profile ? (
         <header className="space-y-4">
-            <Skeleton className="h-10 w-64" />
-            <Skeleton className="h-7 w-72" />
+            <Skeleton className="h-12 w-72" />
+            <Skeleton className="h-8 w-80" />
         </header>
       ) : (
          <header className="space-y-2">
-            <h1 className="text-4xl font-headline font-bold">
+            <h1 className="text-5xl font-headline font-bold">
               Hey, {profile.name}!
             </h1>
-            <p className="text-lg text-muted-foreground">
+            <p className="text-xl text-muted-foreground">
               Let's practice and conquer your exams.
             </p>
          </header>
@@ -132,14 +132,14 @@ export default function HomePage() {
                     />
                      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent p-8 md:p-12 flex flex-col justify-center items-start text-white">
                         <Badge className="mb-2 bg-red-600 text-white border-0">Just Launched</Badge>
-                        <p className="font-semibold text-lg">With Premium Filters</p>
-                        <h2 className="text-5xl md:text-6xl font-extrabold tracking-tighter">
+                        <p className="font-semibold text-xl">With Premium Filters</p>
+                        <h2 className="text-6xl md:text-7xl font-extrabold tracking-tighter">
                             Find Your <span className="text-yellow-400">Weak chapters</span>
                         </h2>
                      </div>
                       <div className="absolute right-8 md:right-12 top-1/2 -translate-y-1/2 text-center text-black bg-white/90 p-4 rounded-lg">
-                        <p className="font-bold text-xl">Unlock Now</p>
-                        <p className="text-base">at 50% OFF</p>
+                        <p className="font-bold text-2xl">Unlock Now</p>
+                        <p className="text-lg">at 50% OFF</p>
                       </div>
                   </div>
                 </CardContent>
@@ -151,40 +151,35 @@ export default function HomePage() {
         </Carousel>
       </section>
 
-      <section className="space-y-4">
+      <section className="space-y-6">
         <div className="flex justify-between items-center">
-            <h2 className="text-3xl font-headline font-bold">
+            <h2 className="text-4xl font-headline font-bold">
             Chapter wise PYQ Bank
             </h2>
-            <Button variant="link" className="text-primary">VIEW ALL</Button>
+            <Button variant="link" className="text-primary text-lg">VIEW ALL</Button>
         </div>
-        <div 
-            className="relative w-full overflow-hidden"
-            style={{ maskImage: "linear-gradient(to right, transparent, black 10%, black 90%, transparent)"}}
-        >
-            <div className="flex w-max animate-[scroll_40s_linear_infinite]">
-            {[...examCategories, ...examCategories].map((exam, index) => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-4">
+            {examCategories.map((exam, index) => (
                 <ExamCard key={`${exam.name}-${index}`} {...exam} />
             ))}
-            </div>
         </div>
       </section>
 
        <section>
-        <Card className="p-6 bg-secondary/30">
+        <Card className="p-8 bg-secondary/30">
           <div className="flex flex-col md:flex-row gap-6 items-center">
-            <div className="flex-1 space-y-2">
-              <h2 className="text-3xl font-headline font-bold">
+            <div className="flex-1 space-y-3">
+              <h2 className="text-4xl font-headline font-bold">
                 India's Best 99%iler's Question Bank
               </h2>
-              <p className="text-lg text-muted-foreground">
+              <p className="text-xl text-muted-foreground">
                 Practice the most relevant questions to get the best results in
                 your exams.
               </p>
             </div>
-            <div className="flex-shrink-0 flex flex-wrap gap-3">
+            <div className="flex-shrink-0 flex flex-wrap gap-4">
               {subjects.map((subject) => (
-                <Button key={subject.name} variant="outline" size="lg">
+                <Button key={subject.name} variant="outline" size="lg" className="text-lg">
                   {subject.icon}
                   <span>{subject.name}</span>
                 </Button>
@@ -194,14 +189,14 @@ export default function HomePage() {
         </Card>
       </section>
 
-      <section className="space-y-4">
+      <section className="space-y-6">
         <div className="flex justify-between items-center">
-            <h2 className="text-3xl font-headline font-bold">
+            <h2 className="text-4xl font-headline font-bold">
                 Most Important Digital Books
             </h2>
-            <Button variant="link" className="text-primary">VIEW ALL</Button>
+            <Button variant="link" className="text-primary text-lg">VIEW ALL</Button>
         </div>
-        <p className="text-lg text-muted-foreground">No need to buy bulky physical books. Get them all in one place!</p>
+        <p className="text-xl text-muted-foreground">No need to buy bulky physical books. Get them all in one place!</p>
         <div className="relative">
             <Carousel opts={{ align: 'start', dragFree: true }}>
                 <CarouselContent className="-ml-4">
@@ -218,8 +213,8 @@ export default function HomePage() {
                             </CardContent>
                         </Card>
                          <div className="mt-2 text-center">
-                            <p className="font-semibold text-base truncate">{book.title}</p>
-                            <p className="text-sm text-muted-foreground">{book.exam}</p>
+                            <p className="font-semibold text-lg truncate">{book.title}</p>
+                            <p className="text-base text-muted-foreground">{book.exam}</p>
                         </div>
                     </CarouselItem>
                 ))}
@@ -228,84 +223,84 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="space-y-4">
-        <Card className="p-4 bg-gradient-to-r from-secondary/30 to-background border-amber-500/30">
+      <section className="space-y-6">
+        <Card className="p-6 bg-gradient-to-r from-secondary/30 to-background border-amber-500/30">
             <div className="flex justify-between items-center">
                 <div className="flex flex-col">
-                    <h3 className="font-bold text-xl">Solve DPPs</h3>
-                    <p className="text-base text-muted-foreground">681+ aspirants solved DPP in 1 last hr! <Flame className="inline w-5 h-5 text-amber-500" /></p>
+                    <h3 className="font-bold text-2xl">Solve DPPs</h3>
+                    <p className="text-lg text-muted-foreground">681+ aspirants solved DPP in 1 last hr! <Flame className="inline w-5 h-5 text-amber-500" /></p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="border-amber-400 text-amber-400 bg-amber-900/50">PREMIUM</Badge>
-                    <ChevronRight className="w-5 h-5" />
+                    <Badge variant="outline" className="border-amber-400 text-amber-400 bg-amber-900/50 text-base">PREMIUM</Badge>
+                    <ChevronRight className="w-6 h-6" />
                 </div>
             </div>
         </Card>
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-             <Card className="p-4 bg-secondary/30 hover:bg-primary/10 hover:border-primary transition-all cursor-pointer">
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+             <Card className="p-6 bg-secondary/30 hover:bg-primary/10 hover:border-primary transition-all cursor-pointer">
                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-primary/20 rounded-lg">
-                           <BookCopy className="w-6 h-6 text-primary" />
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-primary/20 rounded-lg">
+                           <BookCopy className="w-8 h-8 text-primary" />
                         </div>
-                        <h3 className="font-bold text-xl">PYQ Mock Tests</h3>
+                        <h3 className="font-bold text-2xl">PYQ Mock Tests</h3>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Badge variant="secondary" className="bg-red-500/20 text-red-400 border-red-500/30">NEW</Badge>
-                        <ChevronRight className="w-5 h-5" />
+                        <Badge variant="secondary" className="bg-red-500/20 text-red-400 border-red-500/30 text-base">NEW</Badge>
+                        <ChevronRight className="w-6 h-6" />
                     </div>
                  </div>
              </Card>
-             <Card className="p-4 bg-secondary/30 hover:bg-primary/10 hover:border-primary transition-all cursor-pointer">
+             <Card className="p-6 bg-secondary/30 hover:bg-primary/10 hover:border-primary transition-all cursor-pointer">
                 <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                         <div className="p-2 bg-primary/20 rounded-lg">
-                           <PencilRuler className="w-6 h-6 text-primary" />
+                    <div className="flex items-center gap-4">
+                         <div className="p-3 bg-primary/20 rounded-lg">
+                           <PencilRuler className="w-8 h-8 text-primary" />
                         </div>
-                        <h3 className="font-bold text-xl">Create Your Own Test</h3>
+                        <h3 className="font-bold text-2xl">Create Your Own Test</h3>
                     </div>
                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary" className="bg-blue-500/20 text-blue-400 border-blue-500/30">UPDATED</Badge>
-                        <ChevronRight className="w-5 h-5" />
+                        <Badge variant="secondary" className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-base">UPDATED</Badge>
+                        <ChevronRight className="w-6 h-6" />
                     </div>
                 </div>
              </Card>
          </div>
-         <Button variant="link" className="w-full text-base">
-            Formula Cards <Badge variant="secondary" className="ml-2 bg-red-500/20 text-red-400 border-red-500/30">NEW</Badge>
+         <Button variant="link" className="w-full text-lg">
+            Formula Cards <Badge variant="secondary" className="ml-2 bg-red-500/20 text-red-400 border-red-500/30 text-sm">NEW</Badge>
          </Button>
       </section>
 
       <section>
-        <Card className="p-6 bg-secondary/30">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-3xl font-headline font-bold flex items-center gap-2">
-              Formula Cards <Badge variant="destructive">NEW</Badge>
+        <Card className="p-8 bg-secondary/30">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-4xl font-headline font-bold flex items-center gap-3">
+              Formula Cards <Badge variant="destructive" className="text-base">NEW</Badge>
             </h2>
           </div>
           <Tabs defaultValue="physics">
             <TabsList>
-              <TabsTrigger value="physics" className="gap-2"><Atom className="w-4 h-4" /> Physics</TabsTrigger>
-              <TabsTrigger value="chemistry" className="gap-2"><FlaskConical className="w-4 h-4" /> Chemistry</TabsTrigger>
-              <TabsTrigger value="mathematics" className="gap-2"><Calculator className="w-4 h-4" /> Mathematics</TabsTrigger>
+              <TabsTrigger value="physics" className="gap-2 text-base"><Atom className="w-5 h-5" /> Physics</TabsTrigger>
+              <TabsTrigger value="chemistry" className="gap-2 text-base"><FlaskConical className="w-5 h-5" /> Chemistry</TabsTrigger>
+              <TabsTrigger value="mathematics" className="gap-2 text-base"><Calculator className="w-5 h-5" /> Mathematics</TabsTrigger>
             </TabsList>
-            <div className="mt-4">
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="font-semibold text-xl">Recent chapters</h3>
-                <Button variant="link" className="text-primary">VIEW ALL</Button>
+            <div className="mt-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-semibold text-2xl">Recent chapters</h3>
+                <Button variant="link" className="text-primary text-lg">VIEW ALL</Button>
               </div>
               <TabsContent value="physics">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
                   {formulaChapters.physics.map((chapter) => <ChapterCard key={chapter.title} {...chapter} />)}
                 </div>
               </TabsContent>
               <TabsContent value="chemistry">
-                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
                   {formulaChapters.chemistry.map((chapter) => <ChapterCard key={chapter.title} {...chapter} />)}
                 </div>
               </TabsContent>
               <TabsContent value="mathematics">
-                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
                   {formulaChapters.mathematics.map((chapter) => <ChapterCard key={chapter.title} {...chapter} />)}
                 </div>
               </TabsContent>
@@ -315,55 +310,55 @@ export default function HomePage() {
       </section>
 
       <section>
-        <Card className="p-6 bg-secondary/30">
-            <h2 className="text-3xl font-headline font-bold mb-4">
+        <Card className="p-8 bg-secondary/30">
+            <h2 className="text-4xl font-headline font-bold mb-4">
               Concept-wise Notes
             </h2>
             <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
-                <Input placeholder="Get clarity on any topic" className="pl-10 pr-10 h-12 rounded-full bg-background" />
-                <Mic className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-6 h-6" />
+                <Input placeholder="Get clarity on any topic" className="pl-12 pr-12 h-14 rounded-full bg-background text-lg" />
+                <Mic className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground w-6 h-6" />
             </div>
         </Card>
       </section>
 
        <section>
-        <Card className="p-6 bg-secondary/30">
-            <div className="flex items-center gap-4 mb-4">
+        <Card className="p-8 bg-secondary/30">
+            <div className="flex items-center gap-4 mb-6">
                 <div>
-                   <h2 className="text-3xl font-headline font-bold text-purple-400">NCERT</h2>
-                   <h2 className="text-4xl font-headline font-bold">Toolbox</h2>
+                   <h2 className="text-4xl font-headline font-bold text-purple-400">NCERT</h2>
+                   <h2 className="text-5xl font-headline font-bold">Toolbox</h2>
                 </div>
-                <p className="text-base text-muted-foreground">For future Doctors and Engineers</p>
+                <p className="text-lg text-muted-foreground">For future Doctors and Engineers</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="p-4 bg-background/50 hover:bg-primary/10 hover:border-primary transition-all cursor-pointer">
-                    <div className="flex items-center gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card className="p-6 bg-background/50 hover:bg-primary/10 hover:border-primary transition-all cursor-pointer">
+                    <div className="flex items-center gap-4">
                         <div className="p-3 bg-primary/20 rounded-lg">
-                           <ListTree className="w-6 h-6 text-primary" />
+                           <ListTree className="w-8 h-8 text-primary" />
                         </div>
                         <div className="flex flex-col">
-                            <h3 className="font-bold text-xl">NCERT Line by Line Qs</h3>
+                            <h3 className="font-bold text-2xl">NCERT Line by Line Qs</h3>
                         </div>
                     </div>
                 </Card>
-                <Card className="p-4 bg-background/50 hover:bg-primary/10 hover:border-primary transition-all cursor-pointer">
-                    <div className="flex items-center gap-3">
+                <Card className="p-6 bg-background/50 hover:bg-primary/10 hover:border-primary transition-all cursor-pointer">
+                    <div className="flex items-center gap-4">
                          <div className="p-3 bg-primary/20 rounded-lg">
-                           <FileQuestion className="w-6 h-6 text-primary" />
+                           <FileQuestion className="w-8 h-8 text-primary" />
                         </div>
                         <div className="flex flex-col">
-                           <h3 className="font-bold text-xl">NCERT & Exampler Qs</h3>
+                           <h3 className="font-bold text-2xl">NCERT & Exampler Qs</h3>
                         </div>
                     </div>
                 </Card>
-                 <Card className="p-4 bg-background/50 hover:bg-primary/10 hover:border-primary transition-all cursor-pointer">
-                    <div className="flex items-center gap-3">
+                 <Card className="p-6 bg-background/50 hover:bg-primary/10 hover:border-primary transition-all cursor-pointer">
+                    <div className="flex items-center gap-4">
                          <div className="p-3 bg-primary/20 rounded-lg">
-                           <ImageIcon className="w-6 h-6 text-primary" />
+                           <ImageIcon className="w-8 h-8 text-primary" />
                         </div>
                         <div className="flex flex-col">
-                           <h3 className="font-bold text-xl">Diagram Based Qs</h3>
+                           <h3 className="font-bold text-2xl">Diagram Based Qs</h3>
                         </div>
                     </div>
                 </Card>
@@ -374,3 +369,4 @@ export default function HomePage() {
     </div>
   );
 }
+
