@@ -179,7 +179,7 @@ const resolveStudentDoubtsFlow = ai.defineFlow(
         }
     }
     
-    const {output} = await prompt({...input, pdfContent});
+    const {output} = await prompt({...input, pdfContent });
     return output!;
   }
 );
