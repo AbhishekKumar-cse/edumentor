@@ -19,6 +19,8 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 
 const formSchema = z.object({
   questionText: z.string().min(10, {
@@ -32,13 +34,54 @@ const difficultyVariantMap: { [key: string]: 'default' | 'secondary' | 'destruct
   hard: 'destructive',
 };
 
-const QuestionCard = ({ question }: { question: Question }) => {
+const QuestionCard = ({ question, index }: { question: Question; index: number; }) => {
+    const [selectedOption, setSelectedOption] = useState<string | null>(null);
+    const [isSubmitted, setIsSubmitted] = useState(false);
+
+    const handleSubmit = () => {
+        setIsSubmitted(true);
+    };
+
+    const getOptionClass = (option: string) => {
+        if (!isSubmitted) return '';
+        if (option === question.answer) return 'text-green-600 dark:text-green-400 font-bold';
+        if (option === selectedOption) return 'text-red-600 dark:text-red-400 line-through';
+        return '';
+    };
+
     return (
-        <div className="p-4 border rounded-lg bg-secondary/30">
-            <p className="font-semibold">{question.text}</p>
-            <div className="mt-2 text-sm text-muted-foreground">
-                <span className="font-medium text-primary">Answer:</span> {question.answer}
+        <div className="p-4 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors border">
+           <p className="font-semibold mb-2">Q{index + 1}: {question.text}</p>
+          <RadioGroup
+            value={selectedOption || undefined}
+            onValueChange={setSelectedOption}
+            className="space-y-2 my-4"
+            disabled={isSubmitted}
+          >
+            {question.options.map((option, i) => (
+              <div key={i} className="flex items-center space-x-2">
+                <RadioGroupItem value={option} id={`${question.id}-option-${i}`} />
+                <Label htmlFor={`${question.id}-option-${i}`} className={cn("cursor-pointer", getOptionClass(option))}>
+                  {option}
+                </Label>
+              </div>
+            ))}
+          </RadioGroup>
+          
+          {!isSubmitted && (
+              <Button onClick={handleSubmit} size="sm" variant="outline" disabled={!selectedOption}>
+                Check Answer
+              </Button>
+          )}
+
+          {isSubmitted && (
+            <div className={cn(
+                "mt-4 p-3 rounded-md text-sm",
+                selectedOption === question.answer ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300" : "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300"
+            )}>
+               {selectedOption === question.answer ? "Correct!" : "Incorrect."} The correct answer is: <strong>{question.answer}</strong>
             </div>
+          )}
         </div>
     )
 }
@@ -190,8 +233,8 @@ export default function TaggingForm() {
                                     Related Questions
                                 </h5>
                                  <div className="space-y-2">
-                                    {concept.relatedQuestions.map(q => (
-                                        <QuestionCard key={q.id} question={q} />
+                                    {concept.relatedQuestions.map((q, i) => (
+                                        <QuestionCard key={q.id} question={q} index={i}/>
                                     ))}
                                  </div>
                              </div>
