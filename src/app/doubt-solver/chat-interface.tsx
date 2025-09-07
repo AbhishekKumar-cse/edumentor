@@ -1,14 +1,27 @@
+
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { resolveStudentDoubts } from "@/ai/flows/resolve-student-doubts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Send, User, Bot, Loader2, Paperclip, X, FileText } from "lucide-react";
+import { Send, User, Bot, Loader2, Paperclip, X, FileText, PlusCircle, Trash2, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 type Message = {
   id: string;
@@ -18,8 +31,15 @@ type Message = {
   pdf?: { name: string };
 };
 
+type Chat = {
+    id: string;
+    title: string;
+    messages: Message[];
+}
+
 export default function ChatInterface() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [chats, setChats] = useState<Record<string, Chat>>({});
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const [image, setImage] = useState<string | null>(null);
   const [pdf, setPdf] = useState<{name: string, data: string} | null>(null);
@@ -27,6 +47,44 @@ export default function ChatInterface() {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const pdfInputRef = useRef<HTMLInputElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
+
+  const activeChat = activeChatId ? chats[activeChatId] : null;
+
+  // Load chats from localStorage on initial render
+  useEffect(() => {
+    try {
+      const savedChats = localStorage.getItem("doubtSolverChats");
+      if (savedChats) {
+        const parsedChats = JSON.parse(savedChats);
+        setChats(parsedChats);
+        const lastActiveId = localStorage.getItem("doubtSolverLastActiveId");
+        if (lastActiveId && parsedChats[lastActiveId]) {
+            setActiveChatId(lastActiveId);
+        } else if (Object.keys(parsedChats).length > 0) {
+            setActiveChatId(Object.keys(parsedChats)[0]);
+        } else {
+            handleNewChat();
+        }
+      } else {
+        handleNewChat();
+      }
+    } catch (error) {
+      console.error("Failed to load chats from localStorage", error);
+      handleNewChat();
+    }
+  }, []);
+
+  // Save chats to localStorage whenever they change
+  useEffect(() => {
+    if (Object.keys(chats).length > 0) {
+      localStorage.setItem("doubtSolverChats", JSON.stringify(chats));
+    }
+    if (activeChatId) {
+      localStorage.setItem("doubtSolverLastActiveId", activeChatId);
+    }
+  }, [chats, activeChatId]);
+
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -35,8 +93,33 @@ export default function ChatInterface() {
             behavior: 'smooth'
         });
     }
-  }, [messages, isLoading]);
+  }, [activeChat?.messages, isLoading]);
 
+  const handleNewChat = useCallback(() => {
+    const newChatId = Date.now().toString();
+    const newChat: Chat = {
+      id: newChatId,
+      title: "New Chat",
+      messages: [],
+    };
+    setChats(prev => ({ ...prev, [newChatId]: newChat }));
+    setActiveChatId(newChatId);
+    setInput("");
+    setImage(null);
+    setPdf(null);
+  }, []);
+
+  const handleClearHistory = () => {
+    setChats({});
+    setActiveChatId(null);
+    localStorage.removeItem("doubtSolverChats");
+    localStorage.removeItem("doubtSolverLastActiveId");
+    handleNewChat();
+    toast({
+        title: "History Cleared",
+        description: "All your chats have been deleted.",
+    })
+  }
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -44,7 +127,7 @@ export default function ChatInterface() {
       const reader = new FileReader();
       reader.onload = (loadEvent) => {
         setImage(loadEvent.target?.result as string);
-        setPdf(null); // Clear PDF if image is selected
+        setPdf(null);
       };
       reader.readAsDataURL(file);
     }
@@ -56,16 +139,15 @@ export default function ChatInterface() {
       const reader = new FileReader();
       reader.onload = (loadEvent) => {
           setPdf({ name: file.name, data: loadEvent.target?.result as string});
-          setImage(null); // Clear image if PDF is selected
+          setImage(null);
       };
       reader.readAsDataURL(file);
     }
   };
 
-
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if ((!input.trim() && !image && !pdf) || isLoading) return;
+    if (!activeChatId || (!input.trim() && !image && !pdf) || isLoading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -74,8 +156,22 @@ export default function ChatInterface() {
       ...(image && { image }),
       ...(pdf && { pdf: { name: pdf.name } }),
     };
-    const newMessages = [...messages, userMessage];
-    setMessages(newMessages);
+    
+    const newMessages = [...(activeChat?.messages || []), userMessage];
+    
+    // Auto-generate title from first message
+    const isFirstMessage = (activeChat?.messages.length || 0) === 0;
+    const newTitle = isFirstMessage && input.trim() ? input.trim().substring(0, 30) + '...' : activeChat?.title;
+
+    setChats(prev => ({
+        ...prev,
+        [activeChatId]: {
+            ...prev[activeChatId],
+            title: newTitle || prev[activeChatId].title,
+            messages: newMessages,
+        }
+    }));
+
     setInput("");
     setImage(null);
     setPdf(null);
@@ -99,7 +195,13 @@ export default function ChatInterface() {
         role: "assistant",
         content: result.answer + (result.explanation ? `\n\n**Explanation:**\n${result.explanation}` : ''),
       };
-      setMessages((prev) => [...prev, assistantMessage]);
+       setChats(prev => ({
+        ...prev,
+        [activeChatId]: {
+            ...prev[activeChatId],
+            messages: [...newMessages, assistantMessage],
+        }
+    }));
     } catch (error) {
       console.error(error);
       const errorMessage: Message = {
@@ -107,163 +209,218 @@ export default function ChatInterface() {
         role: "assistant",
         content: "Sorry, I encountered an error. Please try again.",
       };
-      setMessages((prev) => [...prev, errorMessage]);
+       setChats(prev => ({
+        ...prev,
+        [activeChatId]: {
+            ...prev[activeChatId],
+            messages: [...newMessages, errorMessage],
+        }
+      }));
     } finally {
       setIsLoading(false);
     }
   };
 
+  const chatHistory = Object.values(chats).sort((a,b) => parseInt(b.id) - parseInt(a.id));
+
   return (
-    <div className="flex flex-col h-full max-h-[70vh]">
-      <ScrollArea className="flex-1 p-6" ref={scrollAreaRef}>
-        <div className="space-y-6">
-          {messages.length === 0 && (
-            <div className="text-center text-muted-foreground py-12">
-                <Bot className="mx-auto h-12 w-12 mb-4" />
-                <p>No messages yet. Ask me anything!</p>
+    <div className="flex h-full w-full">
+        {/* History Sidebar */}
+        <aside className="w-64 flex-shrink-0 border-r bg-secondary/50 p-4 flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-headline font-semibold">History</h2>
+                <Button variant="ghost" size="icon" onClick={handleNewChat}>
+                    <PlusCircle className="h-5 w-5" />
+                </Button>
             </div>
-          )}
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={cn(
-                "flex items-start gap-4",
-                message.role === "user" ? "justify-end" : "justify-start"
+            <ScrollArea className="flex-1 -mx-4">
+                <div className="px-4 space-y-2">
+                 {chatHistory.map(chat => (
+                    <Button
+                        key={chat.id}
+                        variant={activeChatId === chat.id ? "secondary" : "ghost"}
+                        className="w-full justify-start gap-2"
+                        onClick={() => setActiveChatId(chat.id)}
+                    >
+                        <MessageSquare className="h-4 w-4" />
+                        <span className="truncate">{chat.title}</span>
+                    </Button>
+                 ))}
+                </div>
+            </ScrollArea>
+             <AlertDialog>
+                <AlertDialogTrigger asChild>
+                    <Button variant="destructive" className="mt-4">
+                        <Trash2 className="mr-2 h-4 w-4" /> Clear History
+                    </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        This will permanently delete all your chat history. This action cannot be undone.
+                    </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleClearHistory}>Confirm</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </aside>
+
+        {/* Main Chat Area */}
+        <div className="flex-1 flex flex-col bg-background">
+          <ScrollArea className="flex-1 p-6" ref={scrollAreaRef}>
+            <div className="space-y-6">
+              {(!activeChat || activeChat.messages.length === 0) && (
+                <div className="text-center text-muted-foreground py-12 flex flex-col items-center justify-center h-full">
+                    <Bot className="mx-auto h-12 w-12 mb-4" />
+                    <p>No messages yet. Ask me anything!</p>
+                </div>
               )}
-            >
-              {message.role === "assistant" && (
-                <Avatar className="h-8 w-8 border border-primary">
-                  <AvatarFallback className="bg-primary text-primary-foreground">
-                    <Bot size={18}/>
-                  </AvatarFallback>
-                </Avatar>
+              {activeChat?.messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={cn(
+                    "flex items-start gap-4",
+                    message.role === "user" ? "justify-end" : "justify-start"
+                  )}
+                >
+                  {message.role === "assistant" && (
+                    <Avatar className="h-8 w-8 border border-primary">
+                      <AvatarFallback className="bg-primary text-primary-foreground">
+                        <Bot size={18}/>
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
+                  <div
+                    className={cn(
+                      "max-w-md rounded-lg px-4 py-3 shadow-sm",
+                      message.role === "user"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-secondary"
+                    )}
+                  >
+                    {message.image && (
+                        <div className="relative aspect-video w-full overflow-hidden rounded-md border mb-2">
+                            <Image src={message.image} alt="User upload" fill className="object-contain"/>
+                        </div>
+                    )}
+                     {message.pdf && (
+                        <div className="flex items-center gap-2 p-2 rounded-md bg-primary/10 mb-2">
+                            <FileText className="h-5 w-5 text-primary-foreground/80" />
+                            <span className="text-sm font-medium truncate">{message.pdf.name}</span>
+                        </div>
+                    )}
+                    <p className="whitespace-pre-wrap text-sm">{message.content}</p>
+                  </div>
+                   {message.role === "user" && (
+                    <Avatar className="h-8 w-8 border border-accent">
+                      <AvatarFallback className="bg-accent text-accent-foreground">
+                        <User size={18}/>
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
+                </div>
+              ))}
+              {isLoading && (
+                 <div className="flex items-start gap-4 justify-start">
+                    <Avatar className="h-8 w-8 border border-primary">
+                      <AvatarFallback className="bg-primary text-primary-foreground">
+                        <Bot size={18}/>
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="max-w-md rounded-lg px-4 py-3 shadow-sm bg-secondary flex items-center">
+                        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                    </div>
+                 </div>
               )}
-              <div
-                className={cn(
-                  "max-w-md rounded-lg px-4 py-3 shadow-sm",
-                  message.role === "user"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-secondary"
-                )}
-              >
-                {message.image && (
-                    <div className="relative aspect-video w-full overflow-hidden rounded-md border mb-2">
-                        <Image src={message.image} alt="User upload" fill className="object-contain"/>
+            </div>
+          </ScrollArea>
+          <div className="border-t p-4 bg-background">
+            <form onSubmit={handleSendMessage} className="space-y-4">
+                <div className="flex items-start gap-4">
+                  {image && (
+                    <div className="relative w-32 h-32 group">
+                      <Image src={image} alt="Selected image" layout="fill" className="rounded-md object-cover" />
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="destructive"
+                        className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => setImage(null)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
                     </div>
-                )}
-                 {message.pdf && (
-                    <div className="flex items-center gap-2 p-2 rounded-md bg-primary/10 mb-2">
-                        <FileText className="h-5 w-5 text-primary-foreground/80" />
-                        <span className="text-sm font-medium truncate">{message.pdf.name}</span>
+                  )}
+                   {pdf && (
+                    <div className="relative w-48 group bg-secondary p-3 rounded-lg flex items-center gap-2">
+                      <FileText className="h-6 w-6 text-secondary-foreground" />
+                      <p className="text-sm truncate flex-1">{pdf.name}</p>
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="destructive"
+                        className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => setPdf(null)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
                     </div>
-                )}
-                <p className="whitespace-pre-wrap text-sm">{message.content}</p>
+                  )}
+                </div>
+              <div className="flex items-center gap-4">
+                 <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => imageInputRef.current?.click()}
+                    disabled={isLoading || !!pdf}
+                  >
+                    <Paperclip className="h-4 w-4" />
+                    <span className="sr-only">Upload Image</span>
+                  </Button>
+                  <Input
+                    type="file"
+                    ref={imageInputRef}
+                    onChange={handleImageChange}
+                    className="hidden"
+                    accept="image/*"
+                  />
+                   <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => pdfInputRef.current?.click()}
+                    disabled={isLoading || !!image}
+                  >
+                    <FileText className="h-4 w-4" />
+                    <span className="sr-only">Upload PDF</span>
+                  </Button>
+                  <Input
+                    type="file"
+                    ref={pdfInputRef}
+                    onChange={handlePdfChange}
+                    className="hidden"
+                    accept="application/pdf"
+                  />
+                <Input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Type your question..."
+                  className="flex-1"
+                  disabled={isLoading}
+                />
+                <Button type="submit" size="icon" disabled={isLoading || (!input.trim() && !image && !pdf)}>
+                  {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  <span className="sr-only">Send</span>
+                </Button>
               </div>
-               {message.role === "user" && (
-                <Avatar className="h-8 w-8 border border-accent">
-                  <AvatarFallback className="bg-accent text-accent-foreground">
-                    <User size={18}/>
-                  </AvatarFallback>
-                </Avatar>
-              )}
-            </div>
-          ))}
-          {isLoading && (
-             <div className="flex items-start gap-4 justify-start">
-                <Avatar className="h-8 w-8 border border-primary">
-                  <AvatarFallback className="bg-primary text-primary-foreground">
-                    <Bot size={18}/>
-                  </AvatarFallback>
-                </Avatar>
-                <div className="max-w-md rounded-lg px-4 py-3 shadow-sm bg-secondary flex items-center">
-                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                </div>
-             </div>
-          )}
-        </div>
-      </ScrollArea>
-      <div className="border-t p-4 bg-background">
-        <form onSubmit={handleSendMessage} className="space-y-4">
-            <div className="flex items-start gap-4">
-              {image && (
-                <div className="relative w-32 h-32 group">
-                  <Image src={image} alt="Selected image" layout="fill" className="rounded-md object-cover" />
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="destructive"
-                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => setImage(null)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
-               {pdf && (
-                <div className="relative w-48 group bg-secondary p-3 rounded-lg flex items-center gap-2">
-                  <FileText className="h-6 w-6 text-secondary-foreground" />
-                  <p className="text-sm truncate flex-1">{pdf.name}</p>
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="destructive"
-                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => setPdf(null)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
-            </div>
-          <div className="flex items-center gap-4">
-             <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={() => imageInputRef.current?.click()}
-                disabled={isLoading || !!pdf}
-              >
-                <Paperclip className="h-4 w-4" />
-                <span className="sr-only">Upload Image</span>
-              </Button>
-              <Input
-                type="file"
-                ref={imageInputRef}
-                onChange={handleImageChange}
-                className="hidden"
-                accept="image/*"
-              />
-               <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={() => pdfInputRef.current?.click()}
-                disabled={isLoading || !!image}
-              >
-                <FileText className="h-4 w-4" />
-                <span className="sr-only">Upload PDF</span>
-              </Button>
-              <Input
-                type="file"
-                ref={pdfInputRef}
-                onChange={handlePdfChange}
-                className="hidden"
-                accept="application/pdf"
-              />
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Type your question..."
-              className="flex-1"
-              disabled={isLoading}
-            />
-            <Button type="submit" size="icon" disabled={isLoading || (!input.trim() && !image && !pdf)}>
-              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-              <span className="sr-only">Send</span>
-            </Button>
+            </form>
           </div>
-        </form>
-      </div>
+        </div>
     </div>
   );
 }
