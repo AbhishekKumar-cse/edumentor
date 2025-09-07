@@ -1,6 +1,8 @@
 
 import { electrostaticsQuestions } from './data/electrostatics';
 import { moleConceptQuestions } from './data/mole-concept';
+import { atomicStructureQuestions } from './data/atomic-structure';
+import { chemicalBondingQuestions } from './data/chemical-bonding';
 
 export type Question = {
   id: number;
@@ -211,7 +213,7 @@ export const subjects: Subject[] = [
             { id: 102088, text: 'A 0.5 kg ball moving with a speed of 12 m/s strikes a hard wall at an angle of 30° with the wall. It is reflected with the same speed and at the same angle. If the ball is in contact with the wall for 0.25 s, the average force acting on the wall is:', options: ['96 N', '48 N', '24 N', '12 N'], answer: '24 N', difficulty: 'Medium', pageReference: 48, concepts: ['impulse', 'force'], isPastPaper: true },
             { id: 102089, text: 'A mass of 1 kg is suspended by a thread. It is (i) lifted up with an acceleration 4.9 m/s², (ii) lowered with an acceleration 4.9 m/s². The ratio of the tensions is:', options: ['3:1', '1:3', '1:2', '2:1'], answer: '3:1', difficulty: 'Medium', pageReference: 50, concepts: ['tension', 'apparent weight'], isPastPaper: true },
             { id: 102090, text: 'The upper half of an inclined plane of inclination θ is perfectly smooth while the lower half is rough. A block starting from rest at the top of the plane will again come to rest at the bottom if the coefficient of friction between the block and the lower half of the plane is given by:', options: ['μ = 2 tanθ', 'μ = tanθ', 'μ = 1/tanθ', 'μ = 2/tanθ'], answer: 'μ = 2 tanθ', difficulty: 'Medium', pageReference: 53, concepts: ['inclined plane', 'friction', 'work-energy theorem'], isPastPaper: true },
-            { id: 102091, text: 'Two blocks A and B of masses 3m and m respectively are connected by a massless and inextensible string. The whole system is suspended by a massless spring as shown in the figure. The magnitudes of acceleration of A and B immediately after the string is cut, are respectively:', options: ['g, g/3', 'g/3, g', 'g, g', 'g/3, g/3'], answer: 'g/3, g', difficulty: 'Medium', pageReference: 54, concepts: ['string constraints', 'newton second law'], isPastPaper: true },
+            { id: 102091, text: 'Three blocks A and B of masses 3m and m respectively are connected by a massless and inextensible string. The whole system is suspended by a massless spring as shown in the figure. The magnitudes of acceleration of A and B immediately after the string is cut, are respectively:', options: ['g, g/3', 'g/3, g', 'g, g', 'g/3, g/3'], answer: 'g/3, g', difficulty: 'Medium', pageReference: 54, concepts: ['string constraints', 'newton second law'], isPastPaper: true },
             { id: 102092, text: 'A small block slides without friction down an inclined plane starting from rest. Let Sn be the distance travelled from t = n-1 to t = n. Then Sn/S(n+1) is:', options: ['(2n - 1) / (2n + 1)', '(2n + 1) / (2n - 1)', '(2n - 1) / 2n', '2n / (2n - 1)'], answer: '(2n - 1) / (2n + 1)', difficulty: 'Medium', pageReference: 53, concepts: ['kinematics', 'inclined plane'], isPastPaper: true },
             { id: 102093, text: 'A particle moves in the x-y plane under the action of a force F such that the value of its linear momentum (P) at any time t is Px = 2 cos t, Py = 2 sin t. The angle θ between F and P at a given time t will be:', options: ['90°', '0°', '180°', '30°'], answer: '90°', difficulty: 'Medium', pageReference: 47, concepts: ['force', 'momentum', 'vectors'], isPastPaper: true },
             { id: 102094, text: 'A man slides down a light rope whose breaking strength is η times his weight (η < 1). What is the maximum acceleration of the man so that the rope just breaks?', options: ['g(1-η)', 'gη', 'g/(1-η)', 'g/η'], answer: 'g(1-η)', difficulty: 'Medium', pageReference: 50, concepts: ['tension', 'newton second law'], isPastPaper: false },
@@ -1120,6 +1122,8 @@ export const subjects: Subject[] = [
     name: 'Chemistry',
     chapters: [
       moleConceptQuestions,
+      atomicStructureQuestions,
+      chemicalBondingQuestions,
     ]
   },
   {
@@ -1131,8 +1135,26 @@ export const subjects: Subject[] = [
         name: 'Sets, Relations and Functions',
         questions: [
             { id: 301001, text: 'If A = {1, 2, 3} and B = {3, 4, 5}, find A ∪ B.', options: ['{1, 2, 3, 4, 5}', '{3}', '{1, 2, 4, 5}', '{}'], answer: '{1, 2, 3, 4, 5}', difficulty: 'Easy', pageReference: 5, concepts: ['sets', 'union'], isPastPaper: false },
+            { id: 301002, text: 'Let R be a relation on the set N of natural numbers defined by nRm if n divides m. Then R is:', options: ['Reflexive and symmetric', 'Transitive and symmetric', 'Equivalence', 'Reflexive, transitive but not symmetric'], answer: 'Reflexive, transitive but not symmetric', difficulty: 'Medium', pageReference: 10, concepts: ['relations', 'equivalence relation'], isPastPaper: true },
+            { id: 301003, text: 'The function f: R → R defined by f(x) = x² is:', options: ['One-one and onto', 'One-one but not onto', 'Not one-one but onto', 'Neither one-one nor onto'], answer: 'Neither one-one nor onto', difficulty: 'Easy', pageReference: 15, concepts: ['functions', 'one-one', 'onto'], isPastPaper: true },
         ]
       },
+      {
+        id: 302,
+        name: 'Trigonometry',
+        questions: [
+            { id: 302001, text: 'The value of sin(75°) is:', options: ['(√3+1)/2√2', '(√3-1)/2√2', '(1-√3)/2√2', '(√3+√2)/2'], answer: '(√3+1)/2√2', difficulty: 'Easy', pageReference: 45, concepts: ['trigonometric functions'], isPastPaper: false },
+            { id: 302002, text: 'If tan(A) = 3/4 and A is in the third quadrant, the value of sin(A) is:', options: ['3/5', '-3/5', '4/5', '-4/5'], answer: '-3/5', difficulty: 'Medium', pageReference: 48, concepts: ['trigonometric identities'], isPastPaper: true },
+        ]
+      },
+       {
+        id: 303,
+        name: 'Calculus',
+        questions: [
+            { id: 303001, text: 'The derivative of x³ with respect to x is:', options: ['3x²', 'x²', '3x', 'x³/3'], answer: '3x²', difficulty: 'Easy', pageReference: 90, concepts: ['differentiation'], isPastPaper: false },
+            { id: 303002, text: 'The integral of cos(x) with respect to x is:', options: ['sin(x) + C', '-sin(x) + C', 'cos(x) + C', '-cos(x) + C'], answer: 'sin(x) + C', difficulty: 'Easy', pageReference: 100, concepts: ['integration'], isPastPaper: false },
+        ]
+      }
     ]
   }
 ];
