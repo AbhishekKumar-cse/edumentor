@@ -16,11 +16,12 @@ interface ExamCardProps {
 }
 
 export default function ExamCard({ name, logo, tag, href, tagColor }: ExamCardProps) {
+  const isComingSoon = tag === 'COMING SOON';
   return (
-    <Link href={href} className="flex flex-col">
-      <Card className="group bg-secondary/30 hover:bg-primary/10 hover:border-primary transition-all duration-300 cursor-pointer h-full flex-1">
-        <CardContent className="p-4 flex flex-col items-center justify-center text-center gap-3">
-          <div className="relative h-12 w-12 bg-white/10 rounded-full flex items-center justify-center p-2">
+    <Link href={isComingSoon ? '#' : href} className="flex flex-col group">
+      <Card className="bg-secondary/30 group-hover:bg-primary/10 group-hover:border-primary transition-all duration-300 cursor-pointer h-full flex-1 flex flex-col">
+        <CardContent className="p-4 flex flex-col items-center justify-center text-center gap-3 flex-1">
+          <div className="relative h-12 w-12 bg-background/50 rounded-full flex items-center justify-center p-2 group-hover:bg-primary/20 transition-all">
             <Image
               src={logo}
               alt={`${name} logo`}
@@ -33,12 +34,14 @@ export default function ExamCard({ name, logo, tag, href, tagColor }: ExamCardPr
             <h3 className="text-sm font-semibold">{name}</h3>
           </div>
         </CardContent>
+         {tag && (
+            <div className="p-2 text-center">
+                <Badge variant="outline" className={cn("text-xs border", isComingSoon ? 'bg-gray-500/20 text-gray-400 border-gray-500/30' : tagColor)}>
+                    {tag}
+                </Badge>
+            </div>
+        )}
       </Card>
-      {tag && (
-        <Badge variant="outline" className={cn("text-xs mt-2 mx-auto border", tagColor)}>
-            {tag}
-        </Badge>
-      )}
     </Link>
   );
 }
