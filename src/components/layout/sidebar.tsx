@@ -9,7 +9,6 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
-  SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Logo } from '@/components/icons';
@@ -92,7 +91,20 @@ export default function AppSidebar() {
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="p-2">
-         <SidebarCollapseButton />
+         <SidebarMenu>
+            <SidebarMenuItem>
+                 <Link href="/settings">
+                    <SidebarMenuButton
+                        isActive={pathname === '/settings'}
+                        tooltip={{ children: 'Settings' }}
+                    >
+                        <Settings />
+                        <span>Settings</span>
+                    </SidebarMenuButton>
+                 </Link>
+            </SidebarMenuItem>
+            <SidebarCollapseButton />
+         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
   );
