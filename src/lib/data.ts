@@ -3,6 +3,7 @@ import { electrostaticsQuestions } from './data/electrostatics';
 import { moleConceptQuestions } from './data/mole-concept';
 import { atomicStructureQuestions } from './data/atomic-structure';
 import { chemicalBondingQuestions } from './data/chemical-bonding';
+import { statesOfMatterQuestions } from './data/states-of-matter';
 
 export type Question = {
   id: number;
@@ -13,6 +14,7 @@ export type Question = {
   pageReference: number;
   concepts: string[];
   isPastPaper: boolean;
+  explanation?: string;
 };
 
 export type Chapter = {
@@ -1124,6 +1126,7 @@ export const subjects: Subject[] = [
       moleConceptQuestions,
       atomicStructureQuestions,
       chemicalBondingQuestions,
+      statesOfMatterQuestions,
     ]
   },
   {
