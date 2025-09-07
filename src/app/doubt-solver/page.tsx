@@ -1,10 +1,11 @@
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { HelpCircle } from "lucide-react";
 import ChatInterface from "./chat-interface";
 
 export default function DoubtSolverPage() {
   return (
-    <div className="flex flex-col h-full">
+    <div className="p-6 md:p-10">
       <header className="space-y-2 mb-8">
         <h1 className="text-4xl font-headline font-bold">AI Doubt Solver</h1>
         <p className="text-muted-foreground">

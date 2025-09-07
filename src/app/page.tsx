@@ -93,14 +93,14 @@ export default function HomePage() {
    const { profile, isLoading } = useProfile();
 
   return (
-    <div className="space-y-10 pb-12">
+    <div className="space-y-10 pb-12 px-6 md:px-10">
       {isLoading || !profile ? (
-        <header className="space-y-4">
+        <header className="space-y-4 pt-6 md:pt-10">
             <Skeleton className="h-12 w-72" />
             <Skeleton className="h-8 w-80" />
         </header>
       ) : (
-         <header className="space-y-2">
+         <header className="space-y-2 pt-6 md:pt-10">
             <h1 className="text-5xl font-headline font-bold">
               Hey, {profile.name}!
             </h1>

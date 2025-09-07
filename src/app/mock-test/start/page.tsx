@@ -139,9 +139,9 @@ export default function TestPage() {
   };
 
   return (
-    <div className="fixed inset-0 bg-background flex flex-col p-4 md:p-6 lg:p-8">
+    <div className="fixed inset-0 bg-background flex flex-col">
       {/* Header */}
-      <header className="flex justify-between items-center pb-4 border-b">
+      <header className="flex justify-between items-center p-4 border-b">
         <h1 className="text-2xl font-headline font-bold text-primary">Mock Test in Progress</h1>
         <div className="flex items-center gap-4">
           <Badge variant="outline" className="text-lg font-semibold tabular-nums p-2">
@@ -169,7 +169,7 @@ export default function TestPage() {
       </header>
 
       {/* Main Content */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6 mt-6 overflow-y-auto">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6 p-6 overflow-y-auto">
         {/* Question Area */}
         <div className="lg:col-span-3 flex flex-col">
           <Card className="flex-1 flex flex-col">
