@@ -20,10 +20,20 @@ import {
   BookCopy,
   PencilRuler,
   Flame,
-  ChevronRight
+  ChevronRight,
+  Search,
+  Mic,
+  ListTree,
+  FileQuestion,
+  ImageIcon
 } from 'lucide-react';
 import { useProfile } from '@/context/profile-context';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ChapterCard } from '@/components/ui/chapter-card';
+import { Input } from '@/components/ui/input';
+import { AlternatingCurrentIcon, CurrentElectricityIcon, OscillationsIcon, RotationalMotionIcon, SemiconductorsIcon } from '@/components/icons';
+
 
 const examCategories = [
   { name: 'JEE Main', logo: 'https://picsum.photos/40/40', tag: '2025 QS ADDED', tagColor: 'bg-red-500/20 text-red-400 border-red-500/30', href: '/mock-test' },
@@ -57,6 +67,26 @@ const digitalBooks = [
   { title: '2026 BITSAT Prep Guide', exam: 'PREP GUIDE', image: 'https://picsum.photos/200/280', hint: 'book cover', available: false },
   { title: '2026 WBJEE Chapterwise Explorer', exam: 'CHAPTERWISE EXPLORER', image: 'https://picsum.photos/200/280', hint: 'book cover', available: false },
 ];
+
+const formulaChapters = {
+  physics: [
+    { title: 'Current Electricity', questionCount: 39, icon: <CurrentElectricityIcon />, color: 'bg-sky-500' },
+    { title: 'Semiconductors', questionCount: 51, icon: <SemiconductorsIcon />, color: 'bg-green-500' },
+    { title: 'Alternating Current', questionCount: 11, icon: <AlternatingCurrentIcon />, color: 'bg-red-500' },
+    { title: 'Rotational Motion', questionCount: 33, icon: <RotationalMotionIcon />, color: 'bg-purple-500' },
+    { title: 'Oscillations', questionCount: 33, icon: <OscillationsIcon />, color: 'bg-blue-600' },
+  ],
+  chemistry: [
+    { title: 'Chemical Bonding', questionCount: 45, icon: <FlaskConical />, color: 'bg-yellow-500' },
+    { title: 'Solutions', questionCount: 30, icon: <FlaskConical />, color: 'bg-orange-500' },
+    { title: 'Electrochemistry', questionCount: 41, icon: <FlaskConical />, color: 'bg-teal-500' },
+  ],
+  mathematics: [
+    { title: 'Calculus', questionCount: 60, icon: <Calculator />, color: 'bg-indigo-500' },
+    { title: 'Algebra', questionCount: 55, icon: <Calculator />, color: 'bg-pink-500' },
+    { title: 'Vectors', questionCount: 25, icon: <Calculator />, color: 'bg-rose-500' },
+  ]
+};
 
 export default function HomePage() {
    const { profile, isLoading } = useProfile();
@@ -238,6 +268,101 @@ export default function HomePage() {
          <Button variant="link" className="w-full">
             Formula Cards <Badge variant="secondary" className="ml-2 bg-red-500/20 text-red-400 border-red-500/30">NEW</Badge>
          </Button>
+      </section>
+
+      <section>
+        <Card className="p-6 bg-secondary/30">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-headline font-bold flex items-center gap-2">
+              Formula Cards <Badge variant="destructive">NEW</Badge>
+            </h2>
+          </div>
+          <Tabs defaultValue="physics">
+            <TabsList>
+              <TabsTrigger value="physics" className="gap-2"><Atom className="w-4 h-4" /> Physics</TabsTrigger>
+              <TabsTrigger value="chemistry" className="gap-2"><FlaskConical className="w-4 h-4" /> Chemistry</TabsTrigger>
+              <TabsTrigger value="mathematics" className="gap-2"><Calculator className="w-4 h-4" /> Mathematics</TabsTrigger>
+            </TabsList>
+            <div className="mt-4">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="font-semibold text-lg">Recent chapters</h3>
+                <Button variant="link" className="text-primary">VIEW ALL</Button>
+              </div>
+              <TabsContent value="physics">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                  {formulaChapters.physics.map((chapter) => <ChapterCard key={chapter.title} {...chapter} />)}
+                </div>
+              </TabsContent>
+              <TabsContent value="chemistry">
+                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                  {formulaChapters.chemistry.map((chapter) => <ChapterCard key={chapter.title} {...chapter} />)}
+                </div>
+              </TabsContent>
+              <TabsContent value="mathematics">
+                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                  {formulaChapters.mathematics.map((chapter) => <ChapterCard key={chapter.title} {...chapter} />)}
+                </div>
+              </TabsContent>
+            </div>
+          </Tabs>
+        </Card>
+      </section>
+
+      <section>
+        <Card className="p-6 bg-secondary/30">
+            <h2 className="text-2xl font-headline font-bold mb-4">
+              Concept-wise Notes
+            </h2>
+            <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
+                <Input placeholder="Get clarity on any topic" className="pl-10 pr-10 h-12 rounded-full bg-background" />
+                <Mic className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
+            </div>
+        </Card>
+      </section>
+
+       <section>
+        <Card className="p-6 bg-secondary/30">
+            <div className="flex items-center gap-4 mb-4">
+                <div>
+                   <h2 className="text-2xl font-headline font-bold text-purple-400">NCERT</h2>
+                   <h2 className="text-3xl font-headline font-bold">Toolbox</h2>
+                </div>
+                <p className="text-sm text-muted-foreground">For future Doctors and Engineers</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card className="p-4 bg-background/50 hover:bg-primary/10 hover:border-primary transition-all cursor-pointer">
+                    <div className="flex items-center gap-3">
+                        <div className="p-3 bg-primary/20 rounded-lg">
+                           <ListTree className="w-6 h-6 text-primary" />
+                        </div>
+                        <div className="flex flex-col">
+                            <h3 className="font-bold text-lg">NCERT Line by Line Qs</h3>
+                        </div>
+                    </div>
+                </Card>
+                <Card className="p-4 bg-background/50 hover:bg-primary/10 hover:border-primary transition-all cursor-pointer">
+                    <div className="flex items-center gap-3">
+                         <div className="p-3 bg-primary/20 rounded-lg">
+                           <FileQuestion className="w-6 h-6 text-primary" />
+                        </div>
+                        <div className="flex flex-col">
+                           <h3 className="font-bold text-lg">NCERT & Exampler Qs</h3>
+                        </div>
+                    </div>
+                </Card>
+                 <Card className="p-4 bg-background/50 hover:bg-primary/10 hover:border-primary transition-all cursor-pointer">
+                    <div className="flex items-center gap-3">
+                         <div className="p-3 bg-primary/20 rounded-lg">
+                           <ImageIcon className="w-6 h-6 text-primary" />
+                        </div>
+                        <div className="flex flex-col">
+                           <h3 className="font-bold text-lg">Diagram Based Qs</h3>
+                        </div>
+                    </div>
+                </Card>
+            </div>
+        </Card>
       </section>
 
     </div>
