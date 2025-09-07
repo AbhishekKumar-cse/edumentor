@@ -34,6 +34,7 @@ import { ChapterCard } from '@/components/ui/chapter-card';
 import { Input } from '@/components/ui/input';
 import { AlternatingCurrentIcon, CurrentElectricityIcon, OscillationsIcon, RotationalMotionIcon, SemiconductorsIcon } from '@/components/icons';
 import { cn } from '@/lib/utils';
+import Autoplay from "embla-carousel-autoplay";
 
 
 const examCategories = [
@@ -41,7 +42,6 @@ const examCategories = [
   { name: 'JEE Advanced', logo: 'https://picsum.photos/40/40', tag: '2025 QS ADDED', tagColor: 'bg-red-500/20 text-red-400 border-red-500/30', href: '/mock-test' },
   { name: 'Boards', logo: 'https://picsum.photos/40/40', tag: 'New', tagColor: 'bg-pink-500/20 text-pink-400 border-pink-500/30', href: '/mock-test' },
   { name: 'NTA Abhyas (JEE Main)', logo: 'https://picsum.photos/40/40', tag: 'COMING SOON', tagColor: 'bg-gray-500/20 text-gray-400 border-gray-500/30', href: '#' },
-  { name: 'MHT CET', logo: 'https://picsum.photos/40/40', tag: 'COMING SOON', tagColor: 'bg-gray-500/20 text-gray-400 border-gray-500/30', href: '#' },
   { name: 'BITSAT', logo: 'https://picsum.photos/40/40', tag: 'COMING SOON', tagColor: 'bg-gray-500/20 text-gray-400 border-gray-500/30', href: '#' },
   { name: 'NDA', logo: 'https://picsum.photos/40/40', tag: 'COMING SOON', tagColor: 'bg-gray-500/20 text-gray-400 border-gray-500/30', href: '#' },
   { name: 'VITEEE', logo: 'https://picsum.photos/40/40', tag: 'COMING SOON', tagColor: 'bg-gray-500/20 text-gray-400 border-gray-500/30', href: '#' },
@@ -112,31 +112,76 @@ export default function HomePage() {
             align: 'start',
             loop: true,
           }}
+          plugins={[
+            Autoplay({
+              delay: 3000,
+            }),
+          ]}
           className="w-full"
         >
           <CarouselContent>
             <CarouselItem>
-              <Card className="border-0 overflow-hidden bg-yellow-400">
+              <Card className="border-0 overflow-hidden bg-blue-500">
                 <CardContent className="p-0">
                   <div className="relative aspect-[2/1] md:aspect-[3/1] lg:aspect-[4/1]">
                     <Image
                       src="https://picsum.photos/1200/400"
-                      alt="Find your weak chapters"
+                      alt="JEE Main Banner"
                       fill
                       className="object-cover"
-                      data-ai-hint="promotional banner"
+                      data-ai-hint="IIT campus"
                     />
                      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent p-8 md:p-12 flex flex-col justify-center items-start text-white">
-                        <Badge className="mb-2 bg-red-600 text-white border-0">Just Launched</Badge>
-                        <p className="font-semibold text-xl">With Premium Filters</p>
-                        <h2 className="text-6xl md:text-7xl font-extrabold tracking-tighter">
-                            Find Your <span className="text-yellow-400">Weak chapters</span>
+                        <Badge className="mb-2 bg-blue-600 text-white border-0">JEE Main 2025</Badge>
+                        <h2 className="text-4xl md:text-6xl font-extrabold tracking-tighter">
+                            Crack the Main Exam
                         </h2>
+                        <p className="mt-2 text-lg md:text-xl max-w-md">Practice with thousands of PYQs and Mock Tests.</p>
                      </div>
-                      <div className="absolute right-8 md:right-12 top-1/2 -translate-y-1/2 text-center text-black bg-white/90 p-4 rounded-lg">
-                        <p className="font-bold text-2xl">Unlock Now</p>
-                        <p className="text-lg">at 50% OFF</p>
-                      </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </CarouselItem>
+             <CarouselItem>
+              <Card className="border-0 overflow-hidden bg-red-500">
+                <CardContent className="p-0">
+                  <div className="relative aspect-[2/1] md:aspect-[3/1] lg:aspect-[4/1]">
+                    <Image
+                      src="https://picsum.photos/1200/401"
+                      alt="JEE Advanced Banner"
+                      fill
+                      className="object-cover"
+                      data-ai-hint="IIT building"
+                    />
+                     <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent p-8 md:p-12 flex flex-col justify-center items-start text-white">
+                        <Badge className="mb-2 bg-red-600 text-white border-0">JEE Advanced 2025</Badge>
+                        <h2 className="text-4xl md:text-6xl font-extrabold tracking-tighter">
+                            Aim for the Top Ranks
+                        </h2>
+                        <p className="mt-2 text-lg md:text-xl max-w-md">Master concepts with our advanced level question bank.</p>
+                     </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </CarouselItem>
+             <CarouselItem>
+              <Card className="border-0 overflow-hidden bg-green-500">
+                <CardContent className="p-0">
+                  <div className="relative aspect-[2/1] md:aspect-[3/1] lg:aspect-[4/1]">
+                    <Image
+                      src="https://picsum.photos/1200/402"
+                      alt="NEET Banner"
+                      fill
+                      className="object-cover"
+                      data-ai-hint="AIIMS building"
+                    />
+                     <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent p-8 md:p-12 flex flex-col justify-center items-start text-white">
+                        <Badge className="mb-2 bg-green-600 text-white border-0">NEET 2025</Badge>
+                        <h2 className="text-4xl md:text-6xl font-extrabold tracking-tighter">
+                            Secure Your Medical Seat
+                        </h2>
+                         <p className="mt-2 text-lg md:text-xl max-w-md">Comprehensive preparation for your medical entrance exam.</p>
+                     </div>
                   </div>
                 </CardContent>
               </Card>
@@ -365,4 +410,3 @@ export default function HomePage() {
     </div>
   );
 }
-
