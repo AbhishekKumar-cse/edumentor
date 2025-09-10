@@ -15,10 +15,12 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Lightbulb, BookCopy, FileText, Atom, FlaskConical, Calculator } from 'lucide-react';
+import { Lightbulb, BookCopy, FileText, Atom, FlaskConical, Calculator, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
+import { generateDpp, DppInput } from '@/ai/flows/generate-dpp';
+
 
 interface DppGeneratorProps {
   subjects: Subject[];
@@ -36,6 +38,7 @@ export default function DppGenerator({ subjects }: DppGeneratorProps) {
   const [customChapters, setCustomChapters] = useState<{ [key: number]: number }>({});
   const [questionCount, setQuestionCount] = useState(15);
   const [dppName, setDppName] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();
   const { toast } = useToast();
@@ -60,29 +63,71 @@ export default function DppGenerator({ subjects }: DppGeneratorProps) {
       })
   }
 
-  const generateDpp = () => {
-    if (dppType === 'chapterwise' && selectedChapters.length === 0) {
-       toast({
-        title: 'Selection Required',
-        description: 'Please select at least one chapter for the DPP.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    
-    if (dppType === 'custom' && Object.keys(customChapters).length === 0) {
-       toast({
-        title: 'Selection Required',
-        description: 'Please specify the number of questions for at least one chapter.',
-        variant: 'destructive',
-      });
-      return;
+  const handleGenerateDpp = async () => {
+    setIsLoading(true);
+    let dppInput: DppInput | null = null;
+
+    if (dppType === 'chapterwise') {
+        if (selectedChapters.length === 0) {
+            toast({
+                title: 'Selection Required',
+                description: 'Please select at least one chapter for the DPP.',
+                variant: 'destructive',
+            });
+            setIsLoading(false);
+            return;
+        }
+        dppInput = {
+            dppType: 'chapterwise',
+            dppName: dppName || `Chapter-wise DPP`,
+            chapters: selectedChapters.map(id => ({ id, questionCount })),
+        };
     }
 
-     toast({
-        title: 'DPP Generation Not Implemented',
-        description: 'This feature is for demonstration purposes only.',
+    if (dppType === 'custom') {
+        const customChapterEntries = Object.entries(customChapters).filter(([, count]) => count > 0);
+        if (customChapterEntries.length === 0) {
+            toast({
+                title: 'Selection Required',
+                description: 'Please specify the number of questions for at least one chapter.',
+                variant: 'destructive',
+            });
+            setIsLoading(false);
+            return;
+        }
+         dppInput = {
+            dppType: 'custom',
+            dppName: dppName || `Custom Mix DPP`,
+            chapters: customChapterEntries.map(([id, count]) => ({ id: Number(id), questionCount: count })),
+        };
+    }
+
+    if (!dppInput) {
+        setIsLoading(false);
+        return;
+    }
+
+     try {
+      toast({
+        title: 'Generating DPP...',
+        description: 'The AI is preparing your practice problems. Please wait.',
       });
+      const result = await generateDpp(dppInput);
+      
+      // Store result in session storage and navigate to a new page to display it
+      sessionStorage.setItem('dppResult', JSON.stringify(result));
+      router.push('/dpp/view');
+
+    } catch (error) {
+      console.error("Failed to generate DPP", error);
+      toast({
+        title: 'DPP Generation Failed',
+        description: 'Something went wrong. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+        setIsLoading(false);
+    }
   };
 
   return (
@@ -99,6 +144,10 @@ export default function DppGenerator({ subjects }: DppGeneratorProps) {
                         <CardDescription>Select one or more chapters to generate a practice problem set.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
+                         <div className="space-y-2">
+                            <Label htmlFor="dpp-name-chapter">DPP Name (Optional)</Label>
+                            <Input id="dpp-name-chapter" placeholder="e.g., Physics Kinematics Revision" value={dppName} onChange={(e) => setDppName(e.target.value)} />
+                         </div>
                          <Accordion type="multiple" className="w-full space-y-2">
                             {subjects.map((subject) => (
                                 <AccordionItem value={`subject-${subject.id}`} key={subject.id} className="border rounded-md px-4">
@@ -190,8 +239,9 @@ export default function DppGenerator({ subjects }: DppGeneratorProps) {
         </Tabs>
         
         <div className="flex justify-end">
-            <Button onClick={generateDpp} size="lg" className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90">
-                <Lightbulb className="mr-2 h-5 w-5" /> Generate DPP
+            <Button onClick={handleGenerateDpp} size="lg" className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90" disabled={isLoading}>
+                {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Lightbulb className="mr-2 h-5 w-5" />}
+                {isLoading ? 'Generating...' : 'Generate DPP'}
             </Button>
         </div>
     </div>
