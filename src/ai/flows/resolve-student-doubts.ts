@@ -152,12 +152,13 @@ const prompt = ai.definePrompt({
 
   **Formatting Instructions:**
 
-  1.  **Mathematical Notation:** When providing mathematical solutions, use proper mathematical symbols. For example:
+  1.  **Mathematical Notation:** Use proper mathematical symbols. For example:
       - Use '×' for multiplication, not '*'.
       - Use '÷' for division, not '/'.
       - Use superscripts for exponents (e.g., x², 10⁻³), not '^'.
       - For fractions, use a horizontal bar, e.g., (a+b)/c should be written as a proper fraction if possible.
-  2.  **Clarity:** Do not use markdown like backticks (\`) or asterisks for bolding (**) in your mathematical explanations. Present the solution clearly and concisely.
+      - Do not use markdown like backticks (\`) or asterisks for bolding (**) in your mathematical explanations. Present the solution clearly and concisely.
+  2.  **Clarity:** Present the solution clearly and concisely.
 
   **Tool Usage Instructions:**
 
@@ -210,6 +211,14 @@ const resolveStudentDoubtsFlow = ai.defineFlow(
     }
     
     const {output} = await prompt(finalInput);
-    return output!;
+    
+    if (!output) {
+      return {
+        answer: "I'm sorry, but I was unable to generate a response for your query. This might be due to a safety filter or an issue with the provided context. Please try rephrasing your question or simplifying the provided document."
+      };
+    }
+
+    return output;
   }
 );
+
