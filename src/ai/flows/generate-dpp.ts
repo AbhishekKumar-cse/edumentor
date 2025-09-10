@@ -15,7 +15,7 @@ import { subjects, Question, Chapter } from '@/lib/data';
 
 
 const DppInputSchema = z.object({
-  dppType: z.enum(['chapterwise', 'custom']),
+  dppType: z.enum(['subjectwise', 'custom']),
   chapters: z.array(z.object({
     id: z.number(),
     questionCount: z.number(),
