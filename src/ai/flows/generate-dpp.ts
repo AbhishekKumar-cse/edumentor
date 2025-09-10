@@ -98,7 +98,7 @@ const generateDppFlow = ai.defineFlow(
   async (input) => {
     
     const questions = await getQuestionsFromChapters({ 
-        chapters: input.chapters,
+        chapters: input.chapters.map(c => ({ id: c.id, count: c.questionCount })),
         difficulty: input.difficulty,
      });
 
