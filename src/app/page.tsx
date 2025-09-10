@@ -208,7 +208,7 @@ export default function HomePage() {
       </section>
 
        <section>
-        <Card className="p-8 bg-secondary/30">
+        <Card className="p-8 bg-secondary/30 cursor-pointer hover:bg-primary/10 hover:border-primary transition-all hover:shadow-lg hover:shadow-primary/20" onClick={() => router.push('/question-bank')}>
           <div className="flex flex-col md:flex-row gap-6 items-center">
             <div className="flex-1 space-y-3">
               <h2 className="text-4xl font-headline font-bold">
