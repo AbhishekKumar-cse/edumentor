@@ -247,7 +247,9 @@ export default function HomePage() {
             </div>
         </Card>
          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-             <Card className="p-6 bg-secondary/30 hover:bg-primary/10 hover:border-primary transition-all cursor-pointer hover:shadow-lg hover:shadow-primary/20">
+             <Card 
+                onClick={() => router.push('/mock-test')}
+                className="p-6 bg-secondary/30 hover:bg-primary/10 hover:border-primary transition-all cursor-pointer hover:shadow-lg hover:shadow-primary/20">
                  <div className="flex justify-between items-center">
                     <div className="flex items-center gap-4">
                         <div className="p-3 bg-primary/20 rounded-lg">
