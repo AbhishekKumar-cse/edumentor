@@ -20,6 +20,8 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { generateDpp, DppInput } from '@/ai/flows/generate-dpp';
+import { cn } from '@/lib/utils';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 
 interface DppGeneratorProps {
@@ -32,18 +34,21 @@ const subjectIcons: { [key: string]: React.ElementType } = {
   Mathematics: Calculator,
 };
 
-export default function DppGenerator({ subjects }: DppGeneratorProps) {
-  const [dppType, setDppType] = useState('chapterwise');
-  const [selectedChapters, setSelectedChapters] = useState<number[]>([]);
-  const [customChapters, setCustomChapters] = useState<{ [key: number]: number }>({});
-  const [questionCount, setQuestionCount] = useState(15);
-  const [dppName, setDppName] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [examType, setExamType] = useState<'jee' | 'neet'>('jee');
-  const [difficulty, setDifficulty] = useState<'Easy' | 'Medium' | 'Hard' | 'Mixed'>('Mixed');
+const subjectColors: {[key: string]: string} = {
+    Physics: "from-orange-500 to-amber-500 hover:shadow-orange-500/30",
+    Chemistry: "from-green-500 to-emerald-500 hover:shadow-green-500/30",
+    Mathematics: "from-blue-500 to-sky-500 hover:shadow-blue-500/30",
+};
 
-  const router = useRouter();
+
+export default function DppGenerator({ subjects }: DppGeneratorProps) {
+  const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
+  const [dppType, setDppType] = useState<'full' | 'chapterwise'>('chapterwise');
+  const [selectedChapters, setSelectedChapters] = useState<number[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const router = useRouter();
+
 
   const handleChapterToggle = (chapterId: number) => {
     setSelectedChapters((prev) =>
@@ -53,25 +58,18 @@ export default function DppGenerator({ subjects }: DppGeneratorProps) {
     );
   };
   
-  const handleCustomChapterChange = (chapterId: number, count: number) => {
-      setCustomChapters(prev => {
-          const newCounts = {...prev};
-          if (count > 0) {
-            newCounts[chapterId] = count;
-          } else {
-            delete newCounts[chapterId];
-          }
-          return newCounts;
-      })
-  }
-
   const handleGenerateDpp = async () => {
-    setIsLoading(true);
-    let dppInput: DppInput | null = null;
+     if (!selectedSubject) return;
 
-    if (dppType === 'chapterwise') {
+     setIsLoading(true);
+
+     let chaptersToGenerate: DppInput['chapters'] = [];
+
+     if (dppType === 'full') {
+        chaptersToGenerate = selectedSubject.chapters.map(c => ({ id: c.id, questionCount: Math.floor(30 / selectedSubject.chapters.length) || 1 }));
+     } else {
         if (selectedChapters.length === 0) {
-            toast({
+             toast({
                 title: 'Selection Required',
                 description: 'Please select at least one chapter for the DPP.',
                 variant: 'destructive',
@@ -79,39 +77,15 @@ export default function DppGenerator({ subjects }: DppGeneratorProps) {
             setIsLoading(false);
             return;
         }
-        dppInput = {
-            dppType: 'chapterwise',
-            dppName: dppName || `Chapter-wise DPP`,
-            chapters: selectedChapters.map(id => ({ id, questionCount })),
-            examType,
-            difficulty,
-        };
-    }
+        chaptersToGenerate = selectedChapters.map(id => ({ id, questionCount: 15 }));
+     }
 
-    if (dppType === 'custom') {
-        const customChapterEntries = Object.entries(customChapters).filter(([, count]) => count > 0);
-        if (customChapterEntries.length === 0) {
-            toast({
-                title: 'Selection Required',
-                description: 'Please specify the number of questions for at least one chapter.',
-                variant: 'destructive',
-            });
-            setIsLoading(false);
-            return;
-        }
-         dppInput = {
-            dppType: 'custom',
-            dppName: dppName || `Custom Mix DPP`,
-            chapters: customChapterEntries.map(([id, count]) => ({ id: Number(id), questionCount: count })),
-            examType,
-            difficulty,
-        };
-    }
-
-    if (!dppInput) {
-        setIsLoading(false);
-        return;
-    }
+     const dppInput: DppInput = {
+        dppType: 'chapterwise', // The AI flow only uses this type
+        chapters: chaptersToGenerate,
+        dppName: `${selectedSubject.name} DPP - ${dppType === 'full' ? 'Full Syllabus' : 'Chapter-wise'}`,
+        difficulty: 'Mixed' // Defaulting to mixed for now
+     }
 
      try {
       toast({
@@ -120,7 +94,6 @@ export default function DppGenerator({ subjects }: DppGeneratorProps) {
       });
       const result = await generateDpp(dppInput);
       
-      // Store result in session storage and navigate to a new page to display it
       sessionStorage.setItem('dppResult', JSON.stringify(result));
       router.push('/dpp/start');
 
@@ -136,148 +109,95 @@ export default function DppGenerator({ subjects }: DppGeneratorProps) {
     }
   };
 
-  return (
-    <div className="space-y-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-                <Label htmlFor="exam-type" className="font-semibold">Exam Target</Label>
-                <Select value={examType} onValueChange={(val: 'jee' | 'neet') => setExamType(val)}>
-                    <SelectTrigger id="exam-type" className="mt-2">
-                        <SelectValue placeholder="Select Exam" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="jee">JEE (Main + Advanced)</SelectItem>
-                        <SelectItem value="neet">NEET</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-            <div>
-                <Label htmlFor="difficulty-level" className="font-semibold">Difficulty Level</Label>
-                 <Select value={difficulty} onValueChange={(val: 'Easy' | 'Medium' | 'Hard' | 'Mixed') => setDifficulty(val)}>
-                    <SelectTrigger id="difficulty-level" className="mt-2">
-                        <SelectValue placeholder="Set difficulty" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="Mixed">Mixed</SelectItem>
-                        <SelectItem value="Easy">Easy</SelectItem>
-                        <SelectItem value="Medium">Medium</SelectItem>
-                        <SelectItem value="Hard">Hard</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-        </div>
-        <Tabs value={dppType} onValueChange={setDppType}>
-            <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="chapterwise">Chapter-wise DPP</TabsTrigger>
-                <TabsTrigger value="custom">Custom DPP</TabsTrigger>
-            </TabsList>
-            <TabsContent value="chapterwise" className="mt-6">
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="font-headline text-lg">Chapter-wise DPP</CardTitle>
-                        <CardDescription>Select one or more chapters to generate a practice problem set.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                         <div className="space-y-2">
-                            <Label htmlFor="dpp-name-chapter">DPP Name (Optional)</Label>
-                            <Input id="dpp-name-chapter" placeholder="e.g., Physics Kinematics Revision" value={dppName} onChange={(e) => setDppName(e.target.value)} />
-                         </div>
-                         <Accordion type="multiple" className="w-full space-y-2">
-                            {subjects.map((subject) => (
-                                <AccordionItem value={`subject-${subject.id}`} key={subject.id} className="border rounded-md px-4">
-                                <AccordionTrigger className="font-semibold hover:no-underline">
-                                    <div className="flex items-center gap-3">
-                                    {React.createElement(subjectIcons[subject.name] || FileText, { className: "h-5 w-5"})}
-                                    <span>{subject.name}</span>
-                                    </div>
-                                </AccordionTrigger>
-                                <AccordionContent className="p-2">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pl-2 max-h-60 overflow-y-auto">
-                                    {subject.chapters.map((chapter) => (
-                                        <div key={chapter.id} className="flex items-center space-x-2 p-2 rounded-md hover:bg-secondary">
-                                        <Checkbox
-                                            id={`chapter-${chapter.id}`}
-                                            checked={selectedChapters.includes(chapter.id)}
-                                            onCheckedChange={() => handleChapterToggle(chapter.id)}
-                                        />
-                                        <Label htmlFor={`chapter-${chapter.id}`} className="flex-1 cursor-pointer">{chapter.name}</Label>
-                                        </div>
-                                    ))}
-                                    </div>
-                                </AccordionContent>
-                                </AccordionItem>
-                            ))}
-                        </Accordion>
+
+  if (selectedSubject) {
+    return (
+        <div className="w-full max-w-4xl mx-auto">
+            <Button onClick={() => setSelectedSubject(null)} variant="ghost" className='mb-4'>&larr; Back to Subjects</Button>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline text-2xl flex items-center gap-3">
+                        {React.createElement(subjectIcons[selectedSubject.name] || FileText, { className: "h-6 w-6"})}
+                        {selectedSubject.name} DPP
+                    </CardTitle>
+                    <CardDescription>Select chapters or generate a full syllabus test for {selectedSubject.name}.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                     <RadioGroup value={dppType} onValueChange={(val: 'full' | 'chapterwise') => setDppType(val)} className="mb-6 grid grid-cols-2 gap-4">
                         <div>
-                             <Label htmlFor="question-count" className="font-semibold">Number of Questions per chapter:</Label>
-                             <Select value={String(questionCount)} onValueChange={(val) => setQuestionCount(Number(val))}>
-                                <SelectTrigger className="w-[180px] mt-2">
-                                    <SelectValue placeholder="Set count" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="10">10 Questions</SelectItem>
-                                    <SelectItem value="15">15 Questions</SelectItem>
-                                    <SelectItem value="20">20 Questions</SelectItem>
-                                    <SelectItem value="25">25 Questions</SelectItem>
-                                    <SelectItem value="30">30 Questions</SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <RadioGroupItem value="chapterwise" id="chapterwise" className="peer sr-only" />
+                            <Label htmlFor="chapterwise" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                Chapter-wise
+                            </Label>
                         </div>
-                    </CardContent>
-                </Card>
-            </TabsContent>
-            <TabsContent value="custom" className="mt-6">
-                 <Card>
-                    <CardHeader>
-                        <CardTitle className="font-headline text-lg">Custom DPP</CardTitle>
-                        <CardDescription>Create your own mix of questions from various chapters.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                         <div className="space-y-2">
-                            <Label htmlFor="dpp-name">DPP Name (Optional)</Label>
-                            <Input id="dpp-name" placeholder="e.g., Weekly Revision Mix" value={dppName} onChange={(e) => setDppName(e.target.value)} />
-                         </div>
-                         <Accordion type="multiple" className="w-full space-y-2">
-                            {subjects.map((subject) => (
-                                <AccordionItem value={`custom-subject-${subject.id}`} key={subject.id} className="border rounded-md px-4">
-                                <AccordionTrigger className="font-semibold hover:no-underline">
-                                    <div className="flex items-center gap-3">
-                                    {React.createElement(subjectIcons[subject.name] || FileText, { className: "h-5 w-5"})}
-                                    <span>{subject.name}</span>
-                                    </div>
-                                </AccordionTrigger>
-                                <AccordionContent className="p-2">
-                                    <div className="space-y-4 max-h-72 overflow-y-auto">
-                                        {subject.chapters.map((chapter) => (
-                                            <div key={chapter.id} className="flex items-center justify-between p-2 rounded-md hover:bg-secondary">
-                                                <Label htmlFor={`custom-chapter-${chapter.id}`} className="flex-1 cursor-pointer">{chapter.name}</Label>
-                                                <Input 
-                                                    id={`custom-chapter-${chapter.id}`}
-                                                    type="number"
-                                                    min="0"
-                                                    placeholder="0"
-                                                    className="w-24"
-                                                    value={customChapters[chapter.id] || ''}
-                                                    onChange={(e) => handleCustomChapterChange(chapter.id, parseInt(e.target.value) || 0)}
-                                                />
+
+                         <div>
+                            <RadioGroupItem value="full" id="full" className="peer sr-only" />
+                            <Label htmlFor="full" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                Full Syllabus
+                            </Label>
+                        </div>
+                    </RadioGroup>
+
+                    {dppType === 'chapterwise' && (
+                        <div className='space-y-4'>
+                            <h4 className="font-semibold">Select Chapters:</h4>
+                             <Accordion type="multiple" className="w-full space-y-2">
+                                <AccordionItem value={selectedSubject.name} className="border rounded-md px-4">
+                                    <AccordionTrigger className="font-semibold hover:no-underline text-base">
+                                        {selectedSubject.name} Chapters
+                                    </AccordionTrigger>
+                                    <AccordionContent className="p-2">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pl-2 max-h-60 overflow-y-auto">
+                                        {selectedSubject.chapters.map((chapter) => (
+                                            <div key={chapter.id} className="flex items-center space-x-2 p-2 rounded-md hover:bg-secondary">
+                                            <Checkbox
+                                                id={`chapter-${chapter.id}`}
+                                                checked={selectedChapters.includes(chapter.id)}
+                                                onCheckedChange={() => handleChapterToggle(chapter.id)}
+                                            />
+                                            <Label htmlFor={`chapter-${chapter.id}`} className="flex-1 cursor-pointer">{chapter.name}</Label>
                                             </div>
                                         ))}
-                                    </div>
-                                </AccordionContent>
+                                        </div>
+                                    </AccordionContent>
                                 </AccordionItem>
-                            ))}
-                        </Accordion>
-                    </CardContent>
-                </Card>
-            </TabsContent>
-        </Tabs>
-        
-        <div className="flex justify-end">
-            <Button onClick={handleGenerateDpp} size="lg" className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90" disabled={isLoading}>
-                {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Lightbulb className="mr-2 h-5 w-5" />}
-                {isLoading ? 'Generating...' : 'Generate DPP'}
-            </Button>
+                            </Accordion>
+                        </div>
+                    )}
+                     <div className="flex justify-end mt-6">
+                        <Button onClick={handleGenerateDpp} size="lg" disabled={isLoading} variant="accent">
+                            {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Lightbulb className="mr-2 h-5 w-5" />}
+                            {isLoading ? 'Generating...' : 'Generate DPP'}
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
         </div>
+    )
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {subjects.map(subject => {
+            const Icon = subjectIcons[subject.name];
+            return (
+                 <Card 
+                    key={subject.id} 
+                    className={cn(
+                        "p-6 flex flex-col items-center justify-center text-center gap-4 transition-all duration-300 ease-in-out cursor-pointer group bg-gradient-to-br hover:scale-105 hover:shadow-lg text-white",
+                        subjectColors[subject.name]
+                    )}
+                    onClick={() => setSelectedSubject(subject)}
+                >
+                    <div className="p-4 bg-white/20 rounded-full group-hover:scale-110 transition-transform">
+                        <Icon className="w-12 h-12" />
+                    </div>
+                    <CardTitle className="font-headline text-3xl">{subject.name}</CardTitle>
+                    <CardDescription className="text-white/80">{subject.chapters.length} Chapters</CardDescription>
+                </Card>
+            )
+        })}
     </div>
   );
 }
