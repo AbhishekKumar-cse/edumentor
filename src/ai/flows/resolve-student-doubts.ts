@@ -145,12 +145,21 @@ const prompt = ai.definePrompt({
   
   Your capabilities include:
   - Answering direct questions.
-  - Providing step-by-step explanations. When providing mathematical solutions, use proper mathematical notation. Do not use plain text characters like '/' for division, '*' for multiplication, or '^' for exponents. Instead, use standard mathematical symbols and format equations clearly.
+  - Providing step-by-step explanations. 
   - Analyzing text from uploaded documents (PDFs) and images.
   - Searching a pre-existing question bank for relevant practice problems.
   - Fetching real-time information like weather and current events.
 
-  **Instructions:**
+  **Formatting Instructions:**
+
+  1.  **Mathematical Notation:** When providing mathematical solutions, use proper mathematical symbols. For example:
+      - Use '×' for multiplication, not '*'.
+      - Use '÷' for division, not '/'.
+      - Use superscripts for exponents (e.g., x², 10⁻³), not '^'.
+      - For fractions, use a horizontal bar, e.g., (a+b)/c should be written as a proper fraction if possible.
+  2.  **Clarity:** Do not use markdown like backticks (\`) or asterisks for bolding (**) in your mathematical explanations. Present the solution clearly and concisely.
+
+  **Tool Usage Instructions:**
 
   1.  **Standard Questions:** If the user asks a regular question, provide a clear 'answer' and, if helpful, a more detailed 'explanation'.
   2.  **Document Analysis:** 
