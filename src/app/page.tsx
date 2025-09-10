@@ -232,7 +232,9 @@ export default function HomePage() {
       </section>
 
       <section className="space-y-6">
-        <Card className="p-6 bg-gradient-to-r from-secondary/30 to-background border-amber-500/30 hover:shadow-lg hover:shadow-amber-500/20 transition-shadow duration-300">
+        <Card
+          onClick={() => router.push('/dpp')}
+          className="p-6 bg-gradient-to-r from-secondary/30 to-background border-amber-500/30 hover:shadow-lg hover:shadow-amber-500/20 transition-shadow duration-300 cursor-pointer">
             <div className="flex justify-between items-center">
                 <div className="flex flex-col">
                     <h3 className="font-bold text-2xl">Solve DPPs</h3>
