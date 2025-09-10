@@ -39,6 +39,8 @@ export default function DppGenerator({ subjects }: DppGeneratorProps) {
   const [questionCount, setQuestionCount] = useState(15);
   const [dppName, setDppName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [examType, setExamType] = useState<'jee' | 'neet'>('jee');
+  const [difficulty, setDifficulty] = useState<'Easy' | 'Medium' | 'Hard' | 'Mixed'>('Mixed');
 
   const router = useRouter();
   const { toast } = useToast();
@@ -81,6 +83,8 @@ export default function DppGenerator({ subjects }: DppGeneratorProps) {
             dppType: 'chapterwise',
             dppName: dppName || `Chapter-wise DPP`,
             chapters: selectedChapters.map(id => ({ id, questionCount })),
+            examType,
+            difficulty,
         };
     }
 
@@ -99,6 +103,8 @@ export default function DppGenerator({ subjects }: DppGeneratorProps) {
             dppType: 'custom',
             dppName: dppName || `Custom Mix DPP`,
             chapters: customChapterEntries.map(([id, count]) => ({ id: Number(id), questionCount: count })),
+            examType,
+            difficulty,
         };
     }
 
@@ -132,6 +138,34 @@ export default function DppGenerator({ subjects }: DppGeneratorProps) {
 
   return (
     <div className="space-y-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <Label htmlFor="exam-type" className="font-semibold">Exam Target</Label>
+                <Select value={examType} onValueChange={(val: 'jee' | 'neet') => setExamType(val)}>
+                    <SelectTrigger id="exam-type" className="mt-2">
+                        <SelectValue placeholder="Select Exam" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="jee">JEE (Main + Advanced)</SelectItem>
+                        <SelectItem value="neet">NEET</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+            <div>
+                <Label htmlFor="difficulty-level" className="font-semibold">Difficulty Level</Label>
+                 <Select value={difficulty} onValueChange={(val: 'Easy' | 'Medium' | 'Hard' | 'Mixed') => setDifficulty(val)}>
+                    <SelectTrigger id="difficulty-level" className="mt-2">
+                        <SelectValue placeholder="Set difficulty" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="Mixed">Mixed</SelectItem>
+                        <SelectItem value="Easy">Easy</SelectItem>
+                        <SelectItem value="Medium">Medium</SelectItem>
+                        <SelectItem value="Hard">Hard</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+        </div>
         <Tabs value={dppType} onValueChange={setDppType}>
             <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="chapterwise">Chapter-wise DPP</TabsTrigger>

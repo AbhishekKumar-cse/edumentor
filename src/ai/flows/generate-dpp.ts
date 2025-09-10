@@ -11,7 +11,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { subjects, Question } from '@/lib/data';
+import { subjects, Question, Chapter } from '@/lib/data';
 
 
 const DppInputSchema = z.object({
@@ -21,6 +21,8 @@ const DppInputSchema = z.object({
     questionCount: z.number(),
   })),
   dppName: z.string().optional(),
+  examType: z.enum(['jee', 'neet']).optional(),
+  difficulty: z.enum(['Easy', 'Medium', 'Hard', 'Mixed']).optional(),
 });
 export type DppInput = z.infer<typeof DppInputSchema>;
 
@@ -45,16 +47,17 @@ export type DppOutput = z.infer<typeof DppOutputSchema>;
 const getQuestionsFromChapters = ai.defineTool(
     {
         name: 'getQuestionsFromChapters',
-        description: 'Retrieves a specified number of questions from a list of chapter IDs.',
+        description: 'Retrieves a specified number of questions from a list of chapter IDs, with an optional difficulty filter.',
         inputSchema: z.object({
             chapters: z.array(z.object({
                 id: z.number().describe('The ID of the chapter.'),
                 count: z.number().describe('The number of questions to fetch from this chapter.'),
             })),
+            difficulty: z.enum(['Easy', 'Medium', 'Hard', 'Mixed']).optional().describe('The desired difficulty of the questions.'),
         }),
         outputSchema: z.array(z.any()), // Using z.any() because Question schema is complex for direct tool output
     },
-    async ({ chapters }) => {
+    async ({ chapters, difficulty }) => {
         const allQuestions: Question[] = [];
         const chapterMap = new Map<number, Chapter>();
         subjects.forEach(subject => {
@@ -66,8 +69,13 @@ const getQuestionsFromChapters = ai.defineTool(
         for (const chapterInfo of chapters) {
             const chapter = chapterMap.get(chapterInfo.id);
             if (chapter) {
+                let potentialQuestions = chapter.questions;
+                if (difficulty && difficulty !== 'Mixed') {
+                    potentialQuestions = potentialQuestions.filter(q => q.difficulty === difficulty);
+                }
+                
                 // Shuffle questions to get a random selection
-                const shuffled = [...chapter.questions].sort(() => 0.5 - Math.random());
+                const shuffled = [...potentialQuestions].sort(() => 0.5 - Math.random());
                 const selected = shuffled.slice(0, chapterInfo.count);
                 allQuestions.push(...selected);
             }
@@ -89,7 +97,10 @@ const generateDppFlow = ai.defineFlow(
   },
   async (input) => {
     
-    const questions = await getQuestionsFromChapters({ chapters: input.chapters });
+    const questions = await getQuestionsFromChapters({ 
+        chapters: input.chapters,
+        difficulty: input.difficulty,
+     });
 
     return {
         name: input.dppName || 'Your Daily Practice Problems',
