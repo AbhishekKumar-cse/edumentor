@@ -120,56 +120,18 @@ export default function DppViewPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const dppData = sessionStorage.getItem('dppResult');
-    if (dppData) {
-      setDpp(JSON.parse(dppData));
-    } else {
-      router.replace('/dpp');
-    }
+    // This page is now deprecated, redirecting to the dpp generator.
+    // The new flow is /dpp -> /dpp/start -> /dpp/results
+    router.replace('/dpp');
   }, [router]);
 
   if (!dpp) {
     return (
       <div className="flex items-center justify-center h-screen bg-secondary">
-        <p className="text-lg">Loading DPP...</p>
+        <p className="text-lg">Redirecting...</p>
       </div>
     );
   }
 
-  return (
-    <div className="p-6 md:p-10">
-      <div className="space-y-8">
-        <header className="flex justify-between items-center">
-            <div className="space-y-2">
-                <h1 className="text-4xl font-headline font-bold">{dpp.name}</h1>
-                <p className="text-muted-foreground">
-                    Here are your generated practice problems. Good luck!
-                </p>
-            </div>
-            <Button onClick={() => router.push('/dpp')}>
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Generate New DPP
-            </Button>
-        </header>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>
-                Questions ({dpp.questions.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {dpp.questions.length > 0 ? (
-                dpp.questions.map((q, i) => (
-                    <QuestionCard key={q.id} question={q} index={i} />
-                ))
-            ) : (
-                <p className="text-muted-foreground">No questions were found for the selected criteria.</p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
+  return null;
 }
-

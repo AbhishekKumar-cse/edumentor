@@ -122,7 +122,7 @@ export default function DppGenerator({ subjects }: DppGeneratorProps) {
       
       // Store result in session storage and navigate to a new page to display it
       sessionStorage.setItem('dppResult', JSON.stringify(result));
-      router.push('/dpp/view');
+      router.push('/dpp/start');
 
     } catch (error) {
       console.error("Failed to generate DPP", error);
