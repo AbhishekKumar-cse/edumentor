@@ -190,7 +190,7 @@ export default function DppGenerator({ subjects }: DppGeneratorProps) {
         </Tabs>
         
         <div className="flex justify-end">
-            <Button onClick={generateDpp} size="lg" className="w-full sm:w-auto bg-accent hover:bg-accent/90">
+            <Button onClick={generateDpp} size="lg" className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90">
                 <Lightbulb className="mr-2 h-5 w-5" /> Generate DPP
             </Button>
         </div>
