@@ -45,6 +45,12 @@ export type MockTestHistoryItem = {
     timestamp: number;
 }
 
+interface CustomChapterSelection {
+  id: number;
+  name: string;
+  questionCount: number;
+}
+
 const subjectIcons: { [key: string]: React.ElementType } = {
   Physics: Atom,
   Chemistry: FlaskConical,
@@ -57,6 +63,7 @@ export default function GeneratorForm({ subjects }: GeneratorFormProps) {
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [testType, setTestType] = useState<'chapters' | 'full'>('chapters'); 
   const [selectedChapters, setSelectedChapters] = useState<number[]>([]);
+  const [customChapters, setCustomChapters] = useState<CustomChapterSelection[]>([]);
   const [duration, setDuration] = useState(60);
   const [history, setHistory] = useState<MockTestHistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -106,6 +113,24 @@ export default function GeneratorForm({ subjects }: GeneratorFormProps) {
     );
   };
   
+  const handleCustomChapterToggle = (chapterId: number, chapterName: string) => {
+    setCustomChapters((prev) => {
+      const existing = prev.find((c) => c.id === chapterId);
+      if (existing) {
+        return prev.filter((c) => c.id !== chapterId);
+      } else {
+        return [...prev, { id: chapterId, name: chapterName, questionCount: 10 }];
+      }
+    });
+  };
+
+  const handleCustomQuestionCountChange = (chapterId: number, count: string) => {
+    const questionCount = parseInt(count, 10);
+    setCustomChapters((prev) =>
+      prev.map((c) => (c.id === chapterId ? { ...c, questionCount } : c))
+    );
+  };
+
   const handleSelectAllChapters = (subjectId: number) => {
     const subject = subjects.find(s => s.id === subjectId);
     if (!subject) return;
@@ -123,7 +148,7 @@ export default function GeneratorForm({ subjects }: GeneratorFormProps) {
 
   const generateTest = () => {
     
-    let chaptersToUse: number[] | 'all' = [];
+    let chaptersToUse: number[] | 'all' | {id: number, count: number}[] = [];
     let testName = '';
     let questionCount = 0;
 
@@ -141,13 +166,13 @@ export default function GeneratorForm({ subjects }: GeneratorFormProps) {
         questionCount = testType === 'chapters' ? Math.min(selectedChapters.length * 5, 20) : 30;
 
     } else { // Custom
-        if (selectedChapters.length === 0) {
+        if (customChapters.length === 0) {
             toast({ title: 'Chapters Required', description: 'Please select at least one chapter for your custom test.', variant: 'destructive' });
             return;
         }
-        chaptersToUse = selectedChapters;
+        chaptersToUse = customChapters.map(c => ({ id: c.id, count: c.questionCount }));
         testName = 'Custom Multi-Chapter Test';
-        questionCount = Math.min(selectedChapters.length * 5, 50);
+        questionCount = customChapters.reduce((sum, chapter) => sum + chapter.questionCount, 0);
     }
     
     const testConfig = {
@@ -353,18 +378,31 @@ export default function GeneratorForm({ subjects }: GeneratorFormProps) {
                                 </div>
                             </AccordionTrigger>
                              <AccordionContent className="p-2">
-                                <div className='flex justify-end mb-2'>
-                                    <Button variant="link" size="sm" onClick={() => handleSelectAllChapters(subject.id)}>Select All Chapters</Button>
-                                </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 pl-2 max-h-72 overflow-y-auto">
                                     {subject.chapters.map(chapter => (
                                         <div key={chapter.id} className="flex items-center space-x-2 p-2 rounded-md hover:bg-secondary">
                                             <Checkbox
                                                 id={`custom-chapter-${chapter.id}`}
-                                                checked={selectedChapters.includes(chapter.id)}
-                                                onCheckedChange={() => handleChapterToggle(chapter.id)}
+                                                checked={customChapters.some(c => c.id === chapter.id)}
+                                                onCheckedChange={() => handleCustomChapterToggle(chapter.id, chapter.name)}
                                             />
                                             <Label htmlFor={`custom-chapter-${chapter.id}`} className="flex-1 cursor-pointer">{chapter.name}</Label>
+                                            {customChapters.some(c => c.id === chapter.id) && (
+                                                <Select
+                                                  value={String(customChapters.find(c => c.id === chapter.id)?.questionCount || 10)}
+                                                  onValueChange={(value) => handleCustomQuestionCountChange(chapter.id, value)}
+                                                >
+                                                    <SelectTrigger className="w-28 h-8">
+                                                        <SelectValue placeholder="Count" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="10">10 Qs</SelectItem>
+                                                        <SelectItem value="15">15 Qs</SelectItem>
+                                                        <SelectItem value="20">20 Qs</SelectItem>
+                                                        <SelectItem value="30">30 Qs</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
@@ -402,6 +440,7 @@ export default function GeneratorForm({ subjects }: GeneratorFormProps) {
     <Tabs value={generatorType} onValueChange={(v) => {
         setGeneratorType(v as 'subjectwise' | 'custom');
         setSelectedChapters([]); // Reset chapters when switching tabs
+        setCustomChapters([]); // Also reset custom chapters
         setStep(1); // Reset step for subject-wise flow
     }} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
