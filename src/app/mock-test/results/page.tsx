@@ -8,9 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Check, X, Flag, BarChart, FileText, ArrowLeft, Lightbulb, Clock } from 'lucide-react';
+import { Check, X, Flag, BarChart, FileText, ArrowLeft, Lightbulb, Clock, Repeat } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import type { MockTestHistoryItem } from './generator-form';
 
 
 interface TestQuestion extends Question {
@@ -39,20 +40,26 @@ export default function ResultsPage() {
   const [incorrectAnswers, setIncorrectAnswers] = useState(0);
   const [unanswered, setUnanswered] = useState(0);
   const [totalTime, setTotalTime] = useState(0);
+  const [testName, setTestName] = useState("Test Results");
 
   const router = useRouter();
 
   useEffect(() => {
     const resultsStr = sessionStorage.getItem('testResults');
     const timeStr = sessionStorage.getItem('totalTimeTaken');
-
+    const configStr = sessionStorage.getItem('mockTestConfig');
+    
     if (!resultsStr) {
       router.replace('/mock-test');
       return;
     }
+
     const testResults: TestQuestion[] = JSON.parse(resultsStr);
+    const testConfig = configStr ? JSON.parse(configStr) : null;
+    
     setResults(testResults);
     setTotalTime(timeStr ? JSON.parse(timeStr) : 0);
+    if(testConfig?.name) setTestName(testConfig.name);
 
 
     let correct = 0;
@@ -69,12 +76,53 @@ export default function ResultsPage() {
       }
     });
 
+    const currentScore = correct * 4 - incorrect * 1;
+    const accuracy = testResults.length > 0 && (testResults.length - notAttempted) > 0 
+        ? ((correct / (testResults.length - notAttempted)) * 100) 
+        : 0;
+
     setCorrectAnswers(correct);
     setIncorrectAnswers(incorrect);
     setUnanswered(notAttempted);
-    // JEE Main marking: +4 for correct, -1 for incorrect
-    setScore(correct * 4 - incorrect * 1);
+    setScore(currentScore);
+
+    // Save to history only if it came from a live attempt (not a review)
+    const isReviewing = sessionStorage.getItem('isReviewing');
+    if (!isReviewing && testConfig) {
+      const historyItem: MockTestHistoryItem = {
+        id: Date.now().toString(),
+        name: testConfig.name,
+        config: testConfig,
+        questions: testResults,
+        score: currentScore,
+        totalMarks: testResults.length * 4,
+        accuracy: accuracy,
+        totalTime: timeStr ? JSON.parse(timeStr) : 0,
+        timestamp: Date.now(),
+      };
+
+      try {
+        const existingHistory: MockTestHistoryItem[] = JSON.parse(localStorage.getItem('mockTestHistory') || '[]');
+        const updatedHistory = [historyItem, ...existingHistory].slice(0, 10); // Keep last 10 attempts
+        localStorage.setItem('mockTestHistory', JSON.stringify(updatedHistory));
+      } catch (error) {
+        console.error("Failed to save mock test history to localStorage", error);
+      }
+    }
+    
+    sessionStorage.removeItem('isReviewing');
+    sessionStorage.removeItem('mockTestConfig');
+
   }, [router]);
+
+  const handleReattempt = () => {
+    const configStr = sessionStorage.getItem('mockTestConfig');
+     if (configStr) {
+       sessionStorage.setItem('mockTestConfig', configStr);
+       router.push('/mock-test/start');
+     }
+  };
+
 
   const getOptionClass = (option: string, question: TestQuestion) => {
     if (option === question.answer) return 'bg-green-100 dark:bg-green-900/30 border-green-500';
@@ -101,16 +149,18 @@ export default function ResultsPage() {
   return (
     <div className="p-6 md:p-10">
       <div className="space-y-8">
-        <header className="flex justify-between items-center">
+        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="space-y-2">
-              <h1 className="text-4xl font-headline font-bold">Test Results & Analysis</h1>
+              <h1 className="text-4xl font-headline font-bold">{testName} - Results & Analysis</h1>
               <p className="text-muted-foreground">
               Here's a detailed breakdown of your performance.
               </p>
           </div>
-          <Button onClick={() => router.push('/mock-test')}>
-              <ArrowLeft className="mr-2 h-4 w-4" /> Take Another Test
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => router.push('/mock-test')}>
+                <ArrowLeft className="mr-2 h-4 w-4" /> Take Another Test
+            </Button>
+          </div>
         </header>
 
         {/* Performance Summary */}
@@ -261,3 +311,5 @@ export default function ResultsPage() {
     </div>
   );
 }
+
+    

@@ -1,8 +1,8 @@
 
 'use client';
 
-import React, { useState } from 'react';
-import type { Subject } from '@/lib/data';
+import React, { useState, useEffect } from 'react';
+import type { Subject, Question } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -15,13 +15,33 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Lightbulb, BookCopy, FileText, Atom, FlaskConical } from 'lucide-react';
+import { Lightbulb, BookCopy, FileText, Atom, FlaskConical, History, Repeat, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 interface GeneratorFormProps {
   subjects: Subject[];
 }
+
+interface TestQuestion extends Question {
+  userAnswer?: string;
+  status: 'unanswered' | 'answered' | 'review';
+  timeTaken: number;
+}
+
+export type MockTestHistoryItem = {
+    id: string;
+    name: string;
+    config: any; // The original test config
+    questions: TestQuestion[];
+    score: number;
+    totalMarks: number;
+    accuracy: number;
+    totalTime: number;
+    timestamp: number;
+}
+
 
 const testPatterns: { [key: string]: { name: string; questions: number; duration: number } } = {
   jeeMain: { name: 'JEE Main (Random)', questions: 30, duration: 60 },
@@ -63,9 +83,43 @@ export default function GeneratorForm({ subjects }: GeneratorFormProps) {
   const [testType, setTestType] = useState('chapters'); // 'chapters' or 'full'
   const [selectedChapters, setSelectedChapters] = useState<number[]>([]);
   const [duration, setDuration] = useState(testPatterns.jeeMain.duration);
+  const [history, setHistory] = useState<MockTestHistoryItem[]>([]);
 
   const router = useRouter();
   const { toast } = useToast();
+
+   useEffect(() => {
+    try {
+        const savedHistory = localStorage.getItem('mockTestHistory');
+        if (savedHistory) {
+            setHistory(JSON.parse(savedHistory));
+        }
+    } catch (error) {
+        console.error("Failed to load mock test history from localStorage", error);
+    }
+  }, []);
+
+  const handleClearHistory = () => {
+    setHistory([]);
+    localStorage.removeItem('mockTestHistory');
+    toast({
+        title: "Mock Test History Cleared",
+        description: "All your attempted mock tests have been deleted.",
+    })
+  }
+
+  const handleReattempt = (test: MockTestHistoryItem) => {
+    sessionStorage.setItem('mockTestConfig', JSON.stringify(test.config));
+    router.push('/mock-test/start');
+  };
+
+  const handleReview = (test: MockTestHistoryItem) => {
+    sessionStorage.setItem('testResults', JSON.stringify(test.questions));
+    sessionStorage.setItem('totalTimeTaken', JSON.stringify(test.totalTime));
+    sessionStorage.setItem('isReviewing', 'true');
+    router.push('/mock-test/results');
+  };
+
 
   const handleChapterToggle = (chapterId: number) => {
     setSelectedChapters((prev) =>
@@ -116,6 +170,7 @@ export default function GeneratorForm({ subjects }: GeneratorFormProps) {
     const testConfig = {
       pattern: selectedPattern,
       type: finalTestType,
+      name: testPatterns[selectedPattern as keyof typeof testPatterns].name,
       chapters: finalTestType === 'chapters' ? selectedChapters : 'all',
       duration,
       questionCount,
@@ -243,6 +298,60 @@ export default function GeneratorForm({ subjects }: GeneratorFormProps) {
             </Button>
          </CardContent>
        </Card>
+         {history.length > 0 && (
+            <Card className="mt-12">
+                <CardHeader>
+                    <CardTitle className="font-headline text-2xl flex items-center gap-3">
+                        <History className="w-6 h-6 text-primary" />
+                        Mock Test History
+                    </CardTitle>
+                    <CardDescription>Review your past mock tests or try them again.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    {history.map(test => (
+                        <div key={test.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-lg bg-secondary/30">
+                            <div className="mb-4 sm:mb-0">
+                                <p className="font-semibold">{test.name}</p>
+                                <p className="text-sm text-muted-foreground">
+                                    Attempted on {new Date(test.timestamp).toLocaleDateString()} | Score: {test.score}/{test.totalMarks} | Accuracy: {test.accuracy.toFixed(2)}%
+                                </p>
+                            </div>
+                            <div className="flex gap-2">
+                                <Button variant="outline" onClick={() => handleReattempt(test)}>
+                                    <Repeat className="mr-2 h-4 w-4" /> Re-attempt
+                                </Button>
+                                <Button onClick={() => handleReview(test)}>
+                                    Review Answers
+                                </Button>
+                            </div>
+                        </div>
+                    ))}
+                        <div className="flex justify-end mt-4">
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="destructive">
+                                    <Trash2 className="mr-2 h-4 w-4" /> Clear History
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This will permanently delete your entire mock test history. This action cannot be undone.
+                                </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleClearHistory}>Confirm Delete</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    </div>
+                </CardContent>
+            </Card>
+        )}
     </div>
   );
 }
+
+    

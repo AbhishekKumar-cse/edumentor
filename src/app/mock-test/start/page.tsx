@@ -22,6 +22,7 @@ interface TestQuestion extends Question {
 interface TestConfig {
     pattern: string;
     type: string;
+    name: string;
     chapters: number[] | 'all';
     duration: number;
     questionCount: number;
@@ -68,6 +69,7 @@ export default function TestPage() {
       ...q,
       status: 'unanswered' as 'unanswered',
       timeTaken: 0,
+      userAnswer: undefined, // ensure fresh start
     }));
     setTestQuestions(selectedQuestions);
     questionTimers.current = new Array(selectedQuestions.length).fill(0);
@@ -148,7 +150,8 @@ export default function TestPage() {
     const resultsToStore = testQuestions.map(q => ({...q})); // creates a new copy to avoid state issues
     sessionStorage.setItem('testResults', JSON.stringify(resultsToStore));
     sessionStorage.setItem('totalTimeTaken', JSON.stringify(totalTimeTaken.current));
-    sessionStorage.removeItem('mockTestConfig');
+    // Keep testConfig for the results page to access test name and save to history
+    // sessionStorage.removeItem('mockTestConfig'); 
     router.replace('/mock-test/results');
   };
 
@@ -177,7 +180,7 @@ export default function TestPage() {
     <div className="fixed inset-0 bg-background flex flex-col">
       {/* Header */}
       <header className="flex justify-between items-center p-4 border-b">
-        <h1 className="text-2xl font-headline font-bold text-primary">Mock Test in Progress</h1>
+        <h1 className="text-2xl font-headline font-bold text-primary">{testConfig.name}</h1>
         <div className="flex items-center gap-4">
           <Badge variant="outline" className="text-lg font-semibold tabular-nums p-2">
             <Timer className="mr-2" />
@@ -273,3 +276,5 @@ export default function TestPage() {
     </div>
   );
 }
+
+    
