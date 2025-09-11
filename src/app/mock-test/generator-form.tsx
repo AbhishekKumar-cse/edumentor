@@ -15,11 +15,13 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Lightbulb, BookCopy, FileText, Atom, FlaskConical, History, Repeat, Trash2 } from 'lucide-react';
+import { Lightbulb, BookCopy, FileText, Atom, FlaskConical, History, Repeat, Trash2, ArrowLeft, CheckCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+
 
 interface GeneratorFormProps {
   subjects: Subject[];
@@ -80,11 +82,14 @@ const subjectIcons: { [key: string]: React.ElementType } = {
 };
 
 export default function GeneratorForm({ subjects }: GeneratorFormProps) {
-  const [selectedPattern, setSelectedPattern] = useState('jeeMain');
-  const [testType, setTestType] = useState('chapters'); // 'chapters' or 'full'
+  const [exam, setExam] = useState<'jee' | 'neet'>('jee');
+  const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
+  const [testType, setTestType] = useState<'chapters' | 'full'>('chapters'); 
   const [selectedChapters, setSelectedChapters] = useState<number[]>([]);
-  const [duration, setDuration] = useState(testPatterns.jeeMain.duration);
+  const [duration, setDuration] = useState(60);
   const [history, setHistory] = useState<MockTestHistoryItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [step, setStep] = useState(1);
 
   const router = useRouter();
   const { toast } = useToast();
@@ -129,7 +134,7 @@ export default function GeneratorForm({ subjects }: GeneratorFormProps) {
         : [...prev, chapterId]
     );
   };
-
+  
   const handleSelectAllChapters = (subjectId: number) => {
     const subject = subjects.find(s => s.id === subjectId);
     if (!subject) return;
@@ -144,102 +149,101 @@ export default function GeneratorForm({ subjects }: GeneratorFormProps) {
     }
   };
 
-  const handlePatternChange = (pattern: string) => {
-    setSelectedPattern(pattern);
-    const newDuration = testPatterns[pattern as keyof typeof testPatterns].duration;
-    setDuration(newDuration);
-    if(pattern.startsWith('jeeMain-')) {
-        setTestType('full');
-    }
-  }
 
   const generateTest = () => {
-    const questionCount = testPatterns[selectedPattern as keyof typeof testPatterns].questions;
-
-    if (testType === 'chapters' && selectedChapters.length === 0 && !selectedPattern.startsWith('jeeMain-')) {
-      toast({
-        title: 'Selection Required',
-        description: 'Please select at least one chapter to generate a test.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    
-    const isPredefinedMock = selectedPattern.startsWith('jeeMain-');
-    const finalTestType = isPredefinedMock ? 'full' : testType;
-
     const testConfig = {
-      pattern: selectedPattern,
-      type: finalTestType,
-      name: testPatterns[selectedPattern as keyof typeof testPatterns].name,
-      chapters: finalTestType === 'chapters' ? selectedChapters : 'all',
+      exam,
+      subject: selectedSubject?.name,
+      type: testType,
+      chapters: testType === 'chapters' ? selectedChapters : 'all',
       duration,
-      questionCount,
+      questionCount: testType === 'chapters' ? 20 : 30, // Example counts
+      name: `${selectedSubject?.name} ${testType === 'chapters' ? 'Chapter-wise' : 'Full Syllabus'} Test`
     };
     
-    // Store config in session storage to be picked up by the test page
     sessionStorage.setItem('mockTestConfig', JSON.stringify(testConfig));
-
-    // Redirect to a dedicated test page
     router.push('/mock-test/start');
   };
 
-  return (
-    <div className="space-y-8">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Step 1: Test Pattern */}
-        <Card className="lg:col-span-1">
-          <CardHeader>
-            <CardTitle className="font-headline text-lg">Step 1: Choose Pattern</CardTitle>
-            <CardDescription>Select the exam pattern you want to follow.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Select value={selectedPattern} onValueChange={handlePatternChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a pattern" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(testPatterns).map(([key, { name }]) => (
-                  <SelectItem key={key} value={key}>{name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <div className="mt-4 text-sm text-muted-foreground p-3 bg-secondary/50 rounded-lg">
-                <p><strong>{testPatterns[selectedPattern as keyof typeof testPatterns].name}</strong></p>
-                <p>Questions: {testPatterns[selectedPattern as keyof typeof testPatterns].questions}</p>
-                <p>Default Duration: {testPatterns[selectedPattern as keyof typeof testPatterns].duration} minutes</p>
+  const renderSubjectSelector = () => (
+    <div className='space-y-8'>
+        <div>
+            <h3 className="font-headline text-2xl font-semibold mb-4">Choose your exam</h3>
+            <div className="grid grid-cols-2 gap-4">
+                <Card 
+                    className={cn("p-4 flex items-center gap-4 cursor-pointer transition-all", exam === 'jee' ? "border-primary ring-2 ring-primary" : "hover:border-primary/50")}
+                    onClick={() => setExam('jee')}
+                >
+                     <div className="p-2 bg-primary/20 rounded-full">
+                        <CheckCircle className="w-6 h-6 text-primary" />
+                     </div>
+                     <span className="font-bold text-lg">JEE Main</span>
+                </Card>
+                 <Card 
+                    className={cn("p-4 flex items-center gap-4 cursor-pointer transition-all", exam === 'neet' ? "border-primary ring-2 ring-primary" : "hover:border-primary/50")}
+                    onClick={() => setExam('neet')}
+                 >
+                    <div className="p-2 bg-primary/20 rounded-full">
+                        <CheckCircle className="w-6 h-6 text-primary" />
+                     </div>
+                     <span className="font-bold text-lg">NEET</span>
+                </Card>
             </div>
-          </CardContent>
-        </Card>
+        </div>
+        <div>
+            <h3 className="font-headline text-2xl font-semibold mb-4">Subject</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {subjects.map(subject => (
+                    <Card key={subject.id} 
+                        className={cn("p-4 flex items-center gap-4 cursor-pointer transition-all", selectedSubject?.id === subject.id ? "border-primary ring-2 ring-primary" : "hover:border-primary/50")}
+                        onClick={() => {setSelectedSubject(subject); setStep(2);}}
+                    >
+                        {React.createElement(subjectIcons[subject.name] || FileText, { className: "h-8 w-8 text-primary"})}
+                        <span className="font-bold text-lg">{subject.name}</span>
+                    </Card>
+                ))}
+            </div>
+        </div>
+    </div>
+  );
 
-        {/* Step 2: Select Syllabus */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="font-headline text-lg">Step 2: Select Syllabus</CardTitle>
-            <CardDescription>Choose between a full syllabus test or select specific chapters.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Tabs value={selectedPattern.startsWith('jeeMain-') ? 'full' : testType} onValueChange={setTestType}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="chapters" disabled={selectedPattern.startsWith('jeeMain-')}>Chapter-wise</TabsTrigger>
-                <TabsTrigger value="full" disabled={selectedPattern.startsWith('jeeMain-')}>Full Syllabus</TabsTrigger>
-              </TabsList>
-              <TabsContent value="chapters" className="mt-4">
-                <Accordion type="multiple" className="w-full space-y-2">
-                  {subjects.map((subject) => (
-                    <AccordionItem value={`subject-${subject.id}`} key={subject.id} className="border rounded-md px-4">
-                      <AccordionTrigger className="font-semibold hover:no-underline">
-                        <div className="flex items-center gap-3">
-                          {React.createElement(subjectIcons[subject.name] || FileText, { className: "h-5 w-5"})}
-                          <span>{subject.name}</span>
+  const renderConfigurator = () => (
+    <div>
+        <Button onClick={() => setStep(1)} variant="ghost" className="mb-4">
+            <ArrowLeft className="mr-2 h-4 w-4"/> Back to Subject Selection
+        </Button>
+        <Card>
+            <CardHeader>
+                <CardTitle className="font-headline text-2xl flex items-center gap-3">
+                     {selectedSubject && React.createElement(subjectIcons[selectedSubject.name] || FileText, { className: "h-6 w-6"})}
+                     Configure {selectedSubject?.name} Test
+                </CardTitle>
+                <CardDescription>Select syllabus type and chapters for your test.</CardDescription>
+            </CardHeader>
+            <CardContent className='space-y-6'>
+                <RadioGroup defaultValue="chapters" onValueChange={(val: 'chapters' | 'full') => setTestType(val)} className='grid grid-cols-2 gap-4'>
+                    <div>
+                        <RadioGroupItem value="chapters" id="chapters" className="peer sr-only" />
+                        <Label htmlFor="chapters" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                            Chapter-wise Test
+                        </Label>
+                    </div>
+                     <div>
+                        <RadioGroupItem value="full" id="full" className="peer sr-only" />
+                        <Label htmlFor="full" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                            Full Syllabus Test
+                        </Label>
+                    </div>
+                </RadioGroup>
+
+                {testType === 'chapters' && selectedSubject && (
+                    <div>
+                        <div className='flex justify-between items-center mb-2'>
+                           <h4 className="font-semibold">Select Chapters:</h4>
+                           <Button variant="link" size="sm" onClick={() => handleSelectAllChapters(selectedSubject.id)}>Select All</Button>
                         </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="p-2">
-                        <Button variant="link" size="sm" onClick={() => handleSelectAllChapters(subject.id)} className="mb-2">
-                            Select All {subject.name}
-                        </Button>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pl-2 max-h-60 overflow-y-auto">
-                          {subject.chapters.map((chapter) => (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 p-2 max-h-60 overflow-y-auto border rounded-md">
+                          {selectedSubject.chapters.map((chapter) => (
                             <div key={chapter.id} className="flex items-center space-x-2 p-2 rounded-md hover:bg-secondary">
                               <Checkbox
                                 id={`chapter-${chapter.id}`}
@@ -250,56 +254,38 @@ export default function GeneratorForm({ subjects }: GeneratorFormProps) {
                             </div>
                           ))}
                         </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              </TabsContent>
-              <TabsContent value="full" className="mt-4">
-                <div className="p-6 text-center bg-secondary rounded-lg">
-                  <BookCopy className="mx-auto h-12 w-12 text-primary mb-4" />
-                  <h3 className="font-semibold">Full Syllabus Test Selected</h3>
-                  <p className="text-sm text-muted-foreground">
-                    This will generate a test with questions from all subjects and chapters.
-                  </p>
+                    </div>
+                )}
+                 <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pt-4">
+                    <div className="flex items-center gap-4">
+                        <Label htmlFor="duration" className="font-semibold">Test Duration (minutes):</Label>
+                        <Select value={String(duration)} onValueChange={(val) => setDuration(Number(val))}>
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Set duration" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="45">45 minutes</SelectItem>
+                                <SelectItem value="60">60 minutes</SelectItem>
+                                <SelectItem value="90">90 minutes</SelectItem>
+                                <SelectItem value="120">120 minutes</SelectItem>
+                                <SelectItem value="180">180 minutes</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <Button onClick={generateTest} size="lg" className={cn("w-full sm:w-auto bg-blue-600 text-white hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-500/50 transition-all duration-300")}>
+                        <Lightbulb className="mr-2 h-5 w-5" /> Generate & Start Test
+                    </Button>
                 </div>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
+            </CardContent>
         </Card>
-      </div>
+    </div>
+  );
 
-       {/* Step 3: Set Timer and Generate */}
-       <Card>
-         <CardHeader>
-            <CardTitle className="font-headline text-lg">Step 3: Finalize and Start</CardTitle>
-            <CardDescription>Confirm the duration and begin your test.</CardDescription>
-         </CardHeader>
-         <CardContent className="flex flex-col sm:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-4">
-                <Label htmlFor="duration" className="font-semibold">Test Duration (minutes):</Label>
-                <Select value={String(duration)} onValueChange={(val) => setDuration(Number(val))}>
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Set duration" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="5">5 minutes</SelectItem>
-                        <SelectItem value="10">10 minutes</SelectItem>
-                        <SelectItem value="20">20 minutes</SelectItem>
-                        <SelectItem value="45">45 minutes</SelectItem>
-                        <SelectItem value="60">60 minutes</SelectItem>
-                        <SelectItem value="90">90 minutes</SelectItem>
-                        <SelectItem value="120">120 minutes</SelectItem>
-                        <SelectItem value="180">180 minutes</SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
-            <Button onClick={generateTest} size="lg" className={cn("w-full sm:w-auto bg-blue-600 text-white hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-500/50 transition-all duration-300")}>
-                <Lightbulb className="mr-2 h-5 w-5" /> Generate & Start Test
-            </Button>
-         </CardContent>
-       </Card>
-         {history.length > 0 && (
+  return (
+    <div className="space-y-8">
+      {step === 1 ? renderSubjectSelector() : renderConfigurator()}
+      
+      {history.length > 0 && step === 1 && (
             <Card className="mt-12">
                 <CardHeader>
                     <CardTitle className="font-headline text-2xl flex items-center gap-3">
@@ -354,5 +340,6 @@ export default function GeneratorForm({ subjects }: GeneratorFormProps) {
     </div>
   );
 }
+    
 
     
