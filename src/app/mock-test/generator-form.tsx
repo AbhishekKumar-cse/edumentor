@@ -19,6 +19,7 @@ import { Lightbulb, BookCopy, FileText, Atom, FlaskConical, History, Repeat, Tra
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { cn } from '@/lib/utils';
 
 interface GeneratorFormProps {
   subjects: Subject[];
@@ -293,7 +294,7 @@ export default function GeneratorForm({ subjects }: GeneratorFormProps) {
                     </SelectContent>
                 </Select>
             </div>
-            <Button onClick={generateTest} size="lg" className="w-full sm:w-auto bg-accent hover:bg-accent/90">
+            <Button onClick={generateTest} size="lg" className={cn("w-full sm:w-auto bg-blue-600 text-white hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-500/50 transition-all duration-300")}>
                 <Lightbulb className="mr-2 h-5 w-5" /> Generate & Start Test
             </Button>
          </CardContent>
