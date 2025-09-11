@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import type { Subject, Question } from '@/lib/data';
+import type { Subject, Question, Unit } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -68,6 +68,7 @@ export default function GeneratorForm({ subjects }: GeneratorFormProps) {
   const [history, setHistory] = useState<MockTestHistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState(1);
+  const [openUnits, setOpenUnits] = useState<string[]>([]);
 
   const router = useRouter();
   const { toast } = useToast();
@@ -113,6 +114,16 @@ export default function GeneratorForm({ subjects }: GeneratorFormProps) {
     );
   };
   
+  const handleUnitToggle = (unit: Unit) => {
+    const chapterIds = unit.chapters.map(c => c.id);
+    const allSelected = chapterIds.every(id => selectedChapters.includes(id));
+    if (allSelected) {
+      setSelectedChapters(prev => prev.filter(id => !chapterIds.includes(id)));
+    } else {
+      setSelectedChapters(prev => [...new Set([...prev, ...chapterIds])]);
+    }
+  };
+
   const handleCustomChapterToggle = (chapterId: number, chapterName: string) => {
     setCustomChapters((prev) => {
       const existing = prev.find((c) => c.id === chapterId);
@@ -261,23 +272,49 @@ export default function GeneratorForm({ subjects }: GeneratorFormProps) {
                     </RadioGroup>
 
                     {testType === 'chapters' && selectedSubject && (
-                        <div>
-                            <div className='flex justify-between items-center mb-2'>
-                            <h4 className="font-semibold">Select Chapters:</h4>
-                            <Button variant="link" size="sm" onClick={() => handleSelectAllChapters(selectedSubject.id)}>Select All</Button>
+                         <div>
+                            <div className="flex justify-between items-center mb-2">
+                                <h4 className="font-semibold">Select Units/Chapters:</h4>
+                                <Button variant="link" size="sm" onClick={() => setOpenUnits(openUnits.length === selectedSubject.units.length ? [] : selectedSubject.units.map(u => u.name))}>
+                                    {openUnits.length === selectedSubject.units.length ? 'Hide All' : 'Show All'}
+                                </Button>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 p-2 max-h-60 overflow-y-auto border rounded-md">
-                            {selectedSubject.chapters.map((chapter) => (
-                                <div key={chapter.id} className="flex items-center space-x-2 p-2 rounded-md hover:bg-secondary">
-                                <Checkbox
-                                    id={`chapter-${chapter.id}`}
-                                    checked={selectedChapters.includes(chapter.id)}
-                                    onCheckedChange={() => handleChapterToggle(chapter.id)}
-                                />
-                                <Label htmlFor={`chapter-${chapter.id}`} className="flex-1 cursor-pointer">{chapter.name}</Label>
-                                </div>
-                            ))}
-                            </div>
+                            <Accordion type="multiple" value={openUnits} onValueChange={setOpenUnits} className="w-full space-y-2">
+                                {selectedSubject.units.map(unit => {
+                                    const allChaptersInUnitSelected = unit.chapters.every(c => selectedChapters.includes(c.id));
+                                    const someChaptersInUnitSelected = unit.chapters.some(c => selectedChapters.includes(c.id));
+                                    return (
+                                        <AccordionItem value={unit.name} key={unit.id} className="border rounded-lg bg-secondary/30 px-4">
+                                            <div className="flex items-center">
+                                                <Checkbox
+                                                    id={`unit-${unit.id}`}
+                                                    checked={allChaptersInUnitSelected}
+                                                    onCheckedChange={() => handleUnitToggle(unit)}
+                                                    className="mr-3"
+                                                />
+                                                <AccordionTrigger className="font-semibold hover:no-underline text-base flex-1">
+                                                    <div>
+                                                        <p>{unit.name}</p>
+                                                        <p className="text-sm text-muted-foreground font-normal">{unit.chapters.length} Chapters</p>
+                                                    </div>
+                                                </AccordionTrigger>
+                                            </div>
+                                            <AccordionContent className="p-2 space-y-1">
+                                                {unit.chapters.map(chapter => (
+                                                    <div key={chapter.id} className="flex items-center space-x-3 p-2 rounded-md hover:bg-background/50 pl-8">
+                                                        <Checkbox
+                                                            id={`chapter-${chapter.id}`}
+                                                            checked={selectedChapters.includes(chapter.id)}
+                                                            onCheckedChange={() => handleChapterToggle(chapter.id)}
+                                                        />
+                                                        <Label htmlFor={`chapter-${chapter.id}`} className="flex-1 cursor-pointer font-normal">{chapter.name}</Label>
+                                                    </div>
+                                                ))}
+                                            </AccordionContent>
+                                        </AccordionItem>
+                                    );
+                                })}
+                            </Accordion>
                         </div>
                     )}
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pt-4">

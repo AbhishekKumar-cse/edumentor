@@ -31,10 +31,17 @@ export type Chapter = {
   questions: Question[];
 };
 
+export type Unit = {
+    id: number;
+    name: string;
+    chapters: Chapter[];
+}
+
 export type Subject = {
   id: number;
   name:string;
-  chapters: Chapter[];
+  units: Unit[];
+  chapters: Chapter[]; // Keep flat list for backward compatibility with other components
 };
 
 export type Formula = {
@@ -58,6 +65,69 @@ export const subjects: Subject[] = [
   {
     id: 1,
     name: 'Physics',
+    units: [
+        {
+            id: 10,
+            name: 'Mechanics 1',
+            chapters: [
+              { id: 101, name: 'Kinematics', questions: [] },
+              lawsOfMotionQuestions,
+              { id: 103, name: 'Work, Power, and Energy', questions: [] },
+            ]
+        },
+        {
+            id: 11,
+            name: 'Mechanics 2',
+            chapters: [
+                { id: 104, name: 'Rotational Motion', questions: [] },
+                { id: 105, name: 'Gravitation', questions: [] },
+            ]
+        },
+        {
+            id: 12,
+            name: 'Thermodynamics & Gases',
+            chapters: [
+                thermodynamicsQuestions,
+                statesOfMatterQuestions,
+                { id: 108, name: 'Kinetic Theory of Gases', questions: [] },
+            ]
+        },
+        {
+            id: 13,
+            name: 'Waves & Optics',
+            chapters: [
+                 { id: 109, name: 'Oscillations and Waves', questions: [] },
+                 { id: 115, name: 'Optics', questions: [] },
+            ]
+        },
+        {
+            id: 14,
+            name: 'Electromagnetism',
+            chapters: [
+                electrostaticsQuestions,
+                { id: 111, name: 'Current Electricity', questions: [] },
+                { id: 112, name: 'Magnetic Effects of Current and Magnetism', questions: [] },
+                { id: 113, name: 'Electromagnetic Induction and Alternating Currents', questions: [] },
+                { id: 114, name: 'Electromagnetic Waves', questions: [] },
+            ]
+        },
+        {
+            id: 15,
+            name: 'Modern Physics',
+            chapters: [
+                 { id: 116, name: 'Dual Nature of Matter and Radiation', questions: [] },
+                 { id: 117, name: 'Atoms and Nuclei', questions: [] },
+                 { id: 118, name: 'Electronic Devices', questions: [] },
+            ]
+        },
+        {
+            id: 16,
+            name: 'Miscellaneous',
+            chapters: [
+                { id: 119, name: 'Communication Systems', questions: [] },
+            ]
+        }
+    ],
     chapters: [
       {
         id: 101,
@@ -264,7 +334,7 @@ export const subjects: Subject[] = [
             { id: 103127, text: 'A system consists of two masses m and M (M>m). They are connected by a string of length l and are free to move in a horizontal plane. They are rotated about a vertical axis passing through the center of mass. The tension in the string connecting m and M is:', options: ['(M+m)ω²l', '(Mm/(M+m))ω²l', '(M-m)ω²l', 'Mω²l'], answer: '(Mm/(M+m))ω²l', difficulty: 'Hard', pageReference: 76, concepts: ['centre of mass', 'rotational motion'], isPastPaper: false },
             { id: 103128, text: 'A wedge of mass M = 2m is placed on a smooth horizontal surface. A block of mass m is placed on the wedge. The system is released from rest. The work done by the normal force between the block and wedge on the wedge is:', options: ['Positive', 'Negative', 'Zero', 'Depends on inclination'], answer: 'Positive', difficulty: 'Hard', pageReference: 66, concepts: ['work done', 'normal force'], isPastPaper: false },
             { id: 103129, text: 'A ball of mass m falls from a height h and collides with a platform of mass M placed on a spring of spring constant k. The ball sticks to the platform. The maximum compression in the spring is:', options: ['(m+M)g/k + √((m+M)²g²/k² + 2m²gh/k(m+M)))', 'mg/k', '√((m+M)gh/k)', 'm√ (2gh/k)'], answer: '(m+M)g/k + √((m+M)²g²/k² + 2m²gh/k(m+M)))', difficulty: 'Hard', pageReference: 76, concepts: ['inelastic collision', 'conservation of energy', 'spring'], isPastPaper: false },
-            { id: 103130, text: 'A uniform rod of length L is held on a frictionless table with one-sixth of its length hanging over the edge. The work done in just pulling the hanging part back on the table is:', options: ['mgL/72', 'mgL/36', 'mgL/12', 'mgL/6'], answer: 'mgL/72', difficulty: 'Hard', pageReference: 67, concepts: ['work done', 'centre of mass'], isPastPaper: true },
+            { id: 103130, text: 'A uniform chain of length L and mass M is lying on a smooth table and one-sixth of its length is hanging vertically down over the edge of the table. The work done in just pulling the hanging part back on the table is:', options: ['mgL/72', 'mgL/36', 'mgL/12', 'mgL/6'], answer: 'mgL/72', difficulty: 'Hard', pageReference: 67, concepts: ['work done', 'centre of mass'], isPastPaper: true },
             { id: 103131, text: 'A small body of mass m is projected with a velocity v at an angle θ with the horizontal. The average power delivered by gravity during its flight is:', options: ['(1/2)mgv sinθ', 'mgv sinθ', 'Zero', '-mgv sinθ'], answer: 'Zero', difficulty: 'Hard', pageReference: 47, concepts: ['average power', 'work done by gravity'], isPastPaper: false },
             { id: 103132, text: 'A particle is released from rest from a point P at x = x₀ on the x-axis. Its potential energy is given by U(x) = k(x-a)². Then:', options: ['It will execute SHM about x=a', 'It will execute SHM about x=0', 'It will move with constant velocity', 'It will move with constant acceleration'], answer: 'It will execute SHM about x=a', difficulty: 'Hard', pageReference: 71, concepts: ['potential energy', 'SHM'], isPastPaper: false },
             { id: 103133, text: 'A body of mass 2 kg is under a force which causes a displacement given by s = t³/3 meters, where t is time in seconds. The work done by the force in 2 seconds is:', options: ['16 J', '8 J', '32 J', '64 J'], answer: '16 J', difficulty: 'Hard', pageReference: 69, concepts: ['work-energy theorem', 'calculus'], isPastPaper: false },
@@ -467,7 +537,7 @@ export const subjects: Subject[] = [
             { id: 104121, text: 'The radius of gyration of a solid sphere of radius R about its tangential axis is:', options: ['√(7/5)R', '√(5/7)R', '√(2/5)R', '√(5/2)R'], answer: '√(7/5)R', difficulty: 'Medium', pageReference: 91, concepts: ['radius of gyration', 'parallel axis theorem'], isPastPaper: true },
             { id: 104122, text: 'A wheel starts from rest and accelerates such that its angular velocity increases uniformly to 200 rpm in 10 seconds. The number of revolutions it will make in this time is:', options: ['50/π', '100/π', '25/π', '200/π'], answer: '50/π', difficulty: 'Medium', pageReference: 84, concepts: ['rotational kinematics'], isPastPaper: false },
             { id: 104123, text: 'A thin circular ring of mass M and radius r is rotating about its axis with a constant angular velocity ω. Four objects each of mass m, are kept gently to the opposite ends of two perpendicular diameters of the ring. The angular velocity of the ring will be:', options: ['Mω/(M+4m)', '(M+4m)ω/M', '(M-4m)ω/(M+4m)', 'Mω/(M-4m)'], answer: 'Mω/(M+4m)', difficulty: 'Medium', pageReference: 94, concepts: ['conservation of angular momentum'], isPastPaper: true },
-            { id: 104124, text: 'The center of mass of a non-uniform rod of length L whose mass per unit length varies as ρ = kx²/L, where k is a constant and x is the distance from one end, is:', options: ['L/3', 'L/2', '2L/3', '3L/4'], answer: '3L/4', difficulty: 'Medium', pageReference: 87, concepts: ['center of mass', 'integration'], isPastPaper: false },
+            { id: 104124, text: 'The center of mass of a non-uniform rod of length L whose mass per unit length varies as ρ = ax, where a is a constant and x is the distance from one end, is:', options: ['L/3', 'L/2', '2L/3', '3L/4'], answer: '2L/3', difficulty: 'Medium', pageReference: 87, concepts: ['center of mass', 'integration'], isPastPaper: false },
             { id: 104125, text: 'A force of -Fk acts on O, the origin of the coordinate system. The torque about the point (1, -1) is:', options: ['-F(i - j)', '-F(i + j)', 'F(i - j)', 'F(i + j)'], answer: 'F(i + j)', difficulty: 'Medium', pageReference: 85, concepts: ['torque', 'vectors'], isPastPaper: true },
             { id: 104126, text: 'A particle of mass m is projected with velocity v at an angle of 45° with the horizontal. The magnitude of angular momentum of the projectile about the point of projection when it is at its maximum height H is:', options: ['mvH', 'mvH/√2', 'mvR/2', 'Zero'], answer: 'mvH/√2', difficulty: 'Medium', pageReference: 93, concepts: ['angular momentum', 'projectile motion'], isPastPaper: false },
             { id: 104127, text: 'A solid sphere of mass 2 kg rolls on a smooth horizontal surface at 10 m/s. It then rolls up a smooth inclined plane of 30°. The height attained by the sphere before it stops is:', options: ['7.1 m', '14.3 m', '3.6 m', '10.2 m'], answer: '7.1 m', difficulty: 'Medium', pageReference: 97, concepts: ['rolling motion', 'conservation of energy'], isPastPaper: false },
@@ -494,7 +564,7 @@ export const subjects: Subject[] = [
             { id: 104146, text: 'A solid sphere rolls down two different inclined planes of the same heights but different angles of inclination. In both cases:', options: ['speed and time of descent will be same', 'speed will be same but time of descent will be different', 'speed will be different but time of descent will be same', 'speed and time of descent both are different'], answer: 'speed will be same but time of descent will be different', difficulty: 'Medium', pageReference: 97, concepts: ['rolling motion', 'conservation of energy'], isPastPaper: true },
             { id: 104147, text: 'A uniform rod of length L is pivoted at the center. Two masses m and 2m are placed at distances L/4 and L/2 from the center on the same side. The system is released from a horizontal position. The initial angular acceleration of the rod is:', options: ['(6mgL)/(ML²+6mL²)', '(12mg)/(4M+15m)', '15mg/(ML)', 'Zero'], answer: '(12mg)/(4M+15m)', difficulty: 'Hard', pageReference: 92, concepts: ['torque', 'angular acceleration'], isPastPaper: false },
             { id: 104148, text: 'A uniform rod of length l is free to rotate in a vertical plane about a horizontal axis passing through its end. The rod is released from a horizontal position. The speed of the free end of the rod as it passes through the lowest point is:', options: ['√(2gl)', '√(3gl)', '√(gl)', '2√(gl)'], answer: '√(3gl)', difficulty: 'Hard', pageReference: 95, concepts: ['conservation of energy', 'rotational motion'], isPastPaper: true },
-            { id: 104149, text: 'A solid sphere of mass M and radius R is placed on a rough horizontal surface. It is struck horizontally at a height h from the floor. For the sphere to roll without slipping from the start, the height h must be:', options: ['R', 'R/2', '7R/5', '2R/5'], answer: '7R/5', difficulty: 'Hard', pageReference: 96, concepts: ['rolling motion', 'impulse'], isPastPaper: true },
+            { id: 104149, text: 'A solid sphere is struck horizontally at a height h from the floor. For the sphere to roll without slipping from the start, the height h must be:', options: ['R', 'R/2', '7R/5', '2R/5'], answer: '7R/5', difficulty: 'Hard', pageReference: 96, concepts: ['rolling motion', 'impulse'], isPastPaper: true },
             { id: 104150, text: 'A small object of uniform density rolls up a curved surface with an initial velocity v. It reaches up to a maximum height of 3v²/4g with respect to the initial position. The object is a:', options: ['Ring', 'Solid sphere', 'Hollow sphere', 'Disc'], answer: 'Disc', difficulty: 'Hard', pageReference: 97, concepts: ['rolling motion', 'conservation of energy'], isPastPaper: true },
             { id: 104151, text: 'A thin uniform rod of length l and mass m is swinging freely about a horizontal axis passing through its end. Its maximum angular speed is ω. Its center of mass rises to a maximum height of:', options: ['l²ω² / 6g', 'l²ω² / 2g', 'lω / 3g', 'l²ω² / 3g'], answer: 'l²ω² / 6g', difficulty: 'Hard', pageReference: 95, concepts: ['conservation of energy', 'rotational motion'], isPastPaper: false },
             { id: 104152, text: 'A uniform rod of length L is free to rotate in a horizontal plane about a vertical axis through its center. A torque τ is applied. The kinetic energy of the rod after time t is:', options: ['(3τ²t²)/(ML²)', '(6τ²t²)/(ML²)', '(τ²t²)/(2ML²)', '(2τ²t²)/(ML²)'], answer: '(6τ²t²)/(ML²)', difficulty: 'Hard', pageReference: 95, concepts: ['rotational kinematics', 'rotational kinetic energy'], isPastPaper: false },
@@ -502,7 +572,7 @@ export const subjects: Subject[] = [
             { id: 104154, text: 'From a uniform circular disc of radius R, a smaller disc of radius R/2 is removed such that its circumference touches the center of the larger disc and passes through it. The position of the center of mass of the remaining portion is at a distance of:', options: ['R/3 from the center', 'R/4 from the center', 'R/6 from the center', 'R/8 from the center'], answer: 'R/6 from the center', difficulty: 'Hard', pageReference: 87, concepts: ['center of mass'], isPastPaper: false },
             { id: 104155, text: 'A solid cylinder is rolling down an inclined plane of angle 30°. The coefficient of static friction between the cylinder and the incline is 0.4. The minimum value of θ for the cylinder not to slip is:', options: ['tan⁻¹(0.4)', 'tan⁻¹(1.2)', 'tan⁻¹(0.8)', 'tan⁻¹(0.2)'], answer: 'tan⁻¹(1.2)', difficulty: 'Hard', pageReference: 97, concepts: ['rolling motion', 'friction'], isPastPaper: false },
             { id: 104156, text: 'A particle starts from the point (0, 8) m and moves with uniform velocity of 3i m/s. Its angular momentum about the origin after 5 seconds is:', options: ['-120k J·s', '-24k J·s', '-40k J·s', '-80k J·s'], answer: '-24k J·s', difficulty: 'Hard', pageReference: 93, concepts: ['angular momentum', 'vectors'], isPastPaper: false },
-            { id: 104157, text: 'A uniform rod of length L and mass M lies radially on a disc rotating with angular speed ω in a horizontal plane about its axis. The rod does not slip on the disc and the center of the rod is at a distance R from the center of the disc. The kinetic energy of the rod is:', options: ['(1/2)Mω²(R² + L²/12)', '(1/2)Mω²(R² + L²/3)', '(1/2)Mω²R²', '(1/2)Mω²L²'], answer: '(1/2)Mω²(R² + L²/12)', difficulty: 'Hard', pageReference: 95, concepts: ['rotational kinetic energy', 'moment of inertia'], isPastPaper: false },
+            { id: 104157, text: 'A uniform rod of mass M and length L lies radially on a disc rotating with angular speed ω in a horizontal plane about its axis. The rod does not slip on the disc and the center of the rod is at a distance R from the center of the disc. The kinetic energy of the rod is:', options: ['(1/2)Mω²(R² + L²/12)', '(1/2)Mω²(R² + L²/3)', '(1/2)Mω²R²', '(1/2)Mω²L²'], answer: '(1/2)Mω²(R² + L²/12)', difficulty: 'Hard', pageReference: 95, concepts: ['rotational kinetic energy', 'moment of inertia'], isPastPaper: false },
             { id: 104158, text: 'A particle is projected with speed u at an angle θ with the horizontal. The torque of the gravitational force on the projectile about the point of projection, when it is at the highest point, is:', options: ['(mu² sinθ cosθ)/2', 'mu² sinθ cosθ', 'mu² sin²θ', 'Zero'], answer: '(mu² sinθ cosθ)/2', difficulty: 'Hard', pageReference: 85, concepts: ['torque', 'projectile motion'], isPastPaper: false },
             { id: 104159, text: 'A thin rod of length L is placed along the x-axis with one end at the origin. The rod has a non-uniform mass distribution ρ = ax, where a is a constant. The center of mass is at:', options: ['L/3', 'L/2', '2L/3', '3L/4'], answer: '2L/3', difficulty: 'Hard', pageReference: 87, concepts: ['center of mass', 'integration'], isPastPaper: false },
             { id: 104160, text: 'A billiard ball is struck by a cue at a height h above the center. It acquires a linear velocity v₀. The angular velocity ω₀ acquired by the ball is:', options: ['5v₀h / 2R²', '2v₀h / 5R²', '2v₀R² / 5h', '5v₀R² / 2h'], answer: '5v₀h / 2R²', difficulty: 'Hard', pageReference: 96, concepts: ['rolling motion', 'impulse'], isPastPaper: false },
@@ -515,7 +585,7 @@ export const subjects: Subject[] = [
             { id: 104167, text: 'A uniform rod of length L is free to rotate in a horizontal plane about a vertical axis through its center. A torque τ is applied. The kinetic energy of the rod after time t is:', options: ['(3τ²t²)/(ML²)', '(6τ²t²)/(ML²)', '(τ²t²)/(2ML²)', '(2τ²t²)/(ML²)'], answer: '(6τ²t²)/(ML²)', difficulty: 'Hard', pageReference: 95, concepts: ['rotational kinematics', 'rotational kinetic energy'], isPastPaper: false },
             { id: 104168, text: 'A tube of length L is filled with an incompressible liquid of mass M and closed at both ends. The tube is then rotated in a horizontal plane about one of its ends with a uniform angular velocity ω. The force exerted by the liquid at the other end is:', options: ['Mω²L', 'Mω²L/2', '2Mω²L', 'Mω²L/4'], answer: 'Mω²L/2', difficulty: 'Hard', pageReference: 92, concepts: ['centripetal force', 'integration'], isPastPaper: true },
             { id: 104169, text: 'A solid sphere is rolling on a surface. What is the ratio of the total energy to the translational kinetic energy?', options: ['7/5', '5/7', '2/5', '5/2'], answer: '7/5', difficulty: 'Hard', pageReference: 96, concepts: ['rolling motion', 'kinetic energy'], isPastPaper: false },
-            { id: 104170, text: 'A solid sphere of mass m and radius r is rolling on a horizontal surface. It collides elastically with a vertical wall. The sphere will rebound with:', options: ['The same linear and angular velocity', 'The same linear velocity but opposite angular velocity', 'Opposite linear velocity but same angular velocity', 'Opposite linear and angular velocity'], answer: 'Opposite linear velocity but same angular velocity', difficulty: 'Hard', pageReference: 96, concepts: ['rolling motion', 'collision'], isPastPaper: false },
+            { id: 104170, text: 'A solid sphere is rolling on a horizontal surface. It collides elastically with a vertical wall. The sphere will rebound with:', options: ['The same linear and angular velocity', 'The same linear velocity but opposite angular velocity', 'Opposite linear velocity but same angular velocity', 'Opposite linear and angular velocity'], answer: 'Opposite linear velocity but same angular velocity', difficulty: 'Hard', pageReference: 96, concepts: ['rolling motion', 'collision'], isPastPaper: false },
             { id: 104171, text: 'A uniform circular disc of radius R is put over another uniform disc of radius 2R of same thickness and density. The peripheries of the two discs touch each other. The position of the center of mass of the system is:', options: ['R/5 from the center of the larger disc', 'R/3 from the center of the larger disc', 'R/2 from the center of the larger disc', 'R/4 from the center of the larger disc'], answer: 'R/5 from the center of the larger disc', difficulty: 'Hard', pageReference: 87, concepts: ['center of mass'], isPastPaper: false },
             { id: 104172, text: 'A particle of mass m is projected with velocity v at an angle of 45° with the horizontal. The magnitude of angular momentum of the projectile about the point of projection when it is at its maximum height H is:', options: ['mvH', 'mvH/√2', 'mvR/2', 'Zero'], answer: 'mvH/√2', difficulty: 'Hard', pageReference: 93, concepts: ['angular momentum', 'projectile motion'], isPastPaper: false },
             { id: 104173, text: 'A uniform rod of length l is rotating in a horizontal plane with an angular velocity ω about a vertical axis passing through one of its ends. The tension in the rod at a distance x from the axis is:', options: ['(mω²/2l)(l²-x²)', '(mω²/l)(l²-x²)', '(mω²/2l)(l-x)', '(mω²/l)(l-x)'], answer: '(mω²/2l)(l²-x²)', difficulty: 'Hard', pageReference: 92, concepts: ['tension', 'rotational motion'], isPastPaper: false },
@@ -534,7 +604,7 @@ export const subjects: Subject[] = [
             { id: 104186, text: 'A particle of mass m is attached to a thin uniform rod of length a and mass 4m. The distance of the center of mass of the system from the particle is:', options: ['a/2', '2a/5', '3a/5', '4a/5'], answer: '2a/5', difficulty: 'Hard', pageReference: 87, concepts: ['center of mass'], isPastPaper: false },
             { id: 104187, text: 'A solid sphere is rolling down an inclined plane of height h and angle θ. The speed of the sphere as it reaches the bottom is:', options: ['√(10/7 gh)', '√(2gh)', '√(5/7 gh)', '√(7/5 gh)'], answer: '√(10/7 gh)', difficulty: 'Hard', pageReference: 97, concepts: ['rolling motion', 'conservation of energy'], isPastPaper: false },
             { id: 104188, text: 'A ballet dancer spins about a vertical axis at 1.5 rev/s with her arms outstretched. With her arms folded, her moment of inertia decreases by 40%. The new rate of spin is:', options: ['2.5 rev/s', '2 rev/s', '1.8 rev/s', '3 rev/s'], answer: '2.5 rev/s', difficulty: 'Hard', pageReference: 94, concepts: ['conservation of angular momentum'], isPastPaper: false },
-            { id: 104189, text: 'A circular disc is rotating about its own axis at a uniform angular velocity ω. The disc is subjected to a uniform angular retardation by which its angular velocity is decreased to ω/2 during 10 rotations. The number of rotations further made by it before coming to rest is:', options: ['10/3', '20/3', '10', '20'], answer: '10/3', difficulty: 'Hard', pageReference: 84, concepts: ['rotational kinematics'], isPastPaper: false },
+            { id: 104189, text: 'A circular disc of mass M and radius R is rotating about its own axis at a uniform angular velocity ω. The disc is subjected to a uniform angular retardation by which its angular velocity is decreased to ω/2 during 10 rotations. The number of rotations further made by it before coming to rest is:', options: ['10/3', '20/3', '10', '20'], answer: '10/3', difficulty: 'Hard', pageReference: 84, concepts: ['rotational kinematics'], isPastPaper: false },
             { id: 104190, text: 'A solid cylinder of mass M and radius R rolls from rest down an inclined plane of height h. The rotational kinetic energy of the cylinder at the bottom of the plane is:', options: ['Mgh/3', 'Mgh/2', '2Mgh/3', 'Mgh'], answer: 'Mgh/3', difficulty: 'Hard', pageReference: 97, concepts: ['rolling motion', 'kinetic energy'], isPastPaper: false },
             { id: 104191, text: 'A uniform rod of length L is free to rotate in a vertical plane about a fixed horizontal axis through its end. If it is released from a horizontal position, its angular velocity when it is vertical is:', options: ['√(3g/L)', '√(2gL)', '√(g/L)', '√(g/3L)'], answer: '√(3g/L)', difficulty: 'Hard', pageReference: 95, concepts: ['conservation of energy', 'rotational motion'], isPastPaper: false },
             { id: 104192, text: 'A flywheel of moment of inertia 2 kg·m² is rotating at a speed of 30 rad/s. A tangential force of 4 N is applied at a distance of 0.5 m from the axis. The time after which the flywheel will stop is:', options: ['15 s', '30 s', '60 s', '120 s'], answer: '30 s', difficulty: 'Hard', pageReference: 92, concepts: ['torque', 'rotational kinematics'], isPastPaper: false },
@@ -691,7 +761,7 @@ export const subjects: Subject[] = [
             { id: 105134, text: 'The gravitational potential V at a distance r from the center of a uniform spherical shell of mass M and radius a (r < a) is:', options: ['-GM/a', '-GM/r', '-GM/r²', '0'], answer: '-GM/a', difficulty: 'Medium', pageReference: 112, concepts: ['gravitational potential', 'spherical shell'], isPastPaper: false },
             { id: 105135, text: 'The orbital angular momentum of a satellite revolving at a distance r from the center is L. If the distance is increased to 16r, then the new angular momentum will be:', options: ['16L', '64L', 'L/4', '4L'], answer: '4L', difficulty: 'Medium', pageReference: 116, concepts: ['angular momentum', 'orbital velocity'], isPastPaper: true },
             { id: 105136, text: 'The angular speed of the earth in rad/s, so that bodies on the equator may appear weightless, is (g=10 m/s², R=6400 km):', options: ['1.25 x 10⁻³', '2.5 x 10⁻³', '0.625 x 10⁻³', '5 x 10⁻³'], answer: '1.25 x 10⁻³', difficulty: 'Medium', pageReference: 111, concepts: ['weightlessness', 'centripetal force'], isPastPaper: false },
-            { id: 105137, text: 'A planet moves around the sun in an elliptical orbit. At a point P it is closest from the sun at a distance d₁ and has a speed v₁. At another point Q, when it is farthest from the sun at a distance d₂, its speed will be:', options: ['v₁d₁²/d₂²', 'v₁d₂/d₁', 'v₁d₁/d₂', 'v₁d₂²/d₁²'], answer: 'v₁d₁/d₂', difficulty: 'Medium', pageReference: 118, concepts: ['conservation of angular momentum'], isPastPaper: true },
+            { id: 105137, text: 'A planet moves around the sun in an elliptical orbit. The linear speed of the planet will be maximum at:', options: ['The point of maximum distance (aphelion)', 'The point of minimum distance (perihelion)', 'The ends of the minor axis', 'Every point on the orbit'], answer: 'The point of minimum distance (perihelion)', difficulty: 'Medium', pageReference: 118, concepts: ['kepler laws'], isPastPaper: false },
             { id: 105138, text: 'Suppose the gravitational force varies inversely as the nth power of distance. Then the time period of a planet in circular orbit of radius R around the sun will be proportional to:', options: ['R^((n+1)/2)', 'R^((n-1)/2)', 'R^n', 'R^((n-2)/2)'], answer: 'R^((n+1)/2)', difficulty: 'Medium', pageReference: 106, concepts: ['gravitational force', 'orbital mechanics'], isPastPaper: true },
             { id: 105139, text: 'Two planets have the same average density but their radii are R₁ and R₂. If acceleration due to gravity on these planets be g₁ and g₂ respectively, then:', options: ['R₁ρ₁ : R₂ρ₂', 'R₁ρ₂ : R₂ρ₁', 'R₁²/R₂²', 'R₁ρ₁² : R₂ρ₂²'], answer: 'R₁ρ₁ : R₂ρ₂', difficulty: 'Medium', pageReference: 108, concepts: ['acceleration due to gravity', 'density'], isPastPaper: false },
             { id: 105140, text: 'A satellite is to be placed in an equatorial geostationary orbit around the earth for communication. The height of such a satellite is:', options: ['36000 km', '6400 km', '42400 km', '1000 km'], answer: '36000 km', difficulty: 'Medium', pageReference: 119, concepts: ['geostationary satellite'], isPastPaper: false },
@@ -758,158 +828,49 @@ export const subjects: Subject[] = [
             { id: 105199, text: 'If K is the kinetic energy of a body of mass m, its momentum is:', options: ['An elevator is moving up with a constant velocity. The work done by the tension in the cable is', 'Fm/M', 'The lift is moving down with constant velocity', '1 m/s'], answer: '√(gR)', difficulty: 'Hard', pageReference: 45, concepts: ['newton third law'], isPastPaper: false },
             { id: 105200, text: 'In a one-dimensional elastic collision, what is conserved?', options: ['s ∝ √t', '1.5 m/s', '4 m/s²', 'A parabola opening upwards'], answer: '-ka²', difficulty: 'Hard', pageReference: 88, concepts: ['rotational kinematics'], isPastPaper: false },
         ]
-      },
-      {
-        id: 107,
-        name: 'Thermodynamics',
-        questions: [
-          { id: 107001, text: 'Which law of thermodynamics states that energy cannot be created or destroyed?', options: ['Zeroth Law', 'First Law', 'Second Law', 'Third Law'], answer: 'First Law', difficulty: 'Easy', pageReference: 150, concepts: ['first law of thermodynamics'], isPastPaper: false },
-          { id: 107002, text: 'What is an isothermal process?', options: ['A process at constant pressure', 'A process at constant volume', 'A process at constant temperature', 'A process with no heat transfer'], answer: 'A process at constant temperature', difficulty: 'Easy', pageReference: 155, concepts: ['thermodynamic processes', 'isothermal'], isPastPaper: false },
-          { id: 107003, text: 'The efficiency of a Carnot engine depends on:', options: ['The working substance', 'The temperatures of the source and sink', 'The volume of the cylinder', 'The pressure of the gas'], answer: 'The temperatures of the source and sink', difficulty: 'Easy', pageReference: 162, concepts: ['carnot engine', 'efficiency'], isPastPaper: true },
-          { id: 107004, text: 'What is the internal energy of an ideal gas dependent on?', options: ['Pressure only', 'Volume only', 'Temperature only', 'Pressure and Volume'], answer: 'Temperature only', difficulty: 'Easy', pageReference: 152, concepts: ['internal energy', 'ideal gas'], isPastPaper: false },
-          { id: 107005, text: 'An adiabatic process is one in which:', options: ['Pressure is constant', 'Volume is constant', 'Temperature is constant', 'There is no heat exchange'], answer: 'There is no heat exchange', difficulty: 'Easy', pageReference: 156, concepts: ['thermodynamic processes', 'adiabatic'], isPastPaper: true },
-          { id: 107006, text: 'What does the area under a P-V diagram represent?', options: ['Work done', 'Heat supplied', 'Change in internal energy', 'Entropy change'], answer: 'Work done', difficulty: 'Easy', pageReference: 154, concepts: ['pv diagram', 'work done'], isPastPaper: false },
-          { id: 107007, text: 'The Zeroth Law of Thermodynamics leads to the concept of:', options: ['Energy', 'Entropy', 'Temperature', 'Pressure'], answer: 'Temperature', difficulty: 'Easy', pageReference: 149, concepts: ['zeroth law of thermodynamics'], isPastPaper: false },
-          { id: 107008, text: 'In a cyclic process, the change in internal energy is:', options: ['Positive', 'Negative', 'Zero', 'Depends on the path'], answer: 'Zero', difficulty: 'Easy', pageReference: 158, concepts: ['cyclic process', 'internal energy'], isPastPaper: false },
-          { id: 107009, text: 'What is the value of specific heat capacity of a gas in an isothermal process?', options: ['Zero', 'One', 'Infinite', 'Negative'], answer: 'Infinite', difficulty: 'Easy', pageReference: 155, concepts: ['specific heat', 'isothermal'], isPastPaper: true },
-          { id: 107010, text: 'The Second Law of Thermodynamics introduces the concept of:', options: ['Enthalpy', 'Entropy', 'Internal Energy', 'Work'], answer: 'Entropy', difficulty: 'Easy', pageReference: 160, concepts: ['second law of thermodynamics', 'entropy'], isPastPaper: false },
-        ]
-      },
-      {
-        id: 108,
-        name: 'Kinetic Theory of Gases',
-        questions: [
-            { id: 108001, text: 'What is the basic assumption of the kinetic theory of gases?', options: ['Gas molecules are always at rest', 'Gas molecules are point masses in random motion', 'Gas molecules have strong intermolecular forces', 'The volume of gas molecules is large compared to the container volume'], answer: 'Gas molecules are point masses in random motion', difficulty: 'Easy', pageReference: 175, concepts: ['kinetic theory'], isPastPaper: false },
-            { id: 108002, text: 'The average kinetic energy of a gas molecule is directly proportional to:', options: ['The pressure of the gas', 'The volume of the gas', 'The absolute temperature of the gas', 'The mass of the gas molecule'], answer: 'The absolute temperature of the gas', difficulty: 'Easy', pageReference: 178, concepts: ['kinetic energy', 'temperature'], isPastPaper: true },
-            { id: 108003, text: 'The root mean square speed of the molecules of a gas is proportional to:', options: ['√T', '1/√T', 'T', 'T^2'], answer: '√T', difficulty: 'Medium', pageReference: 180, concepts: ['rms speed'], isPastPaper: true },
-        ]
-      },
-      {
-        id: 109,
-        name: 'Oscillations and Waves',
-        questions: [
-            // Easy Questions (120)
-            { id: 109001, text: 'What is simple harmonic motion (SHM)?', options: ['Any periodic motion', 'Motion in a circle', 'Periodic motion where the restoring force is proportional to the displacement', 'Motion with constant acceleration'], answer: 'Periodic motion where the restoring force is proportional to the displacement', difficulty: 'Easy', pageReference: 195, concepts: ['shm'], isPastPaper: false },
-            { id: 109002, text: 'The time period of a simple pendulum of length L is given by T = 2π√(L/g). If the length is increased by a factor of 4, the new time period will be:', options: ['T', '2T', 'T/2', '4T'], answer: '2T', difficulty: 'Easy', pageReference: 200, concepts: ['simple pendulum', 'time period'], isPastPaper: true },
-            { id: 109003, text: 'What is a wave?', options: ['A transfer of energy without transfer of matter', 'A transfer of matter', 'A form of energy', 'A vibration'], answer: 'A transfer of energy without transfer of matter', difficulty: 'Easy', pageReference: 205, concepts: ['wave motion'], isPastPaper: false },
-            { id: 109004, text: 'What is the relationship between frequency (f) and time period (T)?', options: ['f = 1/T', 'f = T', 'f = 2πT', 'f = T/2π'], answer: 'f = 1/T', difficulty: 'Easy', pageReference: 196, concepts: ['frequency', 'time period'], isPastPaper: false },
-            { id: 109005, text: 'What type of waves are sound waves?', options: ['Transverse', 'Longitudinal', 'Electromagnetic', 'Matter waves'], answer: 'Longitudinal', difficulty: 'Easy', pageReference: 206, concepts: ['sound waves', 'longitudinal waves'], isPastPaper: false },
-            { id: 109006, text: 'The SI unit of frequency is:', options: ['Second', 'Meter', 'Hertz', 'Radian'], answer: 'Hertz', difficulty: 'Easy', pageReference: 196, concepts: ['frequency', 'units'], isPastPaper: false },
-            { id: 109007, text: 'In SHM, where is the velocity of the particle maximum?', options: ['At the mean position', 'At the extreme positions', 'At half the amplitude', 'It is constant'], answer: 'At the mean position', difficulty: 'Easy', pageReference: 197, concepts: ['shm', 'velocity'], isPastPaper: false },
-            { id: 109008, text: 'What is the phase difference between displacement and acceleration in SHM?', options: ['0', 'π/2', 'π', '3π/2'], answer: 'π', difficulty: 'Easy', pageReference: 198, concepts: ['shm', 'phase difference'], isPastPaper: true },
-            { id: 109009, text: 'What is damping in oscillations?', options: ['The increase in amplitude over time', 'The reduction in amplitude over time due to dissipative forces', 'The constancy of amplitude', 'The change in frequency'], answer: 'The reduction in amplitude over time due to dissipative forces', difficulty: 'Easy', pageReference: 201, concepts: ['damped oscillations'], isPastPaper: false },
-            { id: 109010, text: 'The distance between two consecutive crests or troughs in a wave is called:', options: ['Amplitude', 'Frequency', 'Wavelength', 'Period'], answer: 'Wavelength', difficulty: 'Easy', pageReference: 207, concepts: ['wavelength'], isPastPaper: false },
-            { id: 109011, text: 'What is the principle of superposition of waves?', options: ['Waves always add up', 'The net displacement is the vector sum of individual displacements', 'Waves always cancel out', 'The frequency of waves changes'], answer: 'The net displacement is the vector sum of individual displacements', difficulty: 'Easy', pageReference: 208, concepts: ['superposition principle'], isPastPaper: false },
-            { id: 109012, text: 'What is interference?', options: ['The bending of waves around obstacles', 'The superposition of two or more coherent waves', 'The splitting of waves into colors', 'The reflection of waves'], answer: 'The superposition of two or more coherent waves', difficulty: 'Easy', pageReference: 209, concepts: ['interference'], isPastPaper: false },
-            { id: 109013, text: 'What is the Doppler effect?', options: ['The change in frequency of a wave due to relative motion between source and observer', 'The change in speed of a wave', 'The change in amplitude of a wave', 'The change in wavelength of a wave'], answer: 'The change in frequency of a wave due to relative motion between source and observer', difficulty: 'Easy', pageReference: 212, concepts: ['doppler effect'], isPastPaper: false },
-            { id: 109014, text: 'The total energy of a particle executing SHM is proportional to:', options: ['The amplitude', 'The square of the amplitude', 'The square root of the amplitude', 'The reciprocal of the amplitude'], answer: 'The square of the amplitude', difficulty: 'Easy', pageReference: 199, concepts: ['shm', 'energy'], isPastPaper: true },
-            { id: 109015, text: 'A wave in which the particles of the medium vibrate perpendicular to the direction of wave propagation is called a:', options: ['Longitudinal wave', 'Transverse wave', 'Stationary wave', 'Sound wave'], answer: 'Transverse wave', difficulty: 'Easy', pageReference: 206, concepts: ['transverse waves'], isPastPaper: false },
-            // ... (Continue adding 105 more easy questions)
-
-            // Medium Questions (160)
-            { id: 109121, text: 'The phenomenon of beats is produced by the superposition of two waves of:', options: ['Same frequency and same amplitude', 'Slightly different frequencies and same amplitude', 'Same frequency and different amplitudes', 'Slightly different frequencies and different amplitudes'], answer: 'Slightly different frequencies and same amplitude', difficulty: 'Medium', pageReference: 210, concepts: ['beats', 'superposition'], isPastPaper: true },
-            { id: 109122, text: 'The equation of a wave is given by y = 5 sin(10πt - 0.02πx). What is the wave velocity?', options: ['500 m/s', '250 m/s', '100 m/s', '50 m/s'], answer: '500 m/s', difficulty: 'Medium', pageReference: 207, concepts: ['wave equation', 'wave velocity'], isPastPaper: true },
-            { id: 109123, text: 'A simple pendulum has a time period T. If its length is increased by 21%, the percentage increase in its time period is:', options: ['10%', '10.5%', '21%', '42%'], answer: '10%', difficulty: 'Medium', pageReference: 200, concepts: ['simple pendulum', 'time period'], isPastPaper: true },
-            { id: 109124, text: 'A tuning fork produces 4 beats per second with another tuning fork of frequency 256 Hz. The first tuning fork is loaded with wax and the beat frequency decreases. The frequency of the first tuning fork is:', options: ['252 Hz', '260 Hz', '258 Hz', '254 Hz'], answer: '260 Hz', difficulty: 'Medium', pageReference: 211, concepts: ['beats'], isPastPaper: true },
-            { id: 109125, text: 'A particle executes SHM with an amplitude of 10 cm and a time period of 6 s. What is its maximum speed?', options: ['10.5 cm/s', '5.2 cm/s', '20.9 cm/s', '31.4 cm/s'], answer: '10.5 cm/s', difficulty: 'Medium', pageReference: 197, concepts: ['shm', 'maximum speed'], isPastPaper: true },
-            // ... (Continue adding 155 more medium questions)
-
-            // Hard Questions (120)
-            { id: 109281, text: 'A uniform rod of length L is pivoted at one end and is hanging vertically. It is displaced through a small angle θ and released. The time period of its oscillation is:', options: ['2π√(L/g)', '2π√(2L/3g)', '2π√(L/2g)', '2π√(3L/2g)'], answer: '2π√(2L/3g)', difficulty: 'Hard', pageReference: 202, concepts: ['physical pendulum', 'shm'], isPastPaper: true },
-            { id: 109282, text: 'Two springs of spring constants k₁ and k₂ are connected in series. A mass m is attached to the combination. The time period of oscillation is:', options: ['2π√((m(k₁+k₂))/(k₁k₂))', '2π√(m/(k₁+k₂))', '2π√(m(k₁+k₂))', '2π√(m/(k₁k₂))'], answer: '2π√((m(k₁+k₂))/(k₁k₂))', difficulty: 'Hard', pageReference: 199, concepts: ['springs in series', 'shm'], isPastPaper: true },
-            { id: 109283, text: 'A train moving at a speed of 220 m/s towards a stationary object, emits a sound of frequency 1000 Hz. Some of the sound reaching the object gets reflected back to the train as an echo. The frequency of the echo as detected by the driver of the train is (speed of sound in air is 330 m/s):', options: ['3500 Hz', '4000 Hz', '5000 Hz', '3000 Hz'], answer: '5000 Hz', difficulty: 'Hard', pageReference: 213, concepts: ['doppler effect'], isPastPaper: true },
-            { id: 109284, text: 'A transverse wave is represented by y = A sin(ωt - kx). For what value of the wavelength is the wave velocity equal to the maximum particle velocity?', options: ['πA/2', 'πA', '2πA', 'A'], answer: '2πA', difficulty: 'Hard', pageReference: 207, concepts: ['wave velocity', 'particle velocity'], isPastPaper: true },
-            { id: 109285, text: 'A sonometer wire resonates with a given tuning fork forming standing waves with five antinodes between the two bridges when a mass of 9 kg is suspended from the wire. When this mass is replaced by a mass M, the wire resonates with the same tuning fork forming three antinodes for the same positions of the bridges. The value of M is:', options: ['25 kg', '5 kg', '12.5 kg', '1/25 kg'], answer: '25 kg', difficulty: 'Hard', pageReference: 209, concepts: ['sonometer', 'standing waves'], isPastPaper: true }
-            // ... (Continue adding 115 more hard questions)
-        ]
-      },
-      electrostaticsQuestions,
-      {
-        id: 111,
-        name: 'Current Electricity',
-        questions: [
-            { id: 111001, text: 'What is Ohm\'s law?', options: ['V = IR', 'P = VI', 'V = I/R', 'I = V/R'], answer: 'V = IR', difficulty: 'Easy', pageReference: 235, concepts: ['ohm law'], isPastPaper: false },
-            { id: 111002, text: 'Kirchhoff\'s junction rule is a statement of:', options: ['Conservation of energy', 'Conservation of charge', 'Conservation of momentum', 'Conservation of angular momentum'], answer: 'Conservation of charge', difficulty: 'Easy', pageReference: 240, concepts: ['kirchhoff laws'], isPastPaper: true },
-            { id: 111003, text: 'In a Wheatstone bridge, if the bridge is balanced, the ratio of resistances is:', options: ['P/Q = R/S', 'P/R = Q/S', 'P/S = Q/R', 'P+Q = R+S'], answer: 'P/Q = R/S', difficulty: 'Medium', pageReference: 245, concepts: ['wheatstone bridge'], isPastPaper: true },
-        ]
-      },
-      {
-        id: 112,
-        name: 'Magnetic Effects of Current and Magnetism',
-        questions: [
-            { id: 112001, text: 'What is the direction of the magnetic field around a straight current-carrying wire?', options: ['Along the wire', 'Perpendicular to the wire', 'In concentric circles around the wire', 'Radially outwards'], answer: 'In concentric circles around the wire', difficulty: 'Easy', pageReference: 255, concepts: ['magnetic field'], isPastPaper: false },
-            { id: 112002, text: 'The force experienced by a charge q moving with velocity v in a magnetic field B is given by:', options: ['F = q(v x B)', 'F = q(B x v)', 'F = qvB', 'F = qv/B'], answer: 'F = q(v x B)', difficulty: 'Easy', pageReference: 260, concepts: ['lorentz force'], isPastPaper: true },
-            { id: 112003, text: 'A cyclotron is used to accelerate:', options: ['Electrons', 'Neutrons', 'Positive ions', 'Negative ions'], answer: 'Positive ions', difficulty: 'Medium', pageReference: 265, concepts: ['cyclotron'], isPastPaper: true },
-        ]
-      },
-      {
-        id: 113,
-        name: 'Electromagnetic Induction and Alternating Currents',
-        questions: [
-            { id: 113001, text: 'What is Faraday\'s law of electromagnetic induction?', options: ['The induced emf is proportional to the rate of change of magnetic flux', 'The induced current opposes the change in magnetic flux', 'The magnetic flux is always constant', 'The induced emf is constant'], answer: 'The induced emf is proportional to the rate of change of magnetic flux', difficulty: 'Easy', pageReference: 275, concepts: ['faraday law'], isPastPaper: false },
-            { id: 113002, text: 'The peak value of an AC voltage is E₀. Its RMS value is:', options: ['E₀', 'E₀/√2', 'E₀/2', '√2 E₀'], answer: 'E₀/√2', difficulty: 'Easy', pageReference: 285, concepts: ['rms value', 'ac voltage'], isPastPaper: true },
-            { id: 113003, text: 'In a purely inductive circuit, the current:', options: ['Lags behind the voltage by π/2', 'Leads the voltage by π/2', 'Is in phase with the voltage', 'Lags behind the voltage by π'], answer: 'Lags behind the voltage by π/2', difficulty: 'Medium', pageReference: 288, concepts: ['inductive circuit', 'phase difference'], isPastPaper: true },
-        ]
-      },
-      {
-        id: 114,
-        name: 'Electromagnetic Waves',
-        questions: [
-            { id: 114001, text: 'What is the nature of electromagnetic waves?', options: ['Longitudinal', 'Transverse', 'Stationary', 'Mechanical'], answer: 'Transverse', difficulty: 'Easy', pageReference: 295, concepts: ['em waves'], isPastPaper: false },
-            { id: 114002, text: 'Which of the following has the highest frequency?', options: ['Gamma rays', 'X-rays', 'UV rays', 'Microwaves'], answer: 'Gamma rays', difficulty: 'Easy', pageReference: 300, concepts: ['em spectrum'], isPastPaper: true },
-            { id: 114003, text: 'The speed of electromagnetic waves in vacuum is given by:', options: ['1/√(ε₀μ₀)', '√(ε₀/μ₀)', '√(μ₀/ε₀)', 'ε₀μ₀'], answer: '1/√(ε₀μ₀)', difficulty: 'Medium', pageReference: 298, concepts: ['speed of light'], isPastPaper: true },
-        ]
-      },
-      {
-        id: 115,
-        name: 'Optics',
-        questions: [
-            { id: 115001, text: 'What is reflection of light?', options: ['The bending of light as it passes from one medium to another', 'The bouncing back of light from a surface', 'The splitting of light into its constituent colors', 'The spreading of light around corners'], answer: 'The bouncing back of light from a surface', difficulty: 'Easy', pageReference: 315, concepts: ['reflection'], isPastPaper: false },
-            { id: 115002, text: 'For a total internal reflection, which of the following is correct?', options: ['Light travels from rarer to denser medium', 'Light travels from denser to rarer medium', 'Angle of incidence must be less than critical angle', 'Angle of incidence can be any value'], answer: 'Light travels from denser to rarer medium', difficulty: 'Easy', pageReference: 325, concepts: ['total internal reflection'], isPastPaper: true },
-            { id: 115003, text: 'In Young\'s double-slit experiment, the fringe width is given by:', options: ['λD/d', 'λd/D', 'Dd/λ', 'λ/Dd'], answer: 'λD/d', difficulty: 'Medium', pageReference: 330, concepts: ['interference', 'ydse'], isPastPaper: true },
-        ]
-      },
-      {
-        id: 116,
-        name: 'Dual Nature of Matter and Radiation',
-        questions: [
-            { id: 116001, text: 'What is the photoelectric effect?', options: ['The emission of electrons from a metal surface when light shines on it', 'The bending of light', 'The splitting of light', 'The reflection of light'], answer: 'The emission of electrons from a metal surface when light shines on it', difficulty: 'Easy', pageReference: 335, concepts: ['photoelectric effect'], isPastPaper: false },
-            { id: 116002, text: 'The de-Broglie wavelength of a particle of mass m moving with velocity v is:', options: ['h/mv', 'mv/h', 'hmv', 'h/m'], answer: 'h/mv', difficulty: 'Easy', pageReference: 340, concepts: ['de-broglie wavelength'], isPastPaper: true },
-            { id: 116003, text: 'The work function of a metal is 2.1 eV. The threshold wavelength for this metal is:', options: ['590 nm', '490 nm', '690 nm', '390 nm'], answer: '590 nm', difficulty: 'Medium', pageReference: 338, concepts: ['work function', 'threshold wavelength'], isPastPaper: true },
-        ]
-      },
-      {
-        id: 117,
-        name: 'Atoms and Nuclei',
-        questions: [
-            { id: 117001, text: 'What is the structure of an atom according to Rutherford\'s model?', options: ['A uniform sphere of positive charge with electrons embedded in it', 'A nucleus at the center with electrons orbiting it', 'Electrons in fixed energy levels', 'A cloud of electrons'], answer: 'A nucleus at the center with electrons orbiting it', difficulty: 'Easy', pageReference: 355, concepts: ['rutherford model'], isPastPaper: false },
-            { id: 117002, text: 'The energy of an electron in the nth orbit of a hydrogen atom is proportional to:', options: ['n^2', '1/n^2', 'n', '1/n'], answer: '1/n^2', difficulty: 'Easy', pageReference: 360, concepts: ['bohr model', 'energy levels'], isPastPaper: true },
-            { id: 117003, text: 'The half-life of a radioactive substance is 30 days. The time taken for 3/4 of its original mass to disintegrate is:', options: ['30 days', '60 days', '90 days', '120 days'], answer: '60 days', difficulty: 'Medium', pageReference: 365, concepts: ['radioactivity', 'half-life'], isPastPaper: true },
-        ]
-      },
-      {
-        id: 118,
-        name: 'Electronic Devices',
-        questions: [
-            { id: 118001, text: 'What is a semiconductor?', options: ['A material with conductivity between that of a conductor and an insulator', 'A material that conducts electricity perfectly', 'A material that does not conduct electricity', 'A material that is magnetic'], answer: 'A material with conductivity between that of a conductor and an insulator', difficulty: 'Easy', pageReference: 375, concepts: ['semiconductor'], isPastPaper: false },
-            { id: 118002, text: 'In a p-n junction diode, the depletion region is created by:', options: ['Diffusion of majority carriers', 'Drift of minority carriers', 'Recombination of electrons and holes', 'Applied forward bias'], answer: 'Recombination of electrons and holes', difficulty: 'Easy', pageReference: 380, concepts: ['p-n junction', 'depletion region'], isPastPaper: true },
-            { id: 118003, text: 'A Zener diode is used as a:', options: ['Rectifier', 'Amplifier', 'Voltage regulator', 'Oscillator'], answer: 'Voltage regulator', difficulty: 'Medium', pageReference: 385, concepts: ['zener diode'], isPastPaper: true },
-        ]
-      },
-      {
-        id: 119,
-        name: 'Communication Systems',
-        questions: [
-            { id: 119001, text: 'What is modulation?', options: ['The process of varying a carrier wave in accordance with the information signal', 'The process of filtering a signal', 'The process of amplifying a signal', 'The process of transmitting a signal'], answer: 'The process of varying a carrier wave in accordance with the information signal', difficulty: 'Easy', pageReference: 395, concepts: ['modulation'], isPastPaper: false },
-            { id: 119002, text: 'The process of recovering the information signal from the carrier wave at the receiver is called:', options: ['Modulation', 'Demodulation', 'Amplification', 'Attenuation'], answer: 'Demodulation', difficulty: 'Easy', pageReference: 400, concepts: ['demodulation'], isPastPaper: true },
-            { id: 119003, text: 'Sky wave propagation is used for frequencies in the range:', options: ['VHF', 'UHF', 'HF', 'Microwave'], answer: 'HF', difficulty: 'Medium', pageReference: 405, concepts: ['propagation of em waves'], isPastPaper: true },
-        ]
       }
     ]
   },
   {
     id: 2,
     name: 'Chemistry',
+    units: [
+        {
+            id: 20,
+            name: 'Physical Chemistry 1',
+            chapters: [
+                moleConceptQuestions,
+                atomicStructureQuestions,
+                statesOfMatterQuestions,
+                thermodynamicsQuestions,
+            ]
+        },
+        {
+            id: 21,
+            name: 'Physical Chemistry 2',
+            chapters: [
+                chemicalEquilibriumQuestions,
+                ionicEquilibriumQuestions,
+                solutionsQuestions,
+                redoxAndElectrochemistryQuestions,
+            ]
+        },
+        {
+            id: 22,
+            name: 'Inorganic Chemistry',
+            chapters: [
+                chemicalBondingQuestions,
+                coordinationCompoundQuestions,
+            ]
+        },
+        {
+            id: 23,
+            name: 'Organic Chemistry',
+            chapters: [
+                generalOrganicChemistryQuestions,
+            ]
+        },
+    ],
     chapters: [
       moleConceptQuestions,
       atomicStructureQuestions,
@@ -927,6 +888,29 @@ export const subjects: Subject[] = [
   {
     id: 3,
     name: 'Mathematics',
+    units: [
+        {
+            id: 30,
+            name: 'Algebra & Functions',
+            chapters: [
+                { id: 301, name: 'Sets, Relations and Functions', questions: [] },
+            ]
+        },
+         {
+            id: 31,
+            name: 'Trigonometry',
+            chapters: [
+                { id: 302, name: 'Trigonometry', questions: [] },
+            ]
+        },
+         {
+            id: 32,
+            name: 'Calculus',
+            chapters: [
+                { id: 303, name: 'Calculus', questions: [] },
+            ]
+        }
+    ],
     chapters: [
       {
         id: 301,
@@ -954,7 +938,7 @@ export const subjects: Subject[] = [
         ]
       }
     ]
-  }
+  },
 ];
 
 export const formulas: FormulaSubject[] = [
@@ -1030,4 +1014,5 @@ export const conceptMaps = [
 ]
 
   
+
 
