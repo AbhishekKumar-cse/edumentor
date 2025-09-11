@@ -11,7 +11,7 @@ export default function MockTestPage() {
         <header className="space-y-2">
           <h1 className="text-4xl font-headline font-bold">Mock Test Generator</h1>
           <p className="text-muted-foreground">
-            Create custom mock tests to simulate exam conditions and assess your knowledge.
+            Create custom mock tests to simulate exam conditions. Choose a subject-wise test or build your own from multiple chapters.
           </p>
         </header>
         <Card>
