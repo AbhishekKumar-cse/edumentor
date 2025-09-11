@@ -26,7 +26,8 @@ import {
   PanelRightClose,
   FileQuestion,
   Trophy,
-  FilePlus2
+  FilePlus2,
+  BookOpen,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -35,6 +36,7 @@ const navItems = [
   { href: '/', label: 'Dashboard', icon: Home },
   { href: '/resources', label: 'Resources', icon: Book },
   { href: '/formulas', label: 'Formula Sheets', icon: Sigma },
+  { href: '/theory', label: 'Theory', icon: BookOpen },
   { href: '/question-bank', label: 'Question Bank', icon: FileQuestion },
   { href: '/mock-test', label: 'Mock Tests', icon: ClipboardList },
   { href: '/dpp', label: 'DPP', icon: FilePlus2 },
