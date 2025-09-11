@@ -77,14 +77,15 @@ export default function DppGenerator({ subjects }: DppGeneratorProps) {
       if (existing) {
         return prev.filter((c) => c.id !== chapterId);
       } else {
-        return [...prev, { id: chapterId, name: chapterName, questionCount: 5 }];
+        return [...prev, { id: chapterId, name: chapterName, questionCount: 10 }]; // Default to 10
       }
     });
   };
 
-  const handleCustomQuestionCountChange = (chapterId: number, count: number) => {
+  const handleCustomQuestionCountChange = (chapterId: number, count: string) => {
+    const questionCount = parseInt(count, 10);
     setCustomChapters((prev) =>
-      prev.map((c) => (c.id === chapterId ? { ...c, questionCount: Math.max(1, count) } : c))
+      prev.map((c) => (c.id === chapterId ? { ...c, questionCount } : c))
     );
   };
   
@@ -332,14 +333,19 @@ export default function DppGenerator({ subjects }: DppGeneratorProps) {
                                             />
                                             <Label htmlFor={`custom-chapter-${chapter.id}`} className="flex-1 cursor-pointer">{chapter.name}</Label>
                                             {customChapters.some(c => c.id === chapter.id) && (
-                                                <Input
-                                                    type="number"
-                                                    min="1"
-                                                    max="20"
-                                                    value={customChapters.find(c => c.id === chapter.id)?.questionCount}
-                                                    onChange={(e) => handleCustomQuestionCountChange(chapter.id, parseInt(e.target.value))}
-                                                    className="w-20 h-8"
-                                                />
+                                                <Select
+                                                  value={String(customChapters.find(c => c.id === chapter.id)?.questionCount || 10)}
+                                                  onValueChange={(value) => handleCustomQuestionCountChange(chapter.id, value)}
+                                                >
+                                                    <SelectTrigger className="w-24 h-8">
+                                                        <SelectValue placeholder="Count" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="10">10</SelectItem>
+                                                        <SelectItem value="15">15</SelectItem>
+                                                        <SelectItem value="20">20</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
                                             )}
                                         </div>
                                     ))}
