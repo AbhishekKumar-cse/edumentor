@@ -1,8 +1,8 @@
 
 'use client';
 
-import React, { useState } from 'react';
-import type { Subject } from '@/lib/data';
+import React, { useState, useEffect } from 'react';
+import type { Subject, Question } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -15,13 +15,14 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Lightbulb, BookCopy, FileText, Atom, FlaskConical, Calculator, Loader2 } from 'lucide-react';
+import { Lightbulb, BookCopy, FileText, Atom, FlaskConical, Calculator, Loader2, History, Trash2, Repeat } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { generateDpp, DppInput } from '@/ai/flows/generate-dpp';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 
 interface DppGeneratorProps {
@@ -32,6 +33,16 @@ interface CustomChapterSelection {
     id: number;
     name: string;
     questionCount: number;
+}
+
+export type DppHistoryItem = {
+    id: string;
+    name: string;
+    questions: Question[];
+    submittedQuestions: (Question & { userAnswer?: string | undefined; status: 'unanswered' | 'answered'; })[];
+    score: number;
+    totalMarks: number;
+    timestamp: number;
 }
 
 const subjectIcons: { [key: string]: React.ElementType } = {
@@ -57,10 +68,42 @@ export default function DppGenerator({ subjects }: DppGeneratorProps) {
   const [dppName, setDppName] = useState('');
   const [examType, setExamType] = useState<'jee' | 'neet'>('jee');
   const [difficulty, setDifficulty] = useState<'Easy' | 'Medium' | 'Hard' | 'Mixed'>('Mixed');
+  const [dppHistory, setDppHistory] = useState<DppHistoryItem[]>([]);
 
 
   const { toast } = useToast();
   const router = useRouter();
+
+  useEffect(() => {
+    try {
+        const savedHistory = localStorage.getItem('dppHistory');
+        if (savedHistory) {
+            setDppHistory(JSON.parse(savedHistory));
+        }
+    } catch (error) {
+        console.error("Failed to load DPP history from localStorage", error);
+    }
+  }, []);
+
+  const handleClearHistory = () => {
+    setDppHistory([]);
+    localStorage.removeItem('dppHistory');
+    toast({
+        title: "DPP History Cleared",
+        description: "All your attempted DPPs have been deleted.",
+    })
+  }
+
+  const handleReattempt = (dpp: DppHistoryItem) => {
+    sessionStorage.setItem('dppResult', JSON.stringify({ name: dpp.name, questions: dpp.questions }));
+    router.push('/dpp/start');
+  };
+
+  const handleReview = (dpp: DppHistoryItem) => {
+    sessionStorage.setItem('dppSubmission', JSON.stringify(dpp.submittedQuestions));
+    sessionStorage.setItem('dppName', dpp.name);
+    router.push('/dpp/results');
+  };
 
 
   const handleChapterToggle = (chapterId: number) => {
@@ -253,27 +296,81 @@ export default function DppGenerator({ subjects }: DppGeneratorProps) {
       }
 
       return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {subjects.map(subject => {
-                const Icon = subjectIcons[subject.name];
-                return (
-                     <Card 
-                        key={subject.id} 
-                        className={cn(
-                            "p-6 flex flex-col items-center justify-center text-center gap-4 transition-all duration-300 ease-in-out cursor-pointer group bg-gradient-to-br hover:scale-105 hover:shadow-lg text-white",
-                            subjectColors[subject.name]
-                        )}
-                        onClick={() => setSelectedSubject(subject)}
-                    >
-                        <div className="p-4 bg-white/20 rounded-full group-hover:scale-110 transition-transform">
-                            <Icon className="w-12 h-12" />
+        <>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {subjects.map(subject => {
+                    const Icon = subjectIcons[subject.name];
+                    return (
+                        <Card 
+                            key={subject.id} 
+                            className={cn(
+                                "p-6 flex flex-col items-center justify-center text-center gap-4 transition-all duration-300 ease-in-out cursor-pointer group bg-gradient-to-br hover:scale-105 hover:shadow-lg text-white",
+                                subjectColors[subject.name]
+                            )}
+                            onClick={() => setSelectedSubject(subject)}
+                        >
+                            <div className="p-4 bg-white/20 rounded-full group-hover:scale-110 transition-transform">
+                                <Icon className="w-12 h-12" />
+                            </div>
+                            <CardTitle className="font-headline text-3xl">{subject.name}</CardTitle>
+                            <CardDescription className="text-white/80">{subject.chapters.length} Chapters</CardDescription>
+                        </Card>
+                    )
+                })}
+            </div>
+            {dppHistory.length > 0 && (
+                <Card className="mt-12">
+                    <CardHeader>
+                        <CardTitle className="font-headline text-2xl flex items-center gap-3">
+                            <History className="w-6 h-6 text-primary" />
+                            DPP History
+                        </CardTitle>
+                        <CardDescription>Review your past DPPs or try them again.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {dppHistory.map(dpp => (
+                            <div key={dpp.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-lg bg-secondary/30">
+                                <div className="mb-4 sm:mb-0">
+                                    <p className="font-semibold">{dpp.name}</p>
+                                    <p className="text-sm text-muted-foreground">
+                                        Attempted on {new Date(dpp.timestamp).toLocaleDateString()} | Score: {dpp.score}/{dpp.totalMarks}
+                                    </p>
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button variant="outline" onClick={() => handleReattempt(dpp)}>
+                                        <Repeat className="mr-2 h-4 w-4" /> Re-attempt
+                                    </Button>
+                                    <Button onClick={() => handleReview(dpp)}>
+                                        Review Answers
+                                    </Button>
+                                </div>
+                            </div>
+                        ))}
+                         <div className="flex justify-end mt-4">
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="destructive">
+                                        <Trash2 className="mr-2 h-4 w-4" /> Clear History
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        This will permanently delete your entire DPP history. This action cannot be undone.
+                                    </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleClearHistory}>Confirm Delete</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
                         </div>
-                        <CardTitle className="font-headline text-3xl">{subject.name}</CardTitle>
-                        <CardDescription className="text-white/80">{subject.chapters.length} Chapters</CardDescription>
-                    </Card>
-                )
-            })}
-        </div>
+                    </CardContent>
+                </Card>
+            )}
+        </>
       );
   }
 

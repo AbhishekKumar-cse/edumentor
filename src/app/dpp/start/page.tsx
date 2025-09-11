@@ -28,6 +28,7 @@ interface DppResult {
 export default function DppStartPage() {
   const [dppData, setDppData] = useState<DppResult | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [originalQuestions, setOriginalQuestions] = useState<Question[]>([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -37,13 +38,16 @@ export default function DppStartPage() {
       return;
     }
     const parsedData = JSON.parse(configStr);
+    setOriginalQuestions(parsedData.questions);
     setDppData({
       ...parsedData,
       questions: parsedData.questions.map((q: Question) => ({
         ...q,
         status: 'unanswered',
+        userAnswer: undefined, // Ensure re-attempts start fresh
       })),
     });
+    sessionStorage.setItem('dppOriginalQuestions', JSON.stringify(parsedData.questions));
   }, [router]);
 
   const handleAnswerChange = (answer: string) => {
@@ -70,7 +74,7 @@ export default function DppStartPage() {
     if (!dppData) return;
     sessionStorage.setItem('dppSubmission', JSON.stringify(dppData.questions));
     sessionStorage.setItem('dppName', dppData.name);
-    sessionStorage.removeItem('dppResult');
+    sessionStorage.removeItem('dppResult'); // Clear the initial data
     router.replace('/dpp/results');
   };
 

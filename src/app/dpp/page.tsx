@@ -11,7 +11,7 @@ export default function DppPage() {
         <header className="space-y-2 text-center">
           <h1 className="text-4xl md:text-5xl font-headline font-bold tracking-tighter">Daily Practice Problems</h1>
           <p className="text-muted-foreground md:text-xl max-w-2xl mx-auto">
-            Sharpen your skills with AI-generated practice sheets. Choose your subject to get started or create a custom DPP.
+            Sharpen your skills with AI-generated practice sheets. Choose your subject to get started, create a custom DPP, or review your past attempts.
           </p>
         </header>
         <div className="flex justify-center">

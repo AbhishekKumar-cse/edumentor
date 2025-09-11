@@ -8,9 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Check, X, Flag, BarChart, FileText, ArrowLeft, Lightbulb } from 'lucide-react';
+import { Check, X, Flag, BarChart, FileText, ArrowLeft, Lightbulb, Repeat } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import type { DppHistoryItem } from './../dpp-generator';
 
 
 interface DPPQuestion extends Question {
@@ -37,7 +38,7 @@ export default function DppResultsPage() {
   useEffect(() => {
     const resultsStr = sessionStorage.getItem('dppSubmission');
     const nameStr = sessionStorage.getItem('dppName');
-
+    
     if (!resultsStr) {
       router.replace('/dpp');
       return;
@@ -61,12 +62,59 @@ export default function DppResultsPage() {
       }
     });
 
+    const currentScore = correct * 4 - incorrect * 1;
+
     setCorrectAnswers(correct);
     setIncorrectAnswers(incorrect);
     setUnanswered(notAttempted);
-    // Simple score: +4 for correct, -1 for incorrect
-    setScore(correct * 4 - incorrect * 1);
+    setScore(currentScore);
+
+    // Save to history only if it came from a live attempt
+    const isReview = sessionStorage.getItem('dppIsReview');
+    if (!isReview) {
+      const originalQuestionsStr = sessionStorage.getItem('dppOriginalQuestions');
+      if(originalQuestionsStr) {
+        const originalQuestions = JSON.parse(originalQuestionsStr);
+        const historyItem: DppHistoryItem = {
+          id: Date.now().toString(),
+          name: nameStr || "Unnamed DPP",
+          questions: originalQuestions,
+          submittedQuestions: testResults,
+          score: currentScore,
+          totalMarks: testResults.length * 4,
+          timestamp: Date.now(),
+        };
+
+        try {
+          const existingHistory: DppHistoryItem[] = JSON.parse(localStorage.getItem('dppHistory') || '[]');
+          const updatedHistory = [historyItem, ...existingHistory];
+          localStorage.setItem('dppHistory', JSON.stringify(updatedHistory));
+        } catch (error) {
+          console.error("Failed to save DPP history to localStorage", error);
+        }
+      }
+    }
+    sessionStorage.removeItem('dppIsReview');
+    sessionStorage.removeItem('dppOriginalQuestions');
+
   }, [router]);
+
+  const handleReattempt = () => {
+    const originalQuestionsStr = sessionStorage.getItem('dppOriginalQuestions');
+     if (originalQuestionsStr) {
+       sessionStorage.setItem('dppResult', JSON.stringify({ name: dppName, questions: JSON.parse(originalQuestionsStr) }));
+       router.push('/dpp/start');
+     } else {
+        // Fallback for reviewing old tests that might not have this in session
+        const history: DppHistoryItem[] = JSON.parse(localStorage.getItem('dppHistory') || '[]');
+        const currentDpp = history.find(dpp => dpp.name === dppName && dpp.submittedQuestions.length === results.length);
+        if(currentDpp) {
+            sessionStorage.setItem('dppResult', JSON.stringify({ name: currentDpp.name, questions: currentDpp.questions }));
+            router.push('/dpp/start');
+        }
+     }
+  };
+
 
   const getOptionClass = (option: string, question: DPPQuestion) => {
     if (option === question.answer) return 'bg-green-100 dark:bg-green-900/30 border-green-500';
@@ -91,16 +139,21 @@ export default function DppResultsPage() {
   return (
     <div className="p-6 md:p-10">
       <div className="space-y-8">
-        <header className="flex justify-between items-center">
+        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="space-y-2">
               <h1 className="text-4xl font-headline font-bold">{dppName} - Results</h1>
               <p className="text-muted-foreground">
               Here's a detailed breakdown of your performance.
               </p>
           </div>
-          <Button onClick={() => router.push('/dpp')}>
-              <ArrowLeft className="mr-2 h-4 w-4" /> Generate New DPP
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => router.push('/dpp')}>
+                <ArrowLeft className="mr-2 h-4 w-4" /> Generate New DPP
+            </Button>
+             <Button variant="outline" onClick={handleReattempt}>
+                <Repeat className="mr-2 h-4 w-4" /> Re-attempt
+            </Button>
+          </div>
         </header>
 
         {/* Performance Summary */}
