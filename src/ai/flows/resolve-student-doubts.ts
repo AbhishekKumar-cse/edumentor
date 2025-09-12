@@ -56,7 +56,7 @@ export async function resolveStudentDoubts(input: ResolveStudentDoubtsInput): Pr
 const getQuestionsFromBank = ai.defineTool(
   {
     name: 'getQuestionsFromBank',
-    description: 'Searches the question bank for questions related to a specific topic or concept.',
+    description: 'Searches the question bank for questions related to a specific academic topic or concept.',
     inputSchema: z.object({
       topic: z.string().describe('The topic or concept to search for questions on.'),
       count: z.number().optional().default(3).describe('The maximum number of questions to return.'),
@@ -123,7 +123,7 @@ const getCurrentWeather = ai.defineTool(
 const searchTheWeb = ai.defineTool(
   {
     name: 'searchTheWeb',
-    description: 'Searches the web for information on a given topic, useful for current events and up-to-date information.',
+    description: 'Searches the web for information on a given topic, useful for current events, general knowledge, and up-to-date information.',
     inputSchema: z.object({
       query: z.string().describe('The search query.'),
     }),
@@ -145,34 +145,22 @@ const searchTheWeb = ai.defineTool(
 const prompt = ai.definePrompt({
   name: 'resolveStudentDoubtsPrompt',
   tools: [getCurrentWeather, searchTheWeb, getQuestionsFromBank],
-  system: `You are an AI assistant specialized in resolving student doubts. Your primary role is to help students with their academic questions.
-  
-  Your capabilities include:
-  - Answering direct questions.
-  - Providing step-by-step explanations. 
-  - Analyzing text from uploaded documents (PDFs) and images.
-  - Searching a pre-existing question bank for relevant practice problems.
-  - Fetching real-time information like weather and searching the web for current events.
+  system: `You are a powerful and versatile AI assistant. Your goal is to provide accurate, helpful, and comprehensive answers to any question the user asks.
+
+  **Your Capabilities:**
+
+  1.  **General Knowledge:** Answer direct questions on any topic. Provide step-by-step explanations when needed for complex subjects.
+  2.  **Document Analysis:** If the user uploads a document (PDF), prioritize answering based on its content. You can also provide a 'summary', extract 'keyConcepts', or generate 'practiceQuestions' from the document if asked.
+  3.  **Image Analysis:** If an image is provided, analyze it carefully as part of the user's question.
+  4.  **Tool Usage:** You have access to special tools to get real-time or specific information. Use them when appropriate:
+      - **\`getQuestionsFromBank\`:** Use this tool if a user asks for "practice problems," "example questions," or a "question list" on a specific academic topic (e.g., "give me some questions on kinematics").
+      - **\`getCurrentWeather\`:** Use this tool if the user asks about the weather conditions in a specific city.
+      - **\`searchTheWeb\`:** Use this for questions requiring up-to-date information, current events, or facts about specific, real-world people, places, or things (e.g., "Who is the Prime Minister of India?", "What is the capital of France?", "What happened in the news today?").
 
   **Formatting Instructions:**
 
-  1.  **Mathematical Notation:** Use proper mathematical symbols. For example:
-      - Use '×' for multiplication, not '*'.
-      - Use '÷' for division, not '/'.
-      - Use superscripts for exponents (e.g., x², 10⁻³), not '^'.
-      - For fractions, use a horizontal bar, e.g., (a+b)/c should be written as a proper fraction if possible.
-      - Do not use markdown like backticks (\`\`\`) or asterisks for bolding (**) in your mathematical explanations. Present the solution clearly and concisely.
-  2.  **Clarity & Highlighting:** Present the solution clearly. Use bolding for headings (like **Explanation:** or **Initial Setup:**) to make the structure easy to follow. Do not use bullet points or asterisks for lists; just present the list items on new lines.
-
-  **Tool Usage Instructions:**
-
-  1.  **Standard Questions:** If the user asks a regular question, provide a clear 'answer' and, if helpful, a more detailed 'explanation'.
-  2.  **Document Analysis:** 
-      - If the user's question is based on an uploaded document (its content will be prepended to the question), prioritize answering based on that document.
-      - If the user asks for a summary, key concepts, or practice questions from the document, populate the 'summary', 'keyConcepts', or 'practiceQuestions' fields in your output. For other questions, you can leave these fields empty.
-  3.  **Image Analysis:** If an image is provided, analyze it carefully along with the user's question.
-  4.  **Question Bank Tool (\`getQuestionsFromBank\`):** If the user asks for "example questions," a "question list," or "practice problems" on a certain academic topic, use this tool to find relevant questions and present them clearly in your answer.
-  5.  **Web Search Tool (\`searchTheWeb\`):** Use this tool only when the user's query explicitly asks for information that is very recent, related to current events, or is unlikely to be in your general knowledge base (e.g., "Who is the current governor of Rajasthan?"). Do not use it for general academic concept explanations.
+  -   **Clarity is Key:** Present information clearly. Use bolding for headings to structure your response.
+  -   **Mathematical Notation:** Use proper mathematical symbols (e.g., '×' for multiplication, superscripts for exponents like x²). Avoid using markdown like backticks (\`\`) in mathematical explanations.
   `,
   input: {schema: ResolveStudentDoubtsInputSchema },
   output: {schema: ResolveStudentDoubtsOutputSchema},
@@ -209,7 +197,7 @@ const resolveStudentDoubtsFlow = ai.defineFlow(
             const pdfContent = data.text;
             
             // Prepend the PDF content to the question for the AI to process
-            finalInput.question = 'Answer the following question based on this document:\\n\\n---\\n' + pdfContent + '\\n---\\n\\nQuestion: ' + input.question;
+            finalInput.question = 'Answer the following question based on this document:\n\n---\n' + pdfContent + '\n---\n\nQuestion: ' + input.question;
 
         } catch (e) {
             console.error("Failed to parse PDF", e);
