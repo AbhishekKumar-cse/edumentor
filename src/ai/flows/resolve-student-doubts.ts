@@ -156,9 +156,9 @@ const prompt = ai.definePrompt({
   3.  **Image Analysis:** If an image is provided, analyze it as part of the student's question.
 
   4.  **Tool Usage:** You have special tools to get real-time or specific information. Use them when needed:
-      - **\`getQuestionsFromBank\`:** Use this tool if a user asks for "practice problems," "example questions," or a "question list" on an academic topic (e.g., "give me some questions on kinematics").
-      - **\`getCurrentWeather\`:** Use this tool *only* if the user asks about the weather conditions in a specific city.
-      - **\`searchTheWeb\`:** Use this tool for any question that requires up-to-date, real-time information or knowledge about specific people, places, or events (e.g. "Who is the CM of Rajasthan?"). If you are not sure about an answer, use this tool to verify it.
+      - \`getQuestionsFromBank\`: Use this tool if a user asks for "practice problems," "example questions," or a "question list" on an academic topic (e.g., "give me some questions on kinematics").
+      - \`getCurrentWeather\`: Use this tool *only* if the user asks about the weather conditions in a specific city.
+      - \`searchTheWeb\`: Use this tool for any question that requires up-to-date, real-time information or knowledge about specific people, places, or events (e.g. "Who is the CM of Rajasthan?"). If you are not sure about an answer, use this tool to verify it.
 
   **Formatting Instructions:**
 
