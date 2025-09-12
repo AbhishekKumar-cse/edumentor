@@ -161,7 +161,7 @@ const prompt = ai.definePrompt({
       - Use '÷' for division, not '/'.
       - Use superscripts for exponents (e.g., x², 10⁻³), not '^'.
       - For fractions, use a horizontal bar, e.g., (a+b)/c should be written as a proper fraction if possible.
-      - Do not use markdown like backticks (\`) or asterisks for bolding (**) in your mathematical explanations. Present the solution clearly and concisely.
+      - Do not use markdown like backticks (\`\`\`) or asterisks for bolding (**) in your mathematical explanations. Present the solution clearly and concisely.
   2.  **Clarity & Highlighting:** Present the solution clearly. Use bolding for headings (like **Explanation:** or **Initial Setup:**) to make the structure easy to follow. Do not use bullet points or asterisks for lists; just present the list items on new lines.
 
   **Tool Usage Instructions:**
@@ -209,7 +209,7 @@ const resolveStudentDoubtsFlow = ai.defineFlow(
             const pdfContent = data.text;
             
             // Prepend the PDF content to the question for the AI to process
-            finalInput.question = `Answer the following question based on this document:\n\n---\n${pdfContent}\n---\n\nQuestion: ${input.question}`;
+            finalInput.question = 'Answer the following question based on this document:\\n\\n---\\n' + pdfContent + '\\n---\\n\\nQuestion: ' + input.question;
 
         } catch (e) {
             console.error("Failed to parse PDF", e);
