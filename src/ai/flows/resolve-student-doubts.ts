@@ -42,9 +42,9 @@ const PracticeQuestionSchema = z.object({
 const ResolveStudentDoubtsOutputSchema = z.object({
   answer: z.string().describe("The AI assistant's answer to the question."),
   explanation: z.string().optional().describe('A detailed, step-by-step explanation of the concept or solution.'),
-  summary: z.string().optional().describe('A brief summary of the provided document, if requested.'),
-  keyConcepts: z.array(KeyConceptSchema).optional().describe('A list of key concepts extracted from the document, if requested.'),
-  practiceQuestions: z.array(PracticeQuestionSchema).optional().describe('A list of practice questions based on the document, if requested.'),
+  summary: z.string().describe('A brief summary of the provided document or the solution.'),
+  keyConcepts: z.array(KeyConceptSchema).describe('A list of key concepts related to the question or extracted from the document.'),
+  practiceQuestions: z.array(PracticeQuestionSchema).describe('A list of practice questions based on the question or document.'),
 });
 export type ResolveStudentDoubtsOutput = z.infer<typeof ResolveStudentDoubtsOutputSchema>;
 
@@ -181,7 +181,8 @@ SPECIAL RULES (must follow)
 1. For any riddle or trick question, re-check exact wording and solve step-by-step; assume adversarial wording.
 2. Always do arithmetic step-by-step to avoid mistakes.
 3. If the user explicitly asks to search the web, do so. If the topic could have changed since June 2024 (news, people, prices), perform a web search automatically.
-4. When presenting past-year exam questions or PYQs, label each with the exam name and year; if unavailable, generate equivalent-quality practice questions instead of saying "I don't have them".`,
+4. When presenting past-year exam questions or PYQs, label each with the exam name and year; if unavailable, generate equivalent-quality practice questions instead of saying "I don't have them".
+5. ALWAYS provide a detailed analysis with a summary, key concepts, and practice questions for EVERY response, even if the user only asks a simple question.`,
   input: {schema: ResolveStudentDoubtsInputSchema },
   output: {schema: ResolveStudentDoubtsOutputSchema},
   prompt: `
@@ -228,7 +229,10 @@ const resolveStudentDoubtsFlow = ai.defineFlow(
         
         if (!output) {
           return {
-            answer: "I'm sorry, but I was unable to generate a response for your query. This might be due to a safety filter or an issue with the provided context. Please try rephrasing your question or simplifying the provided document."
+            answer: "I'm sorry, but I was unable to generate a response for your query. This might be due to a safety filter or an issue with the provided context. Please try rephrasing your question or simplifying the provided document.",
+            summary: "No summary available.",
+            keyConcepts: [],
+            practiceQuestions: [],
           };
         }
 
@@ -236,7 +240,10 @@ const resolveStudentDoubtsFlow = ai.defineFlow(
     } catch (e) {
         console.error("An unexpected error occurred while processing your request.", e);
         return {
-            answer: "An unexpected error occurred while processing your request. The AI model may have had an issue with the input. Please try again."
+            answer: "An unexpected error occurred while processing your request. The AI model may have had an issue with the input. Please try again.",
+            summary: "No summary available due to an error.",
+            keyConcepts: [],
+            practiceQuestions: [],
         }
     }
   }
