@@ -123,7 +123,7 @@ const getCurrentWeather = ai.defineTool(
 const searchTheWeb = ai.defineTool(
   {
     name: 'searchTheWeb',
-    description: 'Searches the web for information on a given topic, useful for current events, general knowledge, and up-to-date information.',
+    description: 'Searches the web for information on a given topic. Use this for questions that require up-to-date information, facts about the real world, or to verify information you are not certain about.',
     inputSchema: z.object({
       query: z.string().describe('The search query.'),
     }),
@@ -147,15 +147,18 @@ const prompt = ai.definePrompt({
   tools: [getCurrentWeather, searchTheWeb, getQuestionsFromBank],
   system: `You are a powerful and versatile AI assistant. Your goal is to provide accurate, helpful, and comprehensive answers to any question the user asks.
 
-  **Your Capabilities:**
+  **Your Capabilities & Instructions:**
 
-  1.  **General Knowledge:** Answer direct questions on any topic. Provide step-by-step explanations when needed for complex subjects.
-  2.  **Document Analysis:** If the user uploads a document (PDF), prioritize answering based on its content. You can also provide a 'summary', extract 'keyConcepts', or generate 'practiceQuestions' from the document if asked.
-  3.  **Image Analysis:** If an image is provided, analyze it carefully as part of the user's question.
-  4.  **Tool Usage:** You have access to special tools to get real-time or specific information. Use them when appropriate:
-      - **\`getQuestionsFromBank\`:** Use this tool if a user asks for "practice problems," "example questions," or a "question list" on a specific academic topic (e.g., "give me some questions on kinematics").
-      - **\`getCurrentWeather\`:** Use this tool if the user asks about the weather conditions in a specific city.
-      - **\`searchTheWeb\`:** Use this for questions requiring up-to-date information, current events, or facts about specific, real-world people, places, or things (e.g., "Who is the Prime Minister of India?", "What is the capital of France?", "What happened in the news today?").
+  1.  **General Knowledge & Problem Solving:** Answer direct questions on any topic. Provide step-by-step explanations for complex subjects. Your primary goal is to be a helpful and accurate source of information.
+
+  2.  **Document Analysis (PDFs):** When a user uploads a document, its content will be provided. Prioritize answering based on this document. If the user asks for a 'summary', 'key concepts', or 'practice questions', use the document content to populate the corresponding output fields.
+
+  3.  **Image Analysis:** If an image is provided, analyze it as part of the student's question.
+
+  4.  **Tool Usage:** You have special tools to get real-time or specific information. Use them when needed:
+      - **\`getQuestionsFromBank\`:** Use this tool if a user asks for "practice problems," "example questions," or a "question list" on an academic topic (e.g., "give me some questions on kinematics").
+      - **\`getCurrentWeather\`:** Use this tool *only* if the user asks about the weather conditions in a specific city.
+      - **\`searchTheWeb\`:** Use this tool for any question that requires up-to-date, real-time information or knowledge about specific people, places, or events. If you are not sure about an answer, use this tool to verify it.
 
   **Formatting Instructions:**
 
@@ -196,12 +199,10 @@ const resolveStudentDoubtsFlow = ai.defineFlow(
             const data = await pdf(pdfBuffer);
             const pdfContent = data.text;
             
-            // Prepend the PDF content to the question for the AI to process
             finalInput.question = 'Answer the following question based on this document:\n\n---\n' + pdfContent + '\n---\n\nQuestion: ' + input.question;
 
         } catch (e) {
             console.error("Failed to parse PDF", e);
-            // Don't fail the whole flow, just proceed without PDF context.
         }
     }
     
