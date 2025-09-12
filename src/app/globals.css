@@ -48,6 +48,10 @@
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 220 13% 20%;
     --sidebar-ring: 262.1 83.3% 57.8%;
+
+    --gradient-cyan: 180, 82%, 55%;
+    --gradient-purple: 260, 100%, 65%;
+    --gradient-pink: 320, 100%, 60%;
   }
 
   .dark {
@@ -93,6 +97,10 @@
     --sidebar-accent-foreground: 210 20% 98%;
     --sidebar-border: 215.4 16.3% 16.9%;
     --sidebar-ring: 263.4 95.2% 51.2%;
+
+    --gradient-cyan: 180, 82%, 55%;
+    --gradient-purple: 260, 100%, 75%;
+    --gradient-pink: 320, 100%, 70%;
   }
 }
 
@@ -111,4 +119,66 @@
       transform: translate(calc(-50% - 0.5rem));
     }
   }
+
+  @keyframes rotate {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  .glow-sm {
+    @apply shadow-[0_0_8px] shadow-primary/50;
+  }
+  .glow-md {
+    @apply shadow-[0_0_12px] shadow-primary/60;
+  }
+  .glow-lg {
+    @apply shadow-[0_0_20px] shadow-primary/70;
+  }
+  .glow-sm-destructive {
+    @apply shadow-[0_0_8px] shadow-destructive/50;
+  }
+
+  .bg-gradient-cyan-purple-pink {
+    background-image: conic-gradient(
+      from var(--angle, 0deg),
+      hsl(var(--gradient-cyan)) 0%,
+      hsl(var(--gradient-purple)) 33%,
+      hsl(var(--gradient-pink)) 66%,
+      hsl(var(--gradient-cyan)) 100%
+    );
+  }
+   .bg-gradient-cyan-purple-pink-fast {
+    background-image: conic-gradient(
+      from var(--angle, 0deg),
+      hsl(var(--gradient-cyan)) 0%,
+      hsl(var(--gradient-purple)) 15%,
+      hsl(var(--gradient-pink)) 30%,
+      hsl(var(--gradient-purple)) 50%,
+      hsl(var(--gradient-cyan)) 70%,
+      hsl(var(--gradient-pink)) 90%,
+      hsl(var(--gradient-cyan)) 100%
+    );
+  }
+
+  .bg-gradient-cyan-purple-pink-extra-fast {
+    background-image: conic-gradient(
+      from var(--angle, 0deg),
+      hsl(var(--gradient-cyan)),
+      hsl(var(--gradient-purple)),
+      hsl(var(--gradient-pink)),
+      hsl(var(--gradient-purple)),
+      hsl(var(--gradient-cyan)),
+      hsl(var(--gradient-pink)),
+      hsl(var(--gradient-cyan))
+    );
+  }
+
+  .animate-rotate {
+    animation: rotate 10s linear infinite;
+  }
+
 }

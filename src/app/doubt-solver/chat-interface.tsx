@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Send, User, Bot, Loader2, Paperclip, X, FileText, PlusCircle, Trash2, MessageSquare, History, Lightbulb, HelpCircle, BookOpen } from "lucide-react";
+import { Send, User, Bot, Loader2, Paperclip, X, FileText, PlusCircle, Trash2, MessageSquare, History, Lightbulb, HelpCircle, BookOpen, Mic } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -33,10 +33,11 @@ import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
+import { Logo } from "@/components/icons";
 
 type Message = {
   id: string;
-  role: "user" | "assistant" | "model";
+  role: "user" | "assistant" | "system" | "model";
   content: string;
   image?: string;
   pdf?: { name: string };
@@ -111,8 +112,12 @@ export default function ChatInterface() {
     const newChatId = Date.now().toString();
     const newChat: Chat = {
       id: newChatId,
-      title: "New Chat",
-      messages: [],
+      title: "New Conversation",
+      messages: [{
+        id: 'system-intro',
+        role: 'system',
+        content: "I am your AI study assistant. Ask me anything about your subjects, or give me a problem to solve!",
+      }],
     };
     setChats(prev => ({ ...prev, [newChatId]: newChat }));
     setActiveChatId(newChatId);
@@ -192,8 +197,8 @@ export default function ChatInterface() {
     const newMessages = [...(activeChat?.messages || []), userMessage];
     
     // Auto-generate title from first message
-    const isFirstMessage = (activeChat?.messages.length || 0) === 0;
-    const newTitle = isFirstMessage && input.trim() ? input.trim().substring(0, 30) + '...' : activeChat?.title;
+    const isFirstUserMessage = (activeChat?.messages.filter(m => m.role === 'user').length || 0) === 0;
+    const newTitle = isFirstUserMessage && input.trim() ? input.trim().substring(0, 30) : activeChat?.title;
 
     setChats(prev => ({
         ...prev,
@@ -210,7 +215,7 @@ export default function ChatInterface() {
     setIsLoading(true);
 
     try {
-      const history = newMessages.slice(0, -1).map(msg => ({
+      const history = newMessages.slice(0, -1).filter(m => m.role !== 'system').map(msg => ({
           role: msg.role === 'assistant' ? 'model' : 'user',
           content: msg.content,
       }));
@@ -261,177 +266,169 @@ export default function ChatInterface() {
   const chatHistory = Object.values(chats).sort((a,b) => parseInt(b.id) - parseInt(a.id));
 
   return (
-    <div className="flex h-full w-full flex-col bg-background">
-        <header className="flex items-center justify-between p-4 border-b">
-             <Sheet>
-                <SheetTrigger asChild>
-                    <Button variant="outline">
-                        <History className="mr-2 h-4 w-4" />
-                        Chat History
-                    </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="w-80 p-0">
-                    <SheetHeader className="p-4 border-b">
-                        <SheetTitle>Conversation History</SheetTitle>
-                    </SheetHeader>
-                    <div className="p-4 space-y-2">
-                        {chatHistory.map(chat => (
-                            <div key={chat.id} className="flex items-center group">
-                                <Button
-                                    variant={activeChatId === chat.id ? "secondary" : "ghost"}
-                                    className="w-full justify-start gap-2 truncate"
-                                    onClick={() => setActiveChatId(chat.id)}
-                                >
-                                    <MessageSquare className="h-4 w-4" />
-                                    <span className="truncate">{chat.title}</span>
-                                </Button>
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100">
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </AlertDialogTrigger>
-                                     <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                        <AlertDialogTitle>Delete this chat?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            This will permanently delete "{chat.title}". This action cannot be undone.
-                                        </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction onClick={() => handleDeleteChat(chat.id)}>Confirm Delete</AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                            </div>
-                        ))}
-                    </div>
-                     <Separator />
-                      <div className="p-4">
-                        <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                                <Button variant="destructive" className="w-full">
-                                    <Trash2 className="mr-2 h-4 w-4" /> Clear All History
-                                </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    This will permanently delete all your chat history. This action cannot be undone.
-                                </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleClearHistory}>Confirm Delete All</AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
-                    </div>
-                </SheetContent>
-            </Sheet>
-            <h1 className="text-xl font-semibold">{activeChat?.title || "Doubt Solver"}</h1>
-            <Button variant="outline" size="icon" onClick={handleNewChat}>
-                <PlusCircle className="h-5 w-5" />
-            </Button>
-        </header>
+    <div className="flex h-full w-full rounded-2xl bg-background/80 backdrop-blur-sm border border-white/20 shadow-2xl shadow-black/20 overflow-hidden">
+        <div className="w-1/4 max-w-xs border-r border-white/10 flex flex-col">
+            <header className="p-4 border-b border-white/10 flex items-center justify-between">
+                <h1 className="text-xl font-bold font-headline">History</h1>
+                <Button variant="ghost" size="icon" onClick={handleNewChat} className="h-8 w-8 hover:bg-primary/20 hover:text-primary transition-all duration-300 hover:scale-105 hover:glow-sm">
+                    <PlusCircle className="h-5 w-5" />
+                </Button>
+            </header>
+            <ScrollArea className="flex-1">
+                <div className="p-2 space-y-1">
+                    {chatHistory.map(chat => (
+                        <div key={chat.id} className="flex items-center group">
+                            <Button
+                                variant={activeChatId === chat.id ? "secondary" : "ghost"}
+                                className="w-full justify-start gap-2 truncate transition-all duration-300 hover:scale-105"
+                                onClick={() => setActiveChatId(chat.id)}
+                            >
+                                <MessageSquare className="h-4 w-4" />
+                                <span className="truncate">{chat.title}</span>
+                            </Button>
+                             <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-105 hover:bg-destructive/20 hover:text-destructive">
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete this chat?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        This will permanently delete "{chat.title}". This action cannot be undone.
+                                    </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleDeleteChat(chat.id)} className="bg-destructive hover:bg-destructive/80">Confirm Delete</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </div>
+                    ))}
+                </div>
+            </ScrollArea>
+             <div className="p-4 border-t border-white/10">
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="destructive" className="w-full transition-all duration-300 hover:scale-105 hover:glow-sm-destructive">
+                            <Trash2 className="mr-2 h-4 w-4" /> Clear All History
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will permanently delete all your chat history. This action cannot be undone.
+                        </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleClearHistory} className="bg-destructive hover:bg-destructive/80">Confirm Delete All</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+            </div>
+        </div>
 
         {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col bg-background/50">
           <ScrollArea className="flex-1 p-6" ref={scrollAreaRef}>
-            <div className="space-y-6">
-              {(!activeChat || activeChat.messages.length === 0) && (
-                <div className="text-center text-muted-foreground py-12 flex flex-col items-center justify-center h-full">
-                    <Bot className="mx-auto h-12 w-12 mb-4" />
-                    <p>No messages yet. Ask me anything!</p>
-                     <p className="text-sm mt-2">You can also upload a PDF and ask for a summary.</p>
-                </div>
-              )}
+            <div className="space-y-6 max-w-4xl mx-auto">
               {activeChat?.messages.map((message) => (
                 <div
                   key={message.id}
                   className={cn(
-                    "flex items-start gap-4",
+                    "flex items-start gap-4 group",
                     message.role === "user" ? "justify-end" : "justify-start"
                   )}
                 >
                   {message.role === "assistant" && (
-                    <Avatar className="h-8 w-8 border border-primary">
+                    <Avatar className="h-10 w-10 border-2 border-primary shadow-lg shadow-primary/20">
                       <AvatarFallback className="bg-primary text-primary-foreground">
-                        <Bot size={18}/>
+                        <Bot size={22}/>
                       </AvatarFallback>
                     </Avatar>
                   )}
-                  <div
-                    className={cn(
-                      "max-w-2xl w-full rounded-lg px-4 py-3 shadow-sm",
-                      message.role === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-secondary"
-                    )}
-                  >
-                    {message.image && (
-                        <div className="relative aspect-video w-full overflow-hidden rounded-md border mb-2">
-                            <Image src={message.image} alt="User upload" fill className="object-contain"/>
-                        </div>
-                    )}
-                     {message.pdf && (
-                        <div className="flex items-center gap-2 p-2 rounded-md bg-primary/10 mb-2">
-                            <FileText className="h-5 w-5 text-primary-foreground/80" />
-                            <span className="text-sm font-medium truncate">{message.pdf.name}</span>
-                        </div>
-                    )}
-                    <p className="whitespace-pre-wrap text-sm">{message.content}</p>
+                   {message.role === "system" && (
+                    <div className="w-full flex justify-center">
+                      <div className="italic text-sm text-muted-foreground bg-secondary/50 px-4 py-2 rounded-2xl">
+                          {message.content}
+                      </div>
+                    </div>
+                  )}
+                  { (message.role === "user" || message.role === "assistant") &&
+                    <div
+                        className={cn(
+                        "max-w-2xl w-fit rounded-2xl p-4 shadow-lg transition-all duration-300 ease-in-out group-hover:scale-[1.02] group-hover:shadow-xl",
+                        message.role === "user"
+                            ? "bg-primary text-primary-foreground rounded-br-none"
+                            : "bg-secondary text-secondary-foreground rounded-bl-none",
+                        )}
+                    >
+                        {message.image && (
+                            <div className="relative aspect-video w-full overflow-hidden rounded-md border mb-2">
+                                <Image src={message.image} alt="User upload" fill className="object-contain"/>
+                            </div>
+                        )}
+                        {message.pdf && (
+                            <div className="flex items-center gap-2 p-2 rounded-md bg-black/10 mb-2">
+                                <FileText className="h-5 w-5" />
+                                <span className="text-sm font-medium truncate">{message.pdf.name}</span>
+                            </div>
+                        )}
+                        <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
 
-                     {message.analysis && (message.analysis.summary || (message.analysis.keyConcepts && message.analysis.keyConcepts.length > 0) || (message.analysis.practiceQuestions && message.analysis.practiceQuestions.length > 0)) && (
-                        <Card className="mt-4 bg-background/50">
-                            <CardHeader>
-                                <CardTitle className="text-lg font-headline">Detailed Analysis</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                {message.analysis.summary && (
-                                    <div>
-                                        <h4 className="font-semibold text-base mb-2 flex items-center"><BookOpen className="w-4 h-4 mr-2" />Summary</h4>
-                                        <p className="text-sm text-muted-foreground prose prose-sm dark:prose-invert">{message.analysis.summary}</p>
-                                    </div>
-                                )}
-                                {message.analysis.keyConcepts && message.analysis.keyConcepts.length > 0 && (
-                                     <div>
-                                        <h4 className="font-semibold text-base mb-2 flex items-center"><Lightbulb className="w-4 h-4 mr-2" />Key Concepts</h4>
-                                        <Accordion type="single" collapsible className="w-full">
-                                            {message.analysis.keyConcepts.map((item, index) => (
-                                                <AccordionItem value={`concept-${index}`} key={index}>
-                                                    <AccordionTrigger>{item.concept}</AccordionTrigger>
-                                                    <AccordionContent className="text-muted-foreground">
-                                                        {item.explanation}
-                                                    </AccordionContent>
-                                                </AccordionItem>
-                                            ))}
-                                        </Accordion>
-                                    </div>
-                                )}
-                                {message.analysis.practiceQuestions && message.analysis.practiceQuestions.length > 0 && (
-                                    <div>
-                                        <h4 className="font-semibold text-base mb-2 flex items-center"><HelpCircle className="w-4 h-4 mr-2" />Practice Questions</h4>
-                                        <div className="space-y-2">
-                                            {message.analysis.practiceQuestions.map((item, index) => (
-                                                <div key={index} className="p-3 bg-secondary/50 rounded-md">
-                                                    <p className="font-medium">Q: {item.question}</p>
-                                                    <p className="text-sm text-green-600 dark:text-green-400 mt-1">A: {item.answer}</p>
-                                                </div>
-                                            ))}
+                        {message.analysis && (message.analysis.summary || (message.analysis.keyConcepts && message.analysis.keyConcepts.length > 0) || (message.analysis.practiceQuestions && message.analysis.practiceQuestions.length > 0)) && (
+                            <Card className="mt-4 bg-background/30 border-white/20">
+                                <CardHeader>
+                                    <CardTitle className="text-lg font-headline">Detailed Analysis</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    {message.analysis.summary && (
+                                        <div>
+                                            <h4 className="font-semibold text-base mb-2 flex items-center"><BookOpen className="w-4 h-4 mr-2" />Summary</h4>
+                                            <p className="text-sm text-muted-foreground prose prose-sm dark:prose-invert">{message.analysis.summary}</p>
                                         </div>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                     )}
-                  </div>
+                                    )}
+                                    {message.analysis.keyConcepts && message.analysis.keyConcepts.length > 0 && (
+                                        <div>
+                                            <h4 className="font-semibold text-base mb-2 flex items-center"><Lightbulb className="w-4 h-4 mr-2" />Key Concepts</h4>
+                                            <Accordion type="single" collapsible className="w-full">
+                                                {message.analysis.keyConcepts.map((item, index) => (
+                                                    <AccordionItem value={`concept-${index}`} key={index} className="border-b-white/10">
+                                                        <AccordionTrigger>{item.concept}</AccordionTrigger>
+                                                        <AccordionContent className="text-muted-foreground">
+                                                            {item.explanation}
+                                                        </AccordionContent>
+                                                    </AccordionItem>
+                                                ))}
+                                            </Accordion>
+                                        </div>
+                                    )}
+                                    {message.analysis.practiceQuestions && message.analysis.practiceQuestions.length > 0 && (
+                                        <div>
+                                            <h4 className="font-semibold text-base mb-2 flex items-center"><HelpCircle className="w-4 h-4 mr-2" />Practice Questions</h4>
+                                            <div className="space-y-2">
+                                                {message.analysis.practiceQuestions.map((item, index) => (
+                                                    <div key={index} className="p-3 bg-black/10 rounded-md">
+                                                        <p className="font-medium">Q: {item.question}</p>
+                                                        <p className="text-sm text-green-500 dark:text-green-400 mt-1">A: {item.answer}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        )}
+                    </div>
+                  }
                    {message.role === "user" && (
-                    <Avatar className="h-8 w-8 border border-accent">
+                    <Avatar className="h-10 w-10 border-2 border-accent shadow-lg shadow-accent/20">
                       <AvatarFallback className="bg-accent text-accent-foreground">
-                        <User size={18}/>
+                        <User size={22}/>
                       </AvatarFallback>
                     </Avatar>
                   )}
@@ -439,99 +436,102 @@ export default function ChatInterface() {
               ))}
               {isLoading && (
                  <div className="flex items-start gap-4 justify-start">
-                    <Avatar className="h-8 w-8 border border-primary">
+                    <Avatar className="h-10 w-10 border-2 border-primary shadow-lg shadow-primary/20">
                       <AvatarFallback className="bg-primary text-primary-foreground">
-                        <Bot size={18}/>
+                        <Bot size={22}/>
                       </AvatarFallback>
                     </Avatar>
-                    <div className="max-w-md rounded-lg px-4 py-3 shadow-sm bg-secondary flex items-center">
+                    <div className="max-w-md rounded-2xl px-4 py-3 shadow-lg bg-secondary flex items-center">
                         <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                     </div>
                  </div>
               )}
             </div>
           </ScrollArea>
-          <div className="border-t p-4 bg-background">
-            <form onSubmit={handleSendMessage} className="space-y-4">
-                <div className="flex items-start gap-4">
-                  {image && (
-                    <div className="relative w-32 h-32 group">
-                      <Image src={image} alt="Selected image" layout="fill" className="rounded-md object-cover" />
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="destructive"
-                        className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => setImage(null)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
+          <div className="border-t border-white/10 p-4 bg-background/50">
+            <div className="max-w-4xl mx-auto">
+                <form onSubmit={handleSendMessage} className="space-y-4">
+                    <div className="flex items-start gap-4">
+                    {image && (
+                        <div className="relative w-32 h-32 group">
+                        <Image src={image} alt="Selected image" layout="fill" className="rounded-lg object-cover border-2 border-primary shadow-lg" />
+                        <Button
+                            type="button"
+                            size="icon"
+                            variant="destructive"
+                            className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => setImage(null)}
+                        >
+                            <X className="h-4 w-4" />
+                        </Button>
+                        </div>
+                    )}
+                    {pdf && (
+                        <div className="relative w-48 group bg-secondary p-3 rounded-xl flex items-center gap-2 border border-primary/50 shadow-md">
+                        <FileText className="h-6 w-6 text-primary" />
+                        <p className="text-sm truncate flex-1">{pdf.name}</p>
+                        <Button
+                            type="button"
+                            size="icon"
+                            variant="destructive"
+                            className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => setPdf(null)}
+                        >
+                            <X className="h-4 w-4" />
+                        </Button>
+                        </div>
+                    )}
                     </div>
-                  )}
-                   {pdf && (
-                    <div className="relative w-48 group bg-secondary p-3 rounded-lg flex items-center gap-2">
-                      <FileText className="h-6 w-6 text-secondary-foreground" />
-                      <p className="text-sm truncate flex-1">{pdf.name}</p>
-                      <Button
+                <div className="flex items-center gap-2 bg-secondary rounded-2xl p-2 border border-transparent focus-within:border-primary focus-within:glow-sm transition-all duration-300">
+                    <Button
                         type="button"
+                        variant="ghost"
                         size="icon"
-                        variant="destructive"
-                        className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => setPdf(null)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
+                        onClick={() => imageInputRef.current?.click()}
+                        disabled={isLoading || !!pdf}
+                        className="hover:bg-primary/20 hover:text-primary transition-all duration-300 hover:scale-110"
+                    >
+                        <Paperclip className="h-5 w-5" />
+                        <span className="sr-only">Upload Image</span>
+                    </Button>
+                    <Input type="file" ref={imageInputRef} onChange={handleImageChange} className="hidden" accept="image/*" />
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => pdfInputRef.current?.click()}
+                        disabled={isLoading || !!image}
+                        className="hover:bg-primary/20 hover:text-primary transition-all duration-300 hover:scale-110"
+                    >
+                        <FileText className="h-5 w-5" />
+                        <span className="sr-only">Upload PDF</span>
+                    </Button>
+                     <Input type="file" ref={pdfInputRef} onChange={handlePdfChange} className="hidden" accept="application/pdf" />
+
+                    <Input
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="Ask me anything..."
+                    className="flex-1 bg-transparent border-none focus:ring-0 focus-visible:ring-offset-0 text-base"
+                    disabled={isLoading}
+                    />
+                     <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        disabled={isLoading}
+                        className="hover:bg-primary/20 hover:text-primary transition-all duration-300 hover:scale-110"
+                    >
+                        <Mic className="h-5 w-5" />
+                        <span className="sr-only">Use Microphone</span>
+                    </Button>
+                    <Button type="submit" size="icon" disabled={isLoading || (!input.trim() && !image && !pdf)} className="bg-primary rounded-xl w-10 h-10 transition-all duration-300 hover:scale-110 hover:glow-md disabled:bg-muted">
+                    {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+                    <span className="sr-only">Send</span>
+                    </Button>
                 </div>
-              <div className="flex items-center gap-4">
-                 <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={() => imageInputRef.current?.click()}
-                    disabled={isLoading || !!pdf}
-                  >
-                    <Paperclip className="h-4 w-4" />
-                    <span className="sr-only">Upload Image</span>
-                  </Button>
-                  <Input
-                    type="file"
-                    ref={imageInputRef}
-                    onChange={handleImageChange}
-                    className="hidden"
-                    accept="image/*"
-                  />
-                   <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    onClick={() => pdfInputRef.current?.click()}
-                    disabled={isLoading || !!image}
-                  >
-                    <FileText className="h-4 w-4" />
-                    <span className="sr-only">Upload PDF</span>
-                  </Button>
-                  <Input
-                    type="file"
-                    ref={pdfInputRef}
-                    onChange={handlePdfChange}
-                    className="hidden"
-                    accept="application/pdf"
-                  />
-                <Input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Type your question or ask to summarize a PDF..."
-                  className="flex-1"
-                  disabled={isLoading}
-                />
-                <Button type="submit" size="icon" disabled={isLoading || (!input.trim() && !image && !pdf)}>
-                  {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                  <span className="sr-only">Send</span>
-                </Button>
-              </div>
-            </form>
+                </form>
+            </div>
           </div>
         </div>
     </div>

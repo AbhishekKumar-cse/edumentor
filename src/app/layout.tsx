@@ -8,6 +8,7 @@ import Header from '@/components/layout/header';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from "next-themes";
 import { ProfileProvider } from '@/context/profile-context';
+import AppContent from './app-content';
 
 export const metadata: Metadata = {
   title: 'EduMentor AI',
@@ -32,15 +33,7 @@ export default function RootLayout({
             disableTransitionOnChange
         >
           <ProfileProvider>
-            <SidebarProvider>
-            <div className="flex min-h-screen">
-                <AppSidebar />
-                <div className="flex flex-1 flex-col">
-                <Header />
-                <main className="flex-1">{children}</main>
-                </div>
-            </div>
-            </SidebarProvider>
+            <AppContent>{children}</AppContent>
             <Toaster />
           </ProfileProvider>
         </ThemeProvider>
