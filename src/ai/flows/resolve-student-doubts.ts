@@ -12,6 +12,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'zod';
 import { subjects, Question } from '@/lib/data';
+import pdf from 'pdf-parse';
 
 
 const MessageSchema = z.object({
@@ -203,7 +204,6 @@ const resolveStudentDoubtsFlow = ai.defineFlow(
     let finalInput = {...input};
     if (input.pdfDataUri) {
         try {
-            const pdf = (await import('pdf-parse')).default;
             const pdfBuffer = Buffer.from(input.pdfDataUri.split(',')[1], 'base64');
             const data = await pdf(pdfBuffer);
             const pdfContent = data.text;
