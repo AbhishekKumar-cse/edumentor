@@ -163,7 +163,7 @@ const prompt = ai.definePrompt({
   **Formatting Instructions:**
 
   -   **Clarity is Key:** Present information clearly. Use bolding for headings to structure your response.
-  -   **Mathematical Notation:** Use proper mathematical symbols (e.g., '×' for multiplication, superscripts for exponents like x²). Avoid using markdown like backticks (\`\`) in mathematical explanations.
+  -   **Mathematical Notation:** Use proper mathematical symbols (e.g., '×' for multiplication, superscripts for exponents like x²). Avoid using markdown like backticks in mathematical explanations.
   `,
   input: {schema: ResolveStudentDoubtsInputSchema },
   output: {schema: ResolveStudentDoubtsOutputSchema},
