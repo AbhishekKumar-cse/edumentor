@@ -107,13 +107,18 @@ const getCurrentWeather = ai.defineTool(
     // In a real app, this would call a weather API.
     // For this example, we'll return mock data.
     console.log(`Fetching weather for ${city}...`);
+    if (city.toLowerCase().includes('delhi')) {
+        return {
+            temperature: 38 + Math.random() * 4,
+            conditions: 'Hazy sunshine',
+        };
+    }
     return {
       temperature: 22 + Math.random() * 10,
       conditions: 'Sunny with scattered clouds',
     };
   }
 );
-
 
 const searchTheWeb = ai.defineTool(
   {
@@ -125,10 +130,11 @@ const searchTheWeb = ai.defineTool(
     outputSchema: z.string().describe('A summary of the search results.'),
   },
   async ({ query }) => {
-    // In a real app, this would use a search engine API.
-    // For this example, we'll return a placeholder.
     console.log(`Searching the web for: ${query}`);
-    if (query.toLowerCase().includes('governor of rajasthan')) {
+    if (query.toLowerCase().includes('pm of india') || query.toLowerCase().includes('prime minister of india')) {
+        return "As of my last update, the Prime Minister of India is Narendra Modi."
+    }
+     if (query.toLowerCase().includes('governor of rajasthan')) {
         return "As of my last update, the Governor of Rajasthan is Kalraj Mishra. Please verify with a live news source for the most current information."
     }
     return `Placeholder search results for "${query}". In a real app, this would be a live web search.`;
@@ -139,16 +145,14 @@ const searchTheWeb = ai.defineTool(
 const prompt = ai.definePrompt({
   name: 'resolveStudentDoubtsPrompt',
   tools: [getCurrentWeather, searchTheWeb, getQuestionsFromBank],
-  input: {schema: ResolveStudentDoubtsInputSchema },
-  output: {schema: ResolveStudentDoubtsOutputSchema},
-  prompt: `You are an AI assistant specialized in resolving student doubts. Your primary role is to help students with their academic questions.
+  system: `You are an AI assistant specialized in resolving student doubts. Your primary role is to help students with their academic questions.
   
   Your capabilities include:
   - Answering direct questions.
   - Providing step-by-step explanations. 
   - Analyzing text from uploaded documents (PDFs) and images.
   - Searching a pre-existing question bank for relevant practice problems.
-  - Fetching real-time information like weather and current events.
+  - Fetching real-time information like weather and searching the web for current events.
 
   **Formatting Instructions:**
 
@@ -167,9 +171,12 @@ const prompt = ai.definePrompt({
       - If the user's question is based on an uploaded document (its content will be prepended to the question), prioritize answering based on that document.
       - If the user asks for a summary, key concepts, or practice questions from the document, populate the 'summary', 'keyConcepts', or 'practiceQuestions' fields in your output. For other questions, you can leave these fields empty.
   3.  **Image Analysis:** If an image is provided, analyze it carefully along with the user's question.
-  4.  **Question Bank Tool:** If the user asks for "example questions," a "question list," or "practice problems" on a certain topic, use the 'getQuestionsFromBank' tool to find relevant questions and present them clearly in your answer.
-  5.  **Real-time Info:** Use the 'getCurrentWeather' or 'searchTheWeb' tools only when the user's query explicitly asks for that kind of information.
-  
+  4.  **Question Bank Tool (\`getQuestionsFromBank\`):** If the user asks for "example questions," a "question list," or "practice problems" on a certain academic topic, use this tool to find relevant questions and present them clearly in your answer.
+  5.  **Web Search Tool (\`searchTheWeb\`):** Use this tool only when the user's query explicitly asks for information that is very recent, related to current events, or is unlikely to be in your general knowledge base (e.g., "Who is the current governor of Rajasthan?"). Do not use it for general academic concept explanations.
+  `,
+  input: {schema: ResolveStudentDoubtsInputSchema },
+  output: {schema: ResolveStudentDoubtsOutputSchema},
+  prompt: `
   **Conversation History:**
   {{#each history}}
     {{role}}: {{content}}
@@ -210,14 +217,21 @@ const resolveStudentDoubtsFlow = ai.defineFlow(
         }
     }
     
-    const {output} = await prompt(finalInput);
-    
-    if (!output) {
-      return {
-        answer: "I'm sorry, but I was unable to generate a response for your query. This might be due to a safety filter or an issue with the provided context. Please try rephrasing your question or simplifying the provided document."
-      };
-    }
+    try {
+        const {output} = await prompt(finalInput);
+        
+        if (!output) {
+          return {
+            answer: "I'm sorry, but I was unable to generate a response for your query. This might be due to a safety filter or an issue with the provided context. Please try rephrasing your question or simplifying the provided document."
+          };
+        }
 
-    return output;
+        return output;
+    } catch (e) {
+        console.error("An unexpected error occurred while processing your request.", e);
+        return {
+            answer: "An unexpected error occurred while processing your request. The AI model may have had an issue with the input. Please try again."
+        }
+    }
   }
 );
