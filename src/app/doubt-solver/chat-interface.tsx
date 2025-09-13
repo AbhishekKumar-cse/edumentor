@@ -361,7 +361,7 @@ export default function ChatInterface() {
                   { (message.role === "user" || message.role === "assistant") &&
                     <div
                         className={cn(
-                        "max-w-2xl w-fit rounded-2xl p-4 shadow-lg transition-all duration-300 ease-in-out group-hover:scale-[1.02] group-hover:shadow-xl",
+                        "max-w-2xl w-fit rounded-2xl p-4 shadow-lg transition-all duration-300 ease-in-out group-hover:scale-[1.02] group-hover:shadow-xl group-hover:shadow-primary/10",
                         message.role === "user"
                             ? "bg-primary text-primary-foreground rounded-br-none"
                             : "bg-secondary text-secondary-foreground rounded-bl-none",

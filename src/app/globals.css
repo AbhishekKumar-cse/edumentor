@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -114,18 +115,18 @@
 }
 
 @layer utilities {
-  @keyframes scroll {
-    to {
-      transform: translate(calc(-50% - 0.5rem));
-    }
+  @property --angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
   }
 
   @keyframes rotate {
     0% {
-      transform: rotate(0deg);
+      --angle: 0deg;
     }
     100% {
-      transform: rotate(360deg);
+      --angle: 360deg;
     }
   }
 
@@ -150,6 +151,7 @@
       hsl(var(--gradient-pink)) 66%,
       hsl(var(--gradient-cyan)) 100%
     );
+    animation: rotate 20s linear infinite;
   }
    .bg-gradient-cyan-purple-pink-fast {
     background-image: conic-gradient(
@@ -162,6 +164,7 @@
       hsl(var(--gradient-pink)) 90%,
       hsl(var(--gradient-cyan)) 100%
     );
+     animation: rotate 10s linear infinite;
   }
 
   .bg-gradient-cyan-purple-pink-extra-fast {
@@ -175,10 +178,11 @@
       hsl(var(--gradient-pink)),
       hsl(var(--gradient-cyan))
     );
+     animation: rotate 10s linear infinite;
   }
 
   .animate-rotate {
-    animation: rotate 10s linear infinite;
+    animation: rotate 20s linear infinite;
   }
 
 }
