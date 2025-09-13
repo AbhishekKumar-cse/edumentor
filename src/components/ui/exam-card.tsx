@@ -20,9 +20,9 @@ export default function ExamCard({ name, logo, tag, href, tagColor }: ExamCardPr
   return (
     <div className="w-36 flex-shrink-0">
         <Link href={isComingSoon ? '#' : href} className="flex flex-col group">
-            <Card className="bg-secondary/30 group-hover:bg-primary/10 group-hover:border-primary transition-all duration-300 cursor-pointer h-full flex-1 flex flex-col">
+            <Card className="bg-secondary/30 group-hover:bg-primary/10 group-hover:border-primary transition-all duration-300 cursor-pointer h-full flex-1 flex flex-col hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1">
                 <CardContent className="p-4 flex flex-col items-center justify-center text-center gap-3 flex-1">
-                <div className="relative h-14 w-14 bg-background/50 rounded-full flex items-center justify-center p-2 group-hover:bg-primary/20 transition-all">
+                <div className="relative h-14 w-14 bg-background/50 rounded-full flex items-center justify-center p-2 group-hover:bg-primary/20 transition-all duration-300 group-hover:scale-110">
                     <Image
                     src={logo}
                     alt={`${name} logo`}
