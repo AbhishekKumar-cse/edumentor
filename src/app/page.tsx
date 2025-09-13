@@ -42,6 +42,7 @@ import { useRouter } from 'next/navigation';
 const examCategories = [
   { name: 'JEE Main', logo: 'https://picsum.photos/seed/jee-main-logo/40/40', tag: '2025 QS ADDED', tagColor: 'bg-red-500/20 text-red-400 border-red-500/30', href: '/mock-test' },
   { name: 'JEE Advanced', logo: 'https://picsum.photos/seed/jee-advanced-logo/40/40', tag: '2025 QS ADDED', tagColor: 'bg-red-500/20 text-red-400 border-red-500/30', href: '/mock-test' },
+  { name: 'NEET', logo: 'https://picsum.photos/seed/neet-logo/40/40', tag: '2025 QS ADDED', tagColor: 'bg-green-500/20 text-green-400 border-green-500/30', href: '/mock-test' },
   { name: 'Boards', logo: 'https://picsum.photos/seed/boards-logo/40/40', tag: 'New', tagColor: 'bg-pink-500/20 text-pink-400 border-pink-500/30', href: '/mock-test' },
   { name: 'NTA Abhyas (JEE Main)', logo: 'https://picsum.photos/seed/nta-logo/40/40', tag: 'COMING SOON', tagColor: 'bg-gray-500/20 text-gray-400 border-gray-500/30', href: '#' },
   { name: 'BITSAT', logo: 'https://picsum.photos/seed/bitsat-logo/40/40', tag: 'COMING SOON', tagColor: 'bg-gray-500/20 text-gray-400 border-gray-500/30', href: '#' },
