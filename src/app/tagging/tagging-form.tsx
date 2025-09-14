@@ -1,26 +1,28 @@
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { tagQuestionsWithAI, type TagQuestionsWithAIOutput } from '@/ai/flows/tag-questions-with-ai';
 import type { Question } from '@/lib/data';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Cpu, CheckCircle, XCircle, BookOpen, BrainCircuit, Sigma, MessageCircleQuestion } from 'lucide-react';
+import { Loader2, Cpu, CheckCircle, XCircle, BookOpen, BrainCircuit, Sigma, MessageCircleQuestion, ArrowLeft, Tag } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import Link from 'next/link';
 
 const formSchema = z.object({
   questionText: z.string().min(10, {
@@ -50,7 +52,7 @@ const QuestionCard = ({ question, index }: { question: Question; index: number; 
     };
 
     return (
-        <div className="p-4 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors border">
+        <div className="p-4 rounded-lg bg-black/10 hover:bg-black/20 transition-colors border border-white/10">
            <p className="font-semibold mb-2">Q{index + 1}: {question.text}</p>
           <RadioGroup
             value={selectedOption || undefined}
@@ -86,7 +88,7 @@ const QuestionCard = ({ question, index }: { question: Question; index: number; 
     )
 }
 
-export default function TaggingForm() {
+function TaggingFormComponent() {
   const [taggingResult, setTaggingResult] = useState<TagQuestionsWithAIOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -128,140 +130,182 @@ export default function TaggingForm() {
 
 
   return (
-    <div className="space-y-8">
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
-          <FormField
-            control={form.control}
-            name="questionText"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Question Text</FormLabel>
-                <FormControl>
-                  <Textarea placeholder="Enter the full text of the question here..." rows={4} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button type="submit" disabled={isLoading} variant="accent">
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Tag with AI
-          </Button>
-        </form>
-      </Form>
-
-      {(isLoading || taggingResult) && (
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3">
-              <Cpu className="w-6 h-6 text-primary" />
-              <span className="font-headline text-2xl">AI Analysis</span>
-            </CardTitle>
-            <CardDescription>Results from the AI-powered tagging process.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="flex items-center justify-center p-8">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-              </div>
-            ) : taggingResult && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h4 className="font-semibold mb-2 text-muted-foreground">Difficulty</h4>
-                    <Badge variant={difficultyVariantMap[taggingResult.difficulty]} className={cn('capitalize text-sm', {
-                          'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800': taggingResult.difficulty === 'easy',
-                          'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-800': taggingResult.difficulty === 'medium',
-                          'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800': taggingResult.difficulty === 'hard',
-                    })}>
-                      {taggingResult.difficulty}
-                    </Badge>
-                  </div>
-                   <div>
-                    <h4 className="font-semibold mb-2 text-muted-foreground">Past Paper Details</h4>
-                    <div className="flex items-center gap-2">
-                        {taggingResult.pastPaperDetails.isPastPaper ? (
-                            <CheckCircle className="h-5 w-5 text-green-500" />
-                        ) : (
-                            <XCircle className="h-5 w-5 text-red-500" />
-                        )}
-                        <span>
-                            {taggingResult.pastPaperDetails.isPastPaper 
-                                ? `${taggingResult.pastPaperDetails.exam || 'Past Paper'}, ${taggingResult.pastPaperDetails.year || 'Unknown Year'}`
-                                : 'Not from a known past paper'}
-                        </span>
-                    </div>
-                  </div>
+    <div className="flex h-full">
+        <div className="w-1/3 border-r border-white/10 p-6 flex flex-col gap-8">
+            <header className="space-y-2">
+                <div className="flex items-center gap-4">
+                     <Button asChild variant="ghost" size="icon" className="h-10 w-10 text-primary hover:bg-primary/10 transition-colors">
+                        <Link href="/"><ArrowLeft /></Link>
+                     </Button>
+                    <h1 className="text-3xl font-headline font-bold">AI Question Tagger</h1>
                 </div>
-
-                <Separator />
-                
-                <div>
-                  <h4 className="font-headline text-lg mb-4 flex items-center gap-2">
-                    <BrainCircuit className="h-5 w-5 text-primary" />
-                    Key Concepts & Study material
-                  </h4>
-                  <Accordion type="single" collapsible className="w-full space-y-3">
-                    {taggingResult.concepts.map((concept, index) => (
-                      <AccordionItem value={`concept-${index}`} key={index} className="border rounded-lg px-4">
-                        <AccordionTrigger className="font-semibold text-base">{concept.name}</AccordionTrigger>
-                        <AccordionContent className="space-y-4">
-                          <p className="text-sm text-muted-foreground">{concept.explanation}</p>
-                          
-                          {concept.formulas && concept.formulas.length > 0 && (
-                            <div>
-                                <h5 className="font-semibold mb-2 flex items-center gap-2 text-muted-foreground">
-                                    <Sigma className="h-4 w-4" />
-                                    Important Formulas
-                                </h5>
-                                <div className="space-y-2">
-                                {concept.formulas.map((formula, fIndex) => (
-                                    <div key={fIndex} className="p-3 bg-secondary/50 rounded-md text-sm">
-                                        <p className="font-semibold">{formula.name}</p>
-                                        <code className="block my-1 p-2 rounded bg-muted font-code text-primary">{formula.formula}</code>
-                                    </div>
-                                ))}
+                <p className="text-muted-foreground text-base">
+                    Automatically classify questions by difficulty, concepts, and more. Paste a question to get started.
+                </p>
+            </header>
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
+                <FormField
+                    control={form.control}
+                    name="questionText"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel className="text-lg font-semibold">Question Text</FormLabel>
+                        <FormControl>
+                        <Textarea placeholder="e.g., 'A block of mass m is placed on a smooth inclined plane of inclination θ...'" rows={10} {...field} className="bg-secondary/30 text-base" />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                <Button type="submit" disabled={isLoading} variant="accent" size="lg" className="w-full transition-all duration-300 hover:scale-105 hover:glow-md">
+                    {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Tag className="mr-2 h-5 w-5" />}
+                    Tag with AI
+                </Button>
+                </form>
+            </Form>
+        </div>
+        <div className="w-2/3">
+            <ScrollArea className="h-full">
+                 <div className="p-6">
+                    {(isLoading || taggingResult) ? (
+                         <Card className="bg-transparent border-0 shadow-none">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-3">
+                                <Cpu className="w-8 h-8 text-primary" />
+                                <span className="font-headline text-3xl">AI Analysis</span>
+                                </CardTitle>
+                                <CardDescription className="text-base">Results from the AI-powered tagging process.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {isLoading ? (
+                                <div className="flex items-center justify-center p-16 flex-col gap-4">
+                                    <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                                    <p className="text-muted-foreground">Analyzing question...</p>
                                 </div>
-                            </div>
-                          )}
+                                ) : taggingResult && (
+                                <div className="space-y-8">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <Card className="bg-secondary/50">
+                                            <CardHeader>
+                                                <CardTitle className="text-lg font-semibold">Difficulty</CardTitle>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <Badge variant={difficultyVariantMap[taggingResult.difficulty]} className={cn('capitalize text-lg', {
+                                                    'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800': taggingResult.difficulty === 'easy',
+                                                    'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-800': taggingResult.difficulty === 'medium',
+                                                    'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800': taggingResult.difficulty === 'hard',
+                                                })}>
+                                                {taggingResult.difficulty}
+                                                </Badge>
+                                            </CardContent>
+                                        </Card>
+                                        <Card className="bg-secondary/50">
+                                             <CardHeader>
+                                                <CardTitle className="text-lg font-semibold">Past Paper Details</CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="flex items-center gap-2 text-base">
+                                                {taggingResult.pastPaperDetails.isPastPaper ? (
+                                                    <CheckCircle className="h-6 w-6 text-green-500" />
+                                                ) : (
+                                                    <XCircle className="h-6 w-6 text-red-500" />
+                                                )}
+                                                <span>
+                                                    {taggingResult.pastPaperDetails.isPastPaper 
+                                                        ? `${taggingResult.pastPaperDetails.exam || 'Past Paper'}, ${taggingResult.pastPaperDetails.year || 'Unknown Year'}`
+                                                        : 'Not from a known past paper'}
+                                                </span>
+                                            </CardContent>
+                                        </Card>
+                                    </div>
 
-                          {concept.relatedQuestions && concept.relatedQuestions.length > 0 && (
-                             <div>
-                                <h5 className="font-semibold mb-2 flex items-center gap-2 text-muted-foreground">
-                                    <MessageCircleQuestion className="h-4 w-4" />
-                                    Related Questions
-                                </h5>
-                                 <div className="space-y-2">
-                                    {concept.relatedQuestions.map((q, i) => (
-                                        <QuestionCard key={q.id} question={q} index={i}/>
-                                    ))}
-                                 </div>
-                             </div>
-                          )}
-                        </AccordionContent>
-                      </AccordionItem>
-                    ))}
-                  </Accordion>
+                                    <Separator />
+                                    
+                                    <div>
+                                    <h4 className="font-headline text-xl mb-4 flex items-center gap-2">
+                                        <BrainCircuit className="h-6 w-6 text-primary" />
+                                        Key Concepts & Study material
+                                    </h4>
+                                    <Accordion type="single" collapsible className="w-full space-y-3">
+                                        {taggingResult.concepts.map((concept, index) => (
+                                        <AccordionItem value={`concept-${index}`} key={index} className="border rounded-lg px-4 bg-secondary/30">
+                                            <AccordionTrigger className="font-semibold text-base hover:no-underline">{concept.name}</AccordionTrigger>
+                                            <AccordionContent className="space-y-6 pt-4">
+                                            <p className="text-base text-muted-foreground">{concept.explanation}</p>
+                                            
+                                            {concept.formulas && concept.formulas.length > 0 && (
+                                                <div>
+                                                    <h5 className="font-semibold mb-3 flex items-center gap-2 text-base">
+                                                        <Sigma className="h-5 w-5" />
+                                                        Important Formulas
+                                                    </h5>
+                                                    <div className="space-y-3">
+                                                    {concept.formulas.map((formula, fIndex) => (
+                                                        <div key={fIndex} className="p-3 bg-background/50 rounded-md text-sm">
+                                                            <p className="font-semibold">{formula.name}</p>
+                                                            <code className="block my-1 p-2 rounded bg-muted font-code text-primary">{formula.formula}</code>
+                                                        </div>
+                                                    ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {concept.relatedQuestions && concept.relatedQuestions.length > 0 && (
+                                                <div>
+                                                    <h5 className="font-semibold mb-3 flex items-center gap-2 text-base">
+                                                        <MessageCircleQuestion className="h-5 w-5" />
+                                                        Related Questions
+                                                    </h5>
+                                                    <div className="space-y-4">
+                                                        {concept.relatedQuestions.map((q, i) => (
+                                                            <QuestionCard key={q.id} question={q} index={i}/>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                            </AccordionContent>
+                                        </AccordionItem>
+                                        ))}
+                                    </Accordion>
+                                    </div>
+
+
+                                    <div>
+                                        <h4 className="font-headline text-xl mb-3 flex items-center gap-2">
+                                            <BookOpen className="h-6 w-6 text-primary" />
+                                            Suggested Related Topics
+                                        </h4>
+                                        <div className="flex flex-wrap gap-2">
+                                            {taggingResult.relatedTopics.map((topic, index) => (
+                                            <Badge key={index} variant="secondary" className="text-base py-1 px-3">{topic}</Badge>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    ) : (
+                         <div className="flex flex-col items-center justify-center h-full rounded-lg border border-dashed p-8 text-center text-muted-foreground min-h-[60vh]">
+                            <Cpu className="h-16 w-16 mb-4" />
+                            <h3 className="font-headline text-2xl font-semibold">AI Analysis Will Appear Here</h3>
+                            <p className="mt-2 text-base">
+                                Enter a question on the left and click "Tag with AI" to see a detailed breakdown.
+                            </p>
+                        </div>
+                    )}
                 </div>
-
-
-                 <div>
-                    <h4 className="font-headline text-lg mb-3 flex items-center gap-2">
-                        <BookOpen className="h-5 w-5 text-primary" />
-                        Suggested Related Topics
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                        {taggingResult.relatedTopics.map((topic, index) => (
-                        <Badge key={index} variant="secondary">{topic}</Badge>
-                        ))}
-                    </div>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+            </ScrollArea>
+        </div>
     </div>
   );
+}
+
+
+export default function TaggingInterface() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <TaggingFormComponent />
+    </Suspense>
+  )
 }

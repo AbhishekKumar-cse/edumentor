@@ -10,8 +10,10 @@ export default function AppContent({ children }: { children: React.ReactNode }) 
   const pathname = usePathname();
   const isDoubtSolverPage = pathname.startsWith('/doubt-solver');
   const isDppStartPage = pathname.startsWith('/dpp/start');
+  const isTaggingPage = pathname.startsWith('/tagging');
 
-  if (isDoubtSolverPage || isDppStartPage) {
+
+  if (isDoubtSolverPage || isDppStartPage || isTaggingPage) {
     return <main>{children}</main>;
   }
 
