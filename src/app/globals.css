@@ -115,18 +115,15 @@
 }
 
 @layer utilities {
-  @property --angle {
-    syntax: '<angle>';
-    initial-value: 0deg;
-    inherits: false;
-  }
-
-  @keyframes rotate {
+  @keyframes gradient-pan {
     0% {
-      --angle: 0deg;
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
     }
     100% {
-      --angle: 360deg;
+      background-position: 0% 50%;
     }
   }
 
@@ -144,32 +141,19 @@
   }
 
   .bg-gradient-cyan-purple-pink {
-    background-image: conic-gradient(
-      from var(--angle, 0deg),
-      hsl(var(--gradient-cyan)) 0%,
-      hsl(var(--gradient-purple)) 33%,
-      hsl(var(--gradient-pink)) 66%,
-      hsl(var(--gradient-cyan)) 100%
+    background: linear-gradient(
+      -45deg,
+      hsl(var(--gradient-cyan)),
+      hsl(var(--gradient-purple)),
+      hsl(var(--gradient-pink)),
+      hsl(var(--gradient-cyan))
     );
-    animation: rotate 20s linear infinite;
+    background-size: 400% 400%;
+    animation: gradient-pan 15s ease infinite;
   }
    .bg-gradient-cyan-purple-pink-fast {
-    background-image: conic-gradient(
-      from var(--angle, 0deg),
-      hsl(var(--gradient-cyan)) 0%,
-      hsl(var(--gradient-purple)) 15%,
-      hsl(var(--gradient-pink)) 30%,
-      hsl(var(--gradient-purple)) 50%,
-      hsl(var(--gradient-cyan)) 70%,
-      hsl(var(--gradient-pink)) 90%,
-      hsl(var(--gradient-cyan)) 100%
-    );
-     animation: rotate 10s linear infinite;
-  }
-
-  .bg-gradient-cyan-purple-pink-extra-fast {
-    background-image: conic-gradient(
-      from var(--angle, 0deg),
+    background: linear-gradient(
+      -45deg,
       hsl(var(--gradient-cyan)),
       hsl(var(--gradient-purple)),
       hsl(var(--gradient-pink)),
@@ -178,11 +162,35 @@
       hsl(var(--gradient-pink)),
       hsl(var(--gradient-cyan))
     );
-     animation: rotate 10s linear infinite;
+    background-size: 600% 600%;
+     animation: gradient-pan 10s ease infinite;
+  }
+
+  .bg-gradient-cyan-purple-pink-extra-fast {
+    background: linear-gradient(
+      -45deg,
+      hsl(var(--gradient-cyan)),
+      hsl(var(--gradient-purple)),
+      hsl(var(--gradient-pink)),
+      hsl(var(--gradient-purple)),
+      hsl(var(--gradient-cyan)),
+      hsl(var(--gradient-pink)),
+      hsl(var(--gradient-cyan))
+    );
+    background-size: 600% 600%;
+    animation: gradient-pan 10s ease infinite;
   }
 
   .animate-rotate {
-    animation: rotate 20s linear infinite;
+    background: linear-gradient(
+      -45deg,
+      hsl(var(--gradient-cyan)),
+      hsl(var(--gradient-purple)),
+      hsl(var(--gradient-pink)),
+      hsl(var(--gradient-cyan))
+    );
+    background-size: 400% 400%;
+    animation: gradient-pan 20s linear infinite;
   }
 
 }
