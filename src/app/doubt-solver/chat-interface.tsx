@@ -3,12 +3,13 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
+import Link from 'next/link';
 import { resolveStudentDoubts, ResolveStudentDoubtsOutput } from "@/ai/flows/resolve-student-doubts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Send, User, Bot, Loader2, Paperclip, X, FileText, PlusCircle, Trash2, MessageSquare, History, Lightbulb, HelpCircle, BookOpen, Mic } from "lucide-react";
+import { Send, User, Bot, Loader2, Paperclip, X, FileText, PlusCircle, Trash2, MessageSquare, History, Lightbulb, HelpCircle, BookOpen, Mic, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -268,8 +269,14 @@ export default function ChatInterface() {
   return (
     <div className="flex h-full w-full rounded-2xl bg-background/80 backdrop-blur-sm border border-white/20 shadow-2xl shadow-black/20 overflow-hidden">
         <div className="w-1/4 max-w-xs border-r border-white/10 flex flex-col">
-            <header className="p-4 border-b border-white/10 flex items-center justify-between">
-                <h1 className="text-xl font-bold font-headline">History</h1>
+            <header className="p-4 border-b border-white/10 flex items-center justify-between gap-2">
+                <Button asChild variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/20 hover:text-primary transition-all duration-300 hover:scale-105 hover:glow-sm">
+                    <Link href="/">
+                        <ArrowLeft className="h-5 w-5" />
+                        <span className="sr-only">Back to Dashboard</span>
+                    </Link>
+                </Button>
+                <h1 className="text-xl font-bold font-headline text-center flex-1">History</h1>
                 <Button variant="ghost" size="icon" onClick={handleNewChat} className="h-8 w-8 hover:bg-primary/20 hover:text-primary transition-all duration-300 hover:scale-105 hover:glow-sm">
                     <PlusCircle className="h-5 w-5" />
                 </Button>
