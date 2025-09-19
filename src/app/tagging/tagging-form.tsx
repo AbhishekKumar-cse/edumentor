@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback, Suspense, useRef } from 'react';
@@ -343,31 +344,30 @@ function TaggingFormComponent() {
 
 
   return (
-    <div className="flex flex-col md:flex-row h-full">
-      {/* History Panel - Desktop */}
-      <div className="w-full md:w-1/4 max-w-xs border-r border-white/10 flex-col hidden md:flex">
+    <div className="flex h-full">
+      {/* History Panel */}
+      <div className="w-1/4 max-w-xs border-r border-white/10 flex-col hidden md:flex">
         <HistoryPanelContent />
       </div>
 
-      {/* Main Content Area - Now a flex container */}
-      <main className="flex-1 flex flex-col md:flex-row overflow-hidden">
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 overflow-hidden">
         {/* Input Form Section */}
-        <div className="w-full md:w-1/2 lg:w-1/3 p-4 md:p-6 flex flex-col gap-4 md:gap-8 border-b md:border-b-0 md:border-r border-white/10">
-          <header className="space-y-2 flex-shrink-0">
-            <div className="flex items-center gap-4">
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="outline" size="icon" className="md:hidden">
-                    <History className="h-5 w-5"/>
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="p-0 flex flex-col w-full max-w-sm">
-                  <HistoryPanelContent/>
-                </SheetContent>
-              </Sheet>
-              <h1 className="text-2xl md:text-3xl font-headline font-bold">AI Question Tagger</h1>
+        <div className="p-6 flex flex-col gap-8 border-r border-white/10">
+          <header className="space-y-2">
+            <div className='flex items-center gap-4'>
+                <Sheet>
+                    <SheetTrigger asChild>
+                        <Button variant="outline" size="icon" className="md:hidden">
+                            <History className="h-5 w-5"/>
+                        </Button>
+                    </SheetTrigger>
+                    <SheetContent side="left" className="p-0 flex flex-col w-[80%] max-w-sm">
+                        <HistoryPanelContent/>
+                    </SheetContent>
+                </Sheet>
+                <h1 className="text-3xl font-headline font-bold">AI Question Tagger</h1>
             </div>
-            <p className="text-muted-foreground text-sm md:text-base">
+            <p className="text-muted-foreground">
               Automatically classify questions by difficulty, concepts, and more. Paste a question to get started.
             </p>
           </header>
@@ -377,10 +377,10 @@ function TaggingFormComponent() {
                 control={form.control}
                 name="questionText"
                 render={({ field }) => (
-                  <FormItem className="flex-1 flex flex-col">
-                    <FormLabel className="text-lg font-semibold">Question Text</FormLabel>
-                    <FormControl className="flex-1">
-                      <Textarea placeholder="e.g., 'A block of mass m is placed on a smooth inclined plane of inclination θ...'" {...field} className="bg-secondary/30 text-base flex-1 resize-none min-h-[200px] md:min-h-0" />
+                  <FormItem className='flex-1 flex flex-col'>
+                    <FormLabel className='text-lg font-semibold'>Question Text</FormLabel>
+                    <FormControl className='flex-1'>
+                      <Textarea placeholder="e.g., 'A block of mass m is placed on a smooth inclined plane of inclination θ...'" {...field} className="bg-secondary/30 text-base flex-1 resize-none" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -395,16 +395,16 @@ function TaggingFormComponent() {
         </div>
 
         {/* Results Panel Section */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="p-4 md:p-6">
+        <ScrollArea className="flex-1">
+          <div className="p-6">
             {(isLoading || activeSearch?.result) ? (
               <Card className="bg-transparent border-0 shadow-none">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3">
-                    <Cpu className="w-6 h-6 md:w-8 md:h-8 text-primary" />
-                    <span className="font-headline text-2xl md:text-3xl">AI Analysis</span>
+                    <Cpu className="w-8 h-8 text-primary" />
+                    <span className="font-headline text-3xl">AI Analysis</span>
                   </CardTitle>
-                  <CardDescription className="text-sm md:text-base">Results from the AI-powered tagging process.</CardDescription>
+                  <CardDescription>Results from the AI-powered tagging process.</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {isLoading ? (
@@ -414,13 +414,13 @@ function TaggingFormComponent() {
                     </div>
                   ) : activeSearch?.result && (
                     <div className="space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-4">
                         <Card className="bg-secondary/50">
                           <CardHeader>
-                            <CardTitle className="text-base md:text-lg font-semibold">Difficulty</CardTitle>
+                            <CardTitle className="text-lg font-semibold">Difficulty</CardTitle>
                           </CardHeader>
                           <CardContent>
-                            <Badge variant={difficultyVariantMap[activeSearch.result.difficulty]} className={cn('capitalize text-base md:text-lg', {
+                            <Badge variant={difficultyVariantMap[activeSearch.result.difficulty]} className={cn('capitalize text-lg', {
                               'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800': activeSearch.result.difficulty === 'easy',
                               'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-800': activeSearch.result.difficulty === 'medium',
                               'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800': activeSearch.result.difficulty === 'hard',
@@ -431,13 +431,13 @@ function TaggingFormComponent() {
                         </Card>
                         <Card className="bg-secondary/50">
                           <CardHeader>
-                            <CardTitle className="text-base md:text-lg font-semibold">Past Paper Details</CardTitle>
+                            <CardTitle className="text-lg font-semibold">Past Paper Details</CardTitle>
                           </CardHeader>
-                          <CardContent className="flex items-center gap-2 text-sm md:text-base">
+                          <CardContent className="flex items-center gap-2 text-base">
                             {activeSearch.result.pastPaperDetails.isPastPaper ? (
-                              <CheckCircle className="h-5 w-5 md:h-6 md:w-6 text-green-500" />
+                              <CheckCircle className="h-6 w-6 text-green-500" />
                             ) : (
-                              <XCircle className="h-5 w-5 md:h-6 md:w-6 text-red-500" />
+                              <XCircle className="h-6 w-6 text-red-500" />
                             )}
                             <span>
                               {activeSearch.result.pastPaperDetails.isPastPaper
@@ -447,12 +447,11 @@ function TaggingFormComponent() {
                           </CardContent>
                         </Card>
                       </div>
-                      <Card className="bg-secondary/50"><CardHeader><CardTitle className="flex items-center gap-2 text-base md:text-lg font-semibold"><GraduationCap className="h-5 w-5 text-primary" />Prerequisite Concepts</CardTitle></CardHeader><CardContent><div className="flex flex-wrap gap-2">{activeSearch.result.prerequisiteConcepts.map((topic, index) => (<Button key={index} variant="outline" size="sm" onClick={() => handleTopicClick(topic)}>{topic}</Button>))}</div></CardContent></Card>
-                      <Card className="bg-secondary/50"><CardHeader><CardTitle className="flex items-center gap-2 text-base md:text-lg font-semibold"><ListChecks className="h-5 w-5 text-primary" />Solution Steps</CardTitle></CardHeader><CardContent><ul className="space-y-2 list-decimal list-inside text-sm md:text-base">{activeSearch.result.solutionSteps.map((step, index) => (<li key={index}>{step}</li>))}</ul></CardContent></Card>
-                      <Card className="bg-secondary/50"><CardHeader><CardTitle className="flex items-center gap-2 text-base md:text-lg font-semibold"><AlertTriangle className="h-5 w-5 text-primary" />Common Pitfalls</CardTitle></CardHeader><CardContent><ul className="space-y-2 list-disc list-inside text-sm md:text-base">{activeSearch.result.commonPitfalls.map((pitfall, index) => (<li key={index}>{pitfall}</li>))}</ul></CardContent></Card>
-
+                      <Card className="bg-secondary/50"><CardHeader><CardTitle className="flex items-center gap-2 text-lg font-semibold"><GraduationCap className="h-5 w-5 text-primary" />Prerequisite Concepts</CardTitle></CardHeader><CardContent><div className="flex flex-wrap gap-2">{activeSearch.result.prerequisiteConcepts.map((topic) => (<Button key={topic} variant="outline" size="sm" onClick={() => handleTopicClick(topic)}>{topic}</Button>))}</div></CardContent></Card>
+                      <Card className="bg-secondary/50"><CardHeader><CardTitle className="flex items-center gap-2 text-lg font-semibold"><ListChecks className="h-5 w-5 text-primary" />Solution Steps</CardTitle></CardHeader><CardContent><ul className="space-y-2 list-decimal list-inside">{activeSearch.result.solutionSteps.map((step, index) => (<li key={index}>{step}</li>))}</ul></CardContent></Card>
+                      <Card className="bg-secondary/50"><CardHeader><CardTitle className="flex items-center gap-2 text-lg font-semibold"><AlertTriangle className="h-5 w-5 text-primary" />Common Pitfalls</CardTitle></CardHeader><CardContent><ul className="space-y-2 list-disc list-inside">{activeSearch.result.commonPitfalls.map((pitfall, index) => (<li key={index}>{pitfall}</li>))}</ul></CardContent></Card>
                       <div>
-                        <h4 className="font-headline text-lg md:text-xl mb-4 flex items-center gap-2">
+                        <h4 className="font-headline text-xl mb-4 flex items-center gap-2">
                           <BrainCircuit className="h-6 w-6 text-primary" />
                           Key Concepts & Study material
                         </h4>
@@ -501,7 +500,7 @@ function TaggingFormComponent() {
 
 
                       <div>
-                        <h4 className="font-headline text-lg md:text-xl mb-3 flex items-center gap-2">
+                        <h4 className="font-headline text-xl mb-3 flex items-center gap-2">
                           <BookOpen className="h-6 w-6 text-primary" />
                           Suggested Related Topics
                         </h4>
@@ -523,17 +522,17 @@ function TaggingFormComponent() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="flex flex-col items-center justify-center h-full rounded-lg border border-dashed p-8 text-center text-muted-foreground min-h-[60vh] md:min-h-0 md:h-[calc(100vh-4rem)]">
-                <Cpu className="h-12 w-12 md:h-16 md:w-16 mb-4" />
-                <h3 className="font-headline text-xl md:text-2xl font-semibold">AI Analysis Will Appear Here</h3>
-                <p className="mt-2 text-sm md:text-base max-w-md">
+              <div className="flex flex-col items-center justify-center h-full rounded-lg border border-dashed p-8 text-center text-muted-foreground min-h-[60vh] md:h-[calc(100vh-4rem)]">
+                <Cpu className="h-16 w-16 mb-4" />
+                <h3 className="font-headline text-2xl font-semibold">AI Analysis Will Appear Here</h3>
+                <p className="mt-2 max-w-md">
                   Enter a question on the left and click "Tag with AI" to see a detailed breakdown, including prerequisite concepts, solution steps, and common mistakes.
                 </p>
               </div>
             )}
           </div>
-        </div>
-      </main>
+        </ScrollArea>
+      </div>
     </div>
   );
 }
