@@ -60,7 +60,7 @@ const QuestionCard = ({ question, index }: { question: Question; index: number; 
     };
 
     return (
-        <div className="p-4 rounded-lg bg-black/10 hover:bg-black/20 transition-colors border border-white/10">
+        <div key={question.id} className="p-4 rounded-lg bg-black/10 hover:bg-black/20 transition-colors border border-white/10">
            <p className="font-semibold mb-2">Q{index + 1}: {question.text}</p>
           <RadioGroup
             value={selectedOption || undefined}
@@ -350,9 +350,9 @@ function TaggingFormComponent() {
         <HistoryPanelContent />
       </div>
 
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 overflow-hidden">
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-3 xl:grid-cols-2 overflow-hidden">
         {/* Input Form Section */}
-        <div className="p-6 flex flex-col gap-8 border-r border-white/10">
+        <div className="p-6 flex flex-col gap-8 border-r border-white/10 md:col-span-1 xl:col-span-1">
           <header className="space-y-2">
             <div className='flex items-center gap-4'>
                 <Sheet>
@@ -395,7 +395,7 @@ function TaggingFormComponent() {
         </div>
 
         {/* Results Panel Section */}
-        <ScrollArea className="flex-1">
+        <ScrollArea className="md:col-span-2 xl:col-span-1">
           <div className="p-6">
             {(isLoading || activeSearch?.result) ? (
               <Card className="bg-transparent border-0 shadow-none">
@@ -414,7 +414,7 @@ function TaggingFormComponent() {
                     </div>
                   ) : activeSearch?.result && (
                     <div className="space-y-6">
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <Card className="bg-secondary/50">
                           <CardHeader>
                             <CardTitle className="text-lg font-semibold">Difficulty</CardTitle>
