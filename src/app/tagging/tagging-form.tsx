@@ -14,7 +14,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Cpu, CheckCircle, XCircle, BookOpen, BrainCircuit, Sigma, MessageCircleQuestion, ArrowLeft, Tag, PlusCircle, Trash2, History } from 'lucide-react';
+import { Loader2, Cpu, CheckCircle, XCircle, BookOpen, BrainCircuit, Sigma, MessageCircleQuestion, ArrowLeft, Tag, PlusCircle, Trash2, History, ListChecks, AlertTriangle, GraduationCap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
@@ -125,7 +125,7 @@ function TaggingFormComponent() {
         setHistory(parsedHistory);
         const lastActiveId = localStorage.getItem("taggerLastActiveId");
 
-        if (query && !parsedHistory[query]) {
+        if (query && !Object.values(parsedHistory).some((item: any) => item.questionText === query)) {
            handleNewSearch(query);
         } else if (lastActiveId && parsedHistory[lastActiveId]) {
             setActiveSearchId(lastActiveId);
@@ -159,7 +159,7 @@ function TaggingFormComponent() {
     if (activeSearch) {
       form.setValue('questionText', activeSearch.questionText);
     } else {
-      form.reset();
+      form.reset({ questionText: '' });
     }
   }, [activeSearch, form]);
   
@@ -170,13 +170,11 @@ function TaggingFormComponent() {
       questionText: initialQuery || '',
       result: null,
     };
-    // Don't add empty searches to history unless they have an initial query
+    
     if (initialQuery) {
         setHistory(prev => ({ ...prev, [newSearchId]: newSearch as SearchHistoryItem }));
         setActiveSearchId(newSearchId);
-        if (initialQuery) {
-            handleFormSubmit({ questionText: initialQuery }, newSearchId);
-        }
+        handleFormSubmit({ questionText: initialQuery }, newSearchId);
     } else {
         setActiveSearchId(null);
         form.reset({ questionText: '' });
@@ -195,23 +193,41 @@ function TaggingFormComponent() {
     })
   }
 
+   const handleDeleteItem = (searchId: string) => {
+    setHistory(prev => {
+        const newHistory = {...prev};
+        delete newHistory[searchId];
+        return newHistory;
+    });
+
+    if (activeSearchId === searchId) {
+       const remainingIds = Object.keys(history).filter(id => id !== searchId).sort((a,b) => parseInt(b) - parseInt(a));
+       if (remainingIds.length > 0) {
+        setActiveSearchId(remainingIds[0]);
+       } else {
+        setActiveSearchId(null);
+        form.reset({ questionText: '' });
+       }
+    }
+  };
+
   const handleFormSubmit = useCallback(async (values: z.infer<typeof formSchema>, searchId?: string) => {
-    const currentSearchId = searchId || activeSearchId || Date.now().toString();
+    let currentSearchId = searchId || activeSearchId;
 
-    setIsLoading(true);
-
-    if (!activeSearchId || searchId) {
-        setActiveSearchId(currentSearchId);
+    if (!currentSearchId || (history[currentSearchId] && history[currentSearchId].questionText !== values.questionText) ) {
+        currentSearchId = Date.now().toString();
     }
     
-    // Update history with the question text first
+    setIsLoading(true);
+    setActiveSearchId(currentSearchId);
+    
     setHistory(prev => ({
         ...prev,
-        [currentSearchId]: {
-            ...prev[currentSearchId],
-            id: currentSearchId,
+        [currentSearchId as string]: {
+            ...prev[currentSearchId as string],
+            id: currentSearchId as string,
             questionText: values.questionText,
-            result: prev[currentSearchId]?.result || null
+            result: null // Clear previous results for a new search
         }
     }));
 
@@ -220,7 +236,7 @@ function TaggingFormComponent() {
       const result = await tagQuestionsWithAI(values);
       setHistory(prev => ({
         ...prev,
-        [currentSearchId]: { ...prev[currentSearchId], result }
+        [currentSearchId as string]: { ...prev[currentSearchId as string], result }
       }));
     } catch (error) {
       console.error('Failed to tag question', error);
@@ -231,12 +247,11 @@ function TaggingFormComponent() {
       });
     } finally {
       setIsLoading(false);
-       // Clear the URL query parameter after the search is done
       if (searchParams.get('q')) {
         router.replace('/tagging', { scroll: false });
       }
     }
-  }, [toast, activeSearchId, searchParams, router]);
+  }, [toast, activeSearchId, history, searchParams, router]);
 
   const handleTopicClick = (topic: string) => {
     form.setValue('questionText', topic);
@@ -265,15 +280,35 @@ function TaggingFormComponent() {
             <ScrollArea className="flex-1">
                 <div className="p-2 space-y-1">
                     {searchHistoryList.map(item => (
-                        <Button
-                            key={item.id}
-                            variant={activeSearchId === item.id ? "secondary" : "ghost"}
-                            className="w-full justify-start gap-2 truncate"
-                            onClick={() => setActiveSearchId(item.id)}
-                        >
-                            <Tag className="h-4 w-4" />
-                            <span className="truncate">{item.questionText || "New Search"}</span>
-                        </Button>
+                        <div key={item.id} className="flex items-center group">
+                            <Button
+                                variant={activeSearchId === item.id ? "secondary" : "ghost"}
+                                className="w-full justify-start gap-2 truncate"
+                                onClick={() => setActiveSearchId(item.id)}
+                            >
+                                <Tag className="h-4 w-4" />
+                                <span className="truncate">{item.questionText || "New Search"}</span>
+                            </Button>
+                             <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                     <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-105 hover:bg-destructive/20 hover:text-destructive">
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete this item?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        This will permanently delete this analysis. This action cannot be undone.
+                                    </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleDeleteItem(item.id)} className="bg-destructive hover:bg-destructive/80">Confirm Delete</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </div>
                     ))}
                 </div>
             </ScrollArea>
@@ -301,7 +336,7 @@ function TaggingFormComponent() {
         </div>
 
         {/* Input Form */}
-        <div className="w-1/3 border-r border-white/10 p-6 flex flex-col gap-8">
+        <div className="flex-1 border-r border-white/10 p-6 flex flex-col gap-8">
             <header className="space-y-2">
                 <div className="flex items-center gap-4">
                     <h1 className="text-3xl font-headline font-bold">AI Question Tagger</h1>
@@ -311,21 +346,21 @@ function TaggingFormComponent() {
                 </p>
             </header>
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
+                <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6 flex flex-col flex-1">
                 <FormField
                     control={form.control}
                     name="questionText"
                     render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="flex-1 flex flex-col">
                         <FormLabel className="text-lg font-semibold">Question Text</FormLabel>
-                        <FormControl>
-                        <Textarea placeholder="e.g., 'A block of mass m is placed on a smooth inclined plane of inclination θ...'" rows={10} {...field} className="bg-secondary/30 text-base" />
+                        <FormControl className="flex-1">
+                        <Textarea placeholder="e.g., 'A block of mass m is placed on a smooth inclined plane of inclination θ...'" {...field} className="bg-secondary/30 text-base flex-1 resize-none" />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
                     )}
                 />
-                <Button type="submit" disabled={isLoading} size="lg" className="w-full bg-blue-600 hover:bg-blue-700 text-white transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/50">
+                <Button type="submit" disabled={isLoading || !form.getValues('questionText')} size="lg" className="w-full bg-blue-600 hover:bg-blue-700 text-white transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/50">
                     {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Tag className="mr-2 h-5 w-5" />}
                     {isLoading ? "Analyzing..." : "Tag with AI"}
                 </Button>
@@ -334,7 +369,7 @@ function TaggingFormComponent() {
         </div>
 
         {/* Results Panel */}
-        <div className="w-1/3">
+        <div className="w-2/5">
             <ScrollArea className="h-full" ref={scrollAreaRef}>
                  <div className="p-6">
                     {(isLoading || activeSearch?.result) ? (
@@ -387,8 +422,9 @@ function TaggingFormComponent() {
                                             </CardContent>
                                         </Card>
                                     </div>
-
-                                    <Separator />
+                                    <Card className="bg-secondary/50"><CardHeader><CardTitle className="flex items-center gap-2 text-lg font-semibold"><GraduationCap className="h-5 w-5 text-primary"/>Prerequisite Concepts</CardTitle></CardHeader><CardContent><div className="flex flex-wrap gap-2">{activeSearch.result.prerequisiteConcepts.map((topic, index) => (<Button key={index} variant="outline" size="sm" onClick={() => handleTopicClick(topic)}>{topic}</Button>))}</div></CardContent></Card>
+                                    <Card className="bg-secondary/50"><CardHeader><CardTitle className="flex items-center gap-2 text-lg font-semibold"><ListChecks className="h-5 w-5 text-primary"/>Solution Steps</CardTitle></CardHeader><CardContent><ul className="space-y-2 list-decimal list-inside">{activeSearch.result.solutionSteps.map((step, index) => (<li key={index}>{step}</li>))}</ul></CardContent></Card>
+                                    <Card className="bg-secondary/50"><CardHeader><CardTitle className="flex items-center gap-2 text-lg font-semibold"><AlertTriangle className="h-5 w-5 text-primary"/>Common Pitfalls</CardTitle></CardHeader><CardContent><ul className="space-y-2 list-disc list-inside">{activeSearch.result.commonPitfalls.map((pitfall, index) => (<li key={index}>{pitfall}</li>))}</ul></CardContent></Card>
                                     
                                     <div>
                                     <h4 className="font-headline text-xl mb-4 flex items-center gap-2">
@@ -462,11 +498,11 @@ function TaggingFormComponent() {
                             </CardContent>
                         </Card>
                     ) : (
-                         <div className="flex flex-col items-center justify-center h-full rounded-lg border border-dashed p-8 text-center text-muted-foreground min-h-[60vh]">
+                         <div className="flex flex-col items-center justify-center h-full rounded-lg border border-dashed p-8 text-center text-muted-foreground min-h-[80vh]">
                             <Cpu className="h-16 w-16 mb-4" />
                             <h3 className="font-headline text-2xl font-semibold">AI Analysis Will Appear Here</h3>
-                            <p className="mt-2 text-base">
-                                Enter a question on the left and click "Tag with AI" to see a detailed breakdown.
+                            <p className="mt-2 text-base max-w-md">
+                                Enter a question on the left and click "Tag with AI" to see a detailed breakdown, including prerequisite concepts, solution steps, and common mistakes.
                             </p>
                         </div>
                     )}

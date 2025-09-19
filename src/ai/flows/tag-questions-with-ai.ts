@@ -58,7 +58,10 @@ const TagQuestionsWithAIOutputSchema = z.object({
     .describe('The difficulty level of the question.'),
   concepts: z.array(ConceptSchema).describe('A list of relevant concepts covered in the question, including explanations, formulas, and related questions.'),
   pastPaperDetails: PastPaperDetailsSchema,
-  relatedTopics: z.array(z.string()).describe("A list of related topics for further study or to understand the question's context better.")
+  relatedTopics: z.array(z.string()).describe("A list of related topics for further study or to understand the question's context better."),
+  prerequisiteConcepts: z.array(z.string()).describe("A list of foundational topics a student should master before attempting this question."),
+  solutionSteps: z.array(z.string()).describe("A high-level, step-by-step plan to guide the student in solving the problem without giving away the final answer."),
+  commonPitfalls: z.array(z.string()).describe("A list of common mistakes or misunderstandings students might encounter with this type of question."),
 });
 export type TagQuestionsWithAIOutput = z.infer<typeof TagQuestionsWithAIOutputSchema>;
 
@@ -130,6 +133,9 @@ const tagQuestionsWithAIPrompt = ai.definePrompt({
   2.  **Concepts**: Identify the primary concepts or topics required to answer the question. For each concept, provide a detailed explanation suitable for a student preparing for competitive exams. You do not need to populate the formulas or relatedQuestions fields, they will be handled by the system.
   3.  **Past Paper Analysis**: Determine if the question is from a past paper. If it is, specify the year and the exam name (e.g., "JEE Main", "JEE Advanced"). If it is not a past paper question or if the details are unknown, indicate that.
   4.  **Related Topics**: Suggest a few related topics that a student should study to have a comprehensive understanding of the question's subject matter.
+  5.  **Prerequisite Concepts**: List the foundational concepts a student must understand before they can solve this question.
+  6.  **Solution Steps**: Provide a high-level, step-by-step plan to solve the problem. Do NOT solve the problem or give the final answer. Just outline the approach (e.g., "1. Apply conservation of momentum. 2. Use the work-energy theorem...").
+  7.  **Common Pitfalls**: Identify common mistakes or misunderstandings students might have when tackling this type of problem.
 
   Question: {{{questionText}}}
   `,
