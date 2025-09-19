@@ -122,27 +122,24 @@ function TaggingFormComponent() {
     setIsLoading(true);
     let currentSearchId = searchIdToUpdate || Date.now().toString();
 
-    if (!searchIdToUpdate) {
-        const newHistory = { 
-            ...history, 
-            [currentSearchId]: {
+    setHistory(prev => {
+        const newHistory = {...prev};
+        if (newHistory[currentSearchId]) {
+            newHistory[currentSearchId] = {
+                ...newHistory[currentSearchId],
+                questionText: values.questionText,
+                result: null,
+            };
+        } else {
+            newHistory[currentSearchId] = {
                 id: currentSearchId,
                 questionText: values.questionText,
                 result: null
-            } 
-        };
-        setHistory(newHistory);
-    } else {
-        const newHistory = {
-            ...history,
-            [currentSearchId]: {
-                ...history[currentSearchId],
-                questionText: values.questionText,
-                result: null,
-            }
-        };
-        setHistory(newHistory);
-    }
+            };
+        }
+        return newHistory;
+    });
+
     setActiveSearchId(currentSearchId);
 
     try {
@@ -172,21 +169,21 @@ function TaggingFormComponent() {
 
 
   const handleNewSearch = useCallback((initialQuery?: string) => {
+    const newSearchId = Date.now().toString();
+    setHistory(prev => ({
+      ...prev,
+      [newSearchId]: {
+        id: newSearchId,
+        questionText: initialQuery || '',
+        result: null
+      }
+    }));
+    setActiveSearchId(newSearchId);
+    form.setValue('questionText', initialQuery || '');
+
     if (initialQuery) {
-        const newSearchId = Date.now().toString();
-        setHistory(prev => ({
-          ...prev,
-          [newSearchId]: {
-            id: newSearchId,
-            questionText: initialQuery,
-            result: null
-          }
-        }));
-        setActiveSearchId(newSearchId);
-        form.setValue('questionText', initialQuery);
         handleFormSubmit({ questionText: initialQuery }, newSearchId);
     } else {
-        setActiveSearchId(null);
         form.reset({ questionText: '' });
     }
   }, [form, handleFormSubmit]);
@@ -207,8 +204,11 @@ function TaggingFormComponent() {
           const lastActiveId = localStorage.getItem("taggerLastActiveId");
           if (lastActiveId && parsedHistory[lastActiveId]) {
               setActiveSearchId(lastActiveId);
-          } else if (Object.keys(parsedHistory).length > 0) {
-              setActiveSearchId(Object.keys(parsedHistory)[0]);
+          } else {
+            const sortedIds = Object.keys(parsedHistory).sort((a,b) => parseInt(b) - parseInt(a));
+            if (sortedIds.length > 0) {
+              setActiveSearchId(sortedIds[0]);
+            }
           }
         }
       } else if (query) {
@@ -346,7 +346,7 @@ function TaggingFormComponent() {
   return (
     <div className="flex flex-col md:flex-row h-full">
         {/* History Panel - Desktop */}
-        <div className="w-1/4 max-w-xs border-r border-white/10 flex-col hidden md:flex">
+        <div className="w-full md:w-1/4 max-w-xs border-r border-white/10 flex-col hidden md:flex">
             <HistoryPanelContent />
         </div>
 
