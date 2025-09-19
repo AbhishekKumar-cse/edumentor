@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback, Suspense, useRef } from 'react';
@@ -118,30 +119,24 @@ function TaggingFormComponent() {
   };
   
   const handleFormSubmit = useCallback(async (values: z.infer<typeof formSchema>, searchIdToUpdate?: string) => {
-    let currentSearchId = searchIdToUpdate || activeSearchId;
+    setIsLoading(true);
+    let currentSearchId = searchIdToUpdate || Date.now().toString();
 
     const newSearchItem: SearchHistoryItem = {
-      id: Date.now().toString(),
+      id: currentSearchId,
       questionText: values.questionText,
       result: null,
     };
     
-    // Check if the current active search is a new, unsaved one or if the text has changed.
-    const isNewOrChanged = !activeSearchId || (history[activeSearchId] && history[activeSearchId].questionText !== values.questionText);
-
-    if (isNewOrChanged) {
-        currentSearchId = newSearchItem.id;
-        setHistory(prev => ({ ...prev, [currentSearchId as string]: newSearchItem }));
-    }
-    
-    setIsLoading(true);
+    // Create new history entry
+    setHistory(prev => ({ ...prev, [currentSearchId]: newSearchItem }));
     setActiveSearchId(currentSearchId);
 
     try {
       const result = await tagQuestionsWithAI(values);
       setHistory(prev => ({ 
         ...prev, 
-        [currentSearchId as string]: { ...prev[currentSearchId as string], result } 
+        [currentSearchId]: { ...prev[currentSearchId], result } 
       }));
     } catch (error) {
       console.error('Failed to tag question', error);
@@ -152,7 +147,7 @@ function TaggingFormComponent() {
       });
        setHistory(prev => ({ 
         ...prev, 
-        [currentSearchId as string]: { ...prev[currentSearchId as string], result: null } 
+        [currentSearchId]: { ...prev[currentSearchId], result: null } 
       }));
     } finally {
       setIsLoading(false);
@@ -160,7 +155,7 @@ function TaggingFormComponent() {
         router.replace('/tagging', { scroll: false });
       }
     }
-  }, [toast, activeSearchId, history, searchParams, router]);
+  }, [toast, searchParams, router]);
 
 
   const handleNewSearch = useCallback((initialQuery?: string) => {
@@ -345,7 +340,7 @@ function TaggingFormComponent() {
                 </p>
             </header>
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6 flex flex-col flex-1">
+                <form onSubmit={form.handleSubmit(values => handleFormSubmit(values))} className="space-y-6 flex flex-col flex-1">
                 <FormField
                     control={form.control}
                     name="questionText"
