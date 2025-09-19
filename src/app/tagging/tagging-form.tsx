@@ -35,7 +35,7 @@ const formSchema = z.object({
 type SearchHistoryItem = {
     id: string;
     questionText: string;
-    result: TagQuestionsWithAIOutput;
+    result: TagQuestionsWithAIOutput | null;
 }
 
 const difficultyVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive' } = {
@@ -114,36 +114,99 @@ function TaggingFormComponent() {
     },
   });
 
-  // Load history from localStorage
+  const handleTopicClick = (topic: string) => {
+    form.setValue('questionText', topic);
+    handleFormSubmit({ questionText: topic });
+  };
+  
+  const handleFormSubmit = useCallback(async (values: z.infer<typeof formSchema>, searchIdToUpdate?: string) => {
+    let currentSearchId = searchIdToUpdate || activeSearchId;
+
+    // If there's no active search, or if the text has changed, create a new history item.
+    if (!currentSearchId || (history[currentSearchId] && history[currentSearchId].questionText !== values.questionText)) {
+      currentSearchId = Date.now().toString();
+      const newSearchItem: SearchHistoryItem = {
+        id: currentSearchId,
+        questionText: values.questionText,
+        result: null,
+      };
+      setHistory(prev => ({ ...prev, [currentSearchId as string]: newSearchItem }));
+    }
+    
+    setIsLoading(true);
+    setActiveSearchId(currentSearchId);
+
+    try {
+      const result = await tagQuestionsWithAI(values);
+      setHistory(prev => {
+        const updatedItem = { ...prev[currentSearchId as string], result };
+        return { ...prev, [currentSearchId as string]: updatedItem };
+      });
+    } catch (error) {
+      console.error('Failed to tag question', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to tag the question. Please try again.',
+        variant: 'destructive',
+      });
+       setHistory(prev => {
+        const updatedItem = { ...prev[currentSearchId as string], result: null };
+        return { ...prev, [currentSearchId as string]: updatedItem };
+      });
+    } finally {
+      setIsLoading(false);
+      if (searchParams.get('q')) {
+        router.replace('/tagging', { scroll: false });
+      }
+    }
+  }, [toast, activeSearchId, history, searchParams, router]);
+
+
+  const handleNewSearch = useCallback((initialQuery?: string) => {
+    if (initialQuery) {
+        const newSearchId = Date.now().toString();
+        const newSearch: SearchHistoryItem = {
+          id: newSearchId,
+          questionText: initialQuery,
+          result: null,
+        };
+        setHistory(prev => ({ ...prev, [newSearchId]: newSearch }));
+        setActiveSearchId(newSearchId);
+        form.setValue('questionText', initialQuery);
+        handleFormSubmit({ questionText: initialQuery }, newSearchId);
+    } else {
+        setActiveSearchId(null);
+        form.reset({ questionText: '' });
+    }
+  }, [form, handleFormSubmit]);
+
+  // Load history from localStorage on initial render
   useEffect(() => {
     try {
       const savedHistory = localStorage.getItem("taggerHistory");
       const query = searchParams.get('q');
-
+      
       if (savedHistory) {
         const parsedHistory = JSON.parse(savedHistory);
         setHistory(parsedHistory);
-        const lastActiveId = localStorage.getItem("taggerLastActiveId");
-
+        
         if (query && !Object.values(parsedHistory).some((item: any) => item.questionText === query)) {
-           handleNewSearch(query);
-        } else if (lastActiveId && parsedHistory[lastActiveId]) {
-            setActiveSearchId(lastActiveId);
-        } else if (Object.keys(parsedHistory).length > 0) {
-            setActiveSearchId(Object.keys(parsedHistory)[0]);
+          handleNewSearch(query);
         } else {
-            handleNewSearch();
+          const lastActiveId = localStorage.getItem("taggerLastActiveId");
+          if (lastActiveId && parsedHistory[lastActiveId]) {
+              setActiveSearchId(lastActiveId);
+          } else if (Object.keys(parsedHistory).length > 0) {
+              setActiveSearchId(Object.keys(parsedHistory)[0]);
+          }
         }
       } else if (query) {
         handleNewSearch(query);
-      } else {
-        handleNewSearch();
       }
     } catch (error) {
       console.error("Failed to load history from localStorage", error);
-      handleNewSearch();
     }
-  }, []);
+  }, []); // Only run on initial mount
 
   // Save history to localStorage
   useEffect(() => {
@@ -163,24 +226,6 @@ function TaggingFormComponent() {
     }
   }, [activeSearch, form]);
   
-  const handleNewSearch = useCallback((initialQuery?: string) => {
-    const newSearchId = Date.now().toString();
-    const newSearch = {
-      id: newSearchId,
-      questionText: initialQuery || '',
-      result: null,
-    };
-    
-    if (initialQuery) {
-        setHistory(prev => ({ ...prev, [newSearchId]: newSearch as SearchHistoryItem }));
-        setActiveSearchId(newSearchId);
-        handleFormSubmit({ questionText: initialQuery }, newSearchId);
-    } else {
-        setActiveSearchId(null);
-        form.reset({ questionText: '' });
-    }
-  }, [history]);
-
   const handleClearHistory = () => {
     setHistory({});
     setActiveSearchId(null);
@@ -209,53 +254,6 @@ function TaggingFormComponent() {
         form.reset({ questionText: '' });
        }
     }
-  };
-
-  const handleFormSubmit = useCallback(async (values: z.infer<typeof formSchema>, searchId?: string) => {
-    let currentSearchId = searchId || activeSearchId;
-
-    if (!currentSearchId || (history[currentSearchId] && history[currentSearchId].questionText !== values.questionText) ) {
-        currentSearchId = Date.now().toString();
-    }
-    
-    setIsLoading(true);
-    setActiveSearchId(currentSearchId);
-    
-    setHistory(prev => ({
-        ...prev,
-        [currentSearchId as string]: {
-            ...prev[currentSearchId as string],
-            id: currentSearchId as string,
-            questionText: values.questionText,
-            result: null // Clear previous results for a new search
-        }
-    }));
-
-
-    try {
-      const result = await tagQuestionsWithAI(values);
-      setHistory(prev => ({
-        ...prev,
-        [currentSearchId as string]: { ...prev[currentSearchId as string], result }
-      }));
-    } catch (error) {
-      console.error('Failed to tag question', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to tag the question. Please try again.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-      if (searchParams.get('q')) {
-        router.replace('/tagging', { scroll: false });
-      }
-    }
-  }, [toast, activeSearchId, history, searchParams, router]);
-
-  const handleTopicClick = (topic: string) => {
-    form.setValue('questionText', topic);
-    handleFormSubmit({ questionText: topic });
   };
   
   const searchHistoryList = Object.values(history).sort((a,b) => parseInt(b.id) - parseInt(a.id));
