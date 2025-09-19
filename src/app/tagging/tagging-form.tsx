@@ -120,14 +120,18 @@ function TaggingFormComponent() {
   const handleFormSubmit = useCallback(async (values: z.infer<typeof formSchema>, searchIdToUpdate?: string) => {
     let currentSearchId = searchIdToUpdate || activeSearchId;
 
-    if (!currentSearchId || (history[currentSearchId] && history[currentSearchId].questionText !== values.questionText)) {
-      currentSearchId = Date.now().toString();
-      const newSearchItem: SearchHistoryItem = {
-        id: currentSearchId,
-        questionText: values.questionText,
-        result: null,
-      };
-      setHistory(prev => ({ ...prev, [currentSearchId as string]: newSearchItem }));
+    const newSearchItem: SearchHistoryItem = {
+      id: Date.now().toString(),
+      questionText: values.questionText,
+      result: null,
+    };
+    
+    // Check if the current active search is a new, unsaved one or if the text has changed.
+    const isNewOrChanged = !activeSearchId || (history[activeSearchId] && history[activeSearchId].questionText !== values.questionText);
+
+    if (isNewOrChanged) {
+        currentSearchId = newSearchItem.id;
+        setHistory(prev => ({ ...prev, [currentSearchId as string]: newSearchItem }));
     }
     
     setIsLoading(true);
