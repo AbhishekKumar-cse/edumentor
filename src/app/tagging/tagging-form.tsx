@@ -350,9 +350,9 @@ function TaggingFormComponent() {
         <HistoryPanelContent />
       </div>
 
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-3 xl:grid-cols-2 overflow-hidden">
+        <div className="flex-1 grid grid-cols-1 md:grid-cols-5 xl:grid-cols-3 overflow-hidden">
         {/* Input Form Section */}
-        <div className="p-6 flex flex-col gap-8 border-r border-white/10 md:col-span-1 xl:col-span-1">
+        <div className="p-6 flex flex-col gap-8 border-r border-white/10 md:col-span-2 xl:col-span-1">
           <header className="space-y-2">
             <div className='flex items-center gap-4'>
                 <Sheet>
@@ -395,7 +395,7 @@ function TaggingFormComponent() {
         </div>
 
         {/* Results Panel Section */}
-        <ScrollArea className="md:col-span-2 xl:col-span-1">
+        <ScrollArea className="md:col-span-3 xl:col-span-2">
           <div className="p-6">
             {(isLoading || activeSearch?.result) ? (
               <Card className="bg-transparent border-0 shadow-none">
@@ -522,7 +522,7 @@ function TaggingFormComponent() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="flex flex-col items-center justify-center h-full rounded-lg border border-dashed p-8 text-center text-muted-foreground min-h-[60vh] md:h-[calc(100vh-4rem)]">
+              <div className="flex flex-col items-center justify-center h-full rounded-lg border border-dashed p-8 text-center text-muted-foreground min-h-[60vh] md:h-full">
                 <Cpu className="h-16 w-16 mb-4" />
                 <h3 className="font-headline text-2xl font-semibold">AI Analysis Will Appear Here</h3>
                 <p className="mt-2 max-w-md">

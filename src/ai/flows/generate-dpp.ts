@@ -27,9 +27,7 @@ const DppInputSchema = z.object({
 export type DppInput = z.infer<typeof DppInputSchema>;
 
 
-const DppOutputSchema = z.object({
-  name: z.string(),
-  questions: z.array(z.object({
+const QuestionOutputSchema = z.object({
     id: z.number(),
     text: z.string(),
     options: z.array(z.string()),
@@ -39,7 +37,12 @@ const DppOutputSchema = z.object({
     concepts: z.array(z.string()),
     isPastPaper: z.boolean(),
     explanation: z.string().optional(),
-  })),
+});
+
+
+const DppOutputSchema = z.object({
+  name: z.string(),
+  questions: z.array(QuestionOutputSchema),
 });
 
 export type DppOutput = z.infer<typeof DppOutputSchema>;
@@ -55,7 +58,7 @@ const getQuestionsFromChapters = ai.defineTool(
             })),
             difficulty: z.enum(['Easy', 'Medium', 'Hard', 'Mixed']).optional().describe('The desired difficulty of the questions.'),
         }),
-        outputSchema: z.array(z.any()), // Using z.any() because Question schema is complex for direct tool output
+        outputSchema: z.array(QuestionOutputSchema),
     },
     async ({ chapters, difficulty }) => {
         const allQuestions: Question[] = [];
@@ -89,6 +92,23 @@ export async function generateDpp(input: DppInput): Promise<DppOutput> {
   return generateDppFlow(input);
 }
 
+const generateDppPrompt = ai.definePrompt({
+    name: 'generateDppPrompt',
+    tools: [getQuestionsFromChapters],
+    input: { schema: DppInputSchema },
+    output: { schema: DppOutputSchema },
+    prompt: `Generate a Daily Practice Problem (DPP) sheet.
+    
+    DPP Name: {{dppName}}
+    Exam Type: {{examType}}
+    Difficulty: {{difficulty}}
+
+    Use the getQuestionsFromChapters tool to fetch the questions based on the provided chapter selections.
+    The final output should be a well-formed DPP with the specified name and the fetched questions.
+    Do not make up questions. Only use the questions returned by the tool.
+    `,
+});
+
 const generateDppFlow = ai.defineFlow(
   {
     name: 'generateDppFlow',
@@ -97,14 +117,37 @@ const generateDppFlow = ai.defineFlow(
   },
   async (input) => {
     
-    const questions = await getQuestionsFromChapters({ 
-        chapters: input.chapters.map(c => ({ id: c.id, count: c.questionCount })),
-        difficulty: input.difficulty,
-     });
+    const llmResponse = await generateDppPrompt({
+        ...input,
+        chapters: input.chapters.map(c => ({id: c.id, questionCount: c.questionCount}))
+    });
 
+    const toolRequest = llmResponse.toolRequests.find(
+        (req) => req.tool.name === 'getQuestionsFromChapters'
+    );
+
+    if (toolRequest) {
+        const questions = await toolRequest.tool.fn(toolRequest.input);
+        return {
+            name: input.dppName || 'Your Daily Practice Problems',
+            questions: questions.map(q => ({
+                id: q.id,
+                text: q.text,
+                options: q.options,
+                answer: q.answer,
+                difficulty: q.difficulty,
+                pageReference: q.pageReference,
+                concepts: q.concepts,
+                isPastPaper: q.isPastPaper,
+                explanation: q.explanation
+            })),
+        };
+    }
+
+    // Fallback or error handling if the tool wasn't called
     return {
-        name: input.dppName || 'Your Daily Practice Problems',
-        questions,
+        name: input.dppName || 'Generated DPP',
+        questions: [],
     };
   }
 );
