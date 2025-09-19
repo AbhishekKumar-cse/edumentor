@@ -127,6 +127,10 @@ function TaggingFormComponent() {
     }
   }, [searchParams, form, handleFormSubmit]);
 
+  const handleTopicClick = (topic: string) => {
+    form.setValue('questionText', topic);
+    handleFormSubmit({ questionText: topic });
+  };
 
 
   return (
@@ -277,7 +281,14 @@ function TaggingFormComponent() {
                                         </h4>
                                         <div className="flex flex-wrap gap-2">
                                             {taggingResult.relatedTopics.map((topic, index) => (
-                                            <Badge key={index} variant="secondary" className="text-base py-1 px-3">{topic}</Badge>
+                                            <Button 
+                                                key={index}
+                                                variant="secondary"
+                                                className="text-base py-1 px-3 h-auto"
+                                                onClick={() => handleTopicClick(topic)}
+                                            >
+                                                {topic}
+                                            </Button>
                                             ))}
                                         </div>
                                     </div>
