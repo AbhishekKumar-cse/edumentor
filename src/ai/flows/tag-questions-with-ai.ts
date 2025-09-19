@@ -65,8 +65,15 @@ const TagQuestionsWithAIOutputSchema = z.object({
 });
 export type TagQuestionsWithAIOutput = z.infer<typeof TagQuestionsWithAIOutputSchema>;
 
-// Helper function to find related questions
-const findRelatedQuestions = (conceptName: string): Question[] => {
+// Helper Tools
+const findRelatedQuestions = ai.defineTool(
+  {
+    name: 'findRelatedQuestions',
+    description: 'Finds up to 3 related questions from the question bank for a given concept.',
+    inputSchema: z.object({ conceptName: z.string() }),
+    outputSchema: z.array(QuestionSchema),
+  },
+  async ({ conceptName }) => {
     const related: Question[] = [];
     const lowerCaseConcept = conceptName.toLowerCase();
     for (const subject of subjects) {
@@ -74,18 +81,25 @@ const findRelatedQuestions = (conceptName: string): Question[] => {
             for (const question of chapter.questions) {
                 if (question.concepts.some(c => c.toLowerCase().includes(lowerCaseConcept))) {
                     related.push(question);
-                    if (related.length >= 3) return related; // Limit to 3 example questions
+                    if (related.length >= 3) return related;
                 }
             }
         }
     }
     return related;
-};
+  }
+);
 
-// Helper function to find related formulas
-const findRelatedFormulas = (conceptName: string) => {
+const findRelatedFormulas = ai.defineTool(
+  {
+    name: 'findRelatedFormulas',
+    description: 'Finds relevant formulas from the formula bank for a given concept.',
+    inputSchema: z.object({ conceptName: z.string() }),
+    outputSchema: z.array(FormulaSchema),
+  },
+  async ({ conceptName }) => {
     const related: z.infer<typeof FormulaSchema>[] = [];
-     const lowerCaseConcept = conceptName.toLowerCase();
+    const lowerCaseConcept = conceptName.toLowerCase();
     for (const subject of formulas) {
         for (const topic of subject.topics) {
              if (topic.name.toLowerCase().includes(lowerCaseConcept)) {
@@ -98,31 +112,18 @@ const findRelatedFormulas = (conceptName: string) => {
              }
         }
     }
-    // Remove duplicates
     return related.filter((v,i,a)=>a.findIndex(t=>(t.name === v.name))===i);
-}
-
+  }
+);
 
 export async function tagQuestionsWithAI(input: TagQuestionsWithAIInput): Promise<TagQuestionsWithAIOutput> {
-  const result = await tagQuestionsWithAIFlow(input);
-
-  // Post-process to add related questions and formulas
-  if (result.concepts) {
-    result.concepts = result.concepts.map(concept => {
-        return {
-            ...concept,
-            relatedQuestions: findRelatedQuestions(concept.name),
-            formulas: findRelatedFormulas(concept.name)
-        }
-    });
-  }
-
-  return result;
+  return tagQuestionsWithAIFlow(input);
 }
 
 
 const tagQuestionsWithAIPrompt = ai.definePrompt({
   name: 'tagQuestionsWithAIPrompt',
+  tools: [findRelatedQuestions, findRelatedFormulas],
   input: {schema: TagQuestionsWithAIInputSchema},
   output: {schema: TagQuestionsWithAIOutputSchema},
   prompt: `You are an expert AI assistant for educators, specializing in analyzing and tagging academic questions for competitive exams like the JEE.
@@ -130,7 +131,10 @@ const tagQuestionsWithAIPrompt = ai.definePrompt({
   Analyze the provided question text based on the following criteria:
 
   1.  **Difficulty**: Classify the question's difficulty level as 'easy', 'medium', or 'hard'.
-  2.  **Concepts**: Identify the primary concepts or topics required to answer the question. For each concept, provide a detailed explanation suitable for a student preparing for competitive exams. You do not need to populate the formulas or relatedQuestions fields, they will be handled by the system.
+  2.  **Concepts**: Identify the primary concepts or topics required to answer the question. For each concept identified:
+        - Provide a detailed explanation suitable for a student preparing for competitive exams.
+        - Use the findRelatedFormulas tool to find relevant formulas.
+        - Use the findRelatedQuestions tool to find example questions from the question bank.
   3.  **Past Paper Analysis**: Determine if the question is from a past paper. If it is, specify the year and the exam name (e.g., "JEE Main", "JEE Advanced"). If it is not a past paper question or if the details are unknown, indicate that.
   4.  **Related Topics**: Suggest a few related topics that a student should study to have a comprehensive understanding of the question's subject matter.
   5.  **Prerequisite Concepts**: List the foundational concepts a student must understand before they can solve this question.
