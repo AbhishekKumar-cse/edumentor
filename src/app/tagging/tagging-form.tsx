@@ -123,23 +123,25 @@ function TaggingFormComponent() {
     let currentSearchId = searchIdToUpdate || Date.now().toString();
 
     if (!searchIdToUpdate) {
-        setHistory(prev => ({ 
-            ...prev, 
+        const newHistory = { 
+            ...history, 
             [currentSearchId]: {
                 id: currentSearchId,
                 questionText: values.questionText,
                 result: null
             } 
-        }));
+        };
+        setHistory(newHistory);
     } else {
-        setHistory(prev => ({
-            ...prev,
+        const newHistory = {
+            ...history,
             [currentSearchId]: {
-                ...prev[currentSearchId],
+                ...history[currentSearchId],
                 questionText: values.questionText,
                 result: null,
             }
-        }));
+        };
+        setHistory(newHistory);
     }
     setActiveSearchId(currentSearchId);
 
@@ -166,7 +168,7 @@ function TaggingFormComponent() {
         router.replace('/tagging', { scroll: false });
       }
     }
-  }, [toast, searchParams, router]);
+  }, [toast, searchParams, router, history]);
 
 
   const handleNewSearch = useCallback((initialQuery?: string) => {
