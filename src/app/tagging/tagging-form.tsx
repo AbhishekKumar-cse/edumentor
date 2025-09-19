@@ -122,14 +122,15 @@ function TaggingFormComponent() {
     setIsLoading(true);
     let currentSearchId = searchIdToUpdate || Date.now().toString();
 
-    const newSearchItem: SearchHistoryItem = {
-      id: currentSearchId,
-      questionText: values.questionText,
-      result: null,
-    };
-    
     // Create new history entry
-    setHistory(prev => ({ ...prev, [currentSearchId]: newSearchItem }));
+    setHistory(prev => ({ 
+        ...prev, 
+        [currentSearchId]: {
+            id: currentSearchId,
+            questionText: values.questionText,
+            result: null
+        } 
+    }));
     setActiveSearchId(currentSearchId);
 
     try {
@@ -161,12 +162,14 @@ function TaggingFormComponent() {
   const handleNewSearch = useCallback((initialQuery?: string) => {
     if (initialQuery) {
         const newSearchId = Date.now().toString();
-        const newSearch: SearchHistoryItem = {
-          id: newSearchId,
-          questionText: initialQuery,
-          result: null,
-        };
-        setHistory(prev => ({ ...prev, [newSearchId]: newSearch }));
+        setHistory(prev => ({
+          ...prev,
+          [newSearchId]: {
+            id: newSearchId,
+            questionText: initialQuery,
+            result: null
+          }
+        }));
         setActiveSearchId(newSearchId);
         form.setValue('questionText', initialQuery);
         handleFormSubmit({ questionText: initialQuery }, newSearchId);
