@@ -1,20 +1,20 @@
 
 'use client';
 
-import { useState, useEffect, useCallback, Suspense } from 'react';
+import { useState, useEffect, useCallback, Suspense, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { tagQuestionsWithAI, type TagQuestionsWithAIOutput } from '@/ai/flows/tag-questions-with-ai';
 import type { Question } from '@/lib/data';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Cpu, CheckCircle, XCircle, BookOpen, BrainCircuit, Sigma, MessageCircleQuestion, ArrowLeft, Tag } from 'lucide-react';
+import { Loader2, Cpu, CheckCircle, XCircle, BookOpen, BrainCircuit, Sigma, MessageCircleQuestion, ArrowLeft, Tag, PlusCircle, Trash2, History } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
@@ -23,12 +23,20 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Link from 'next/link';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+
 
 const formSchema = z.object({
   questionText: z.string().min(10, {
     message: 'Question text must be at least 10 characters.',
   }),
 });
+
+type SearchHistoryItem = {
+    id: string;
+    questionText: string;
+    result: TagQuestionsWithAIOutput;
+}
 
 const difficultyVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive' } = {
   easy: 'secondary',
@@ -89,10 +97,15 @@ const QuestionCard = ({ question, index }: { question: Question; index: number; 
 }
 
 function TaggingFormComponent() {
-  const [taggingResult, setTaggingResult] = useState<TagQuestionsWithAIOutput | null>(null);
+  const [history, setHistory] = useState<Record<string, SearchHistoryItem>>({});
+  const [activeSearchId, setActiveSearchId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  const activeSearch = activeSearchId ? history[activeSearchId] : null;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -100,13 +113,115 @@ function TaggingFormComponent() {
       questionText: '',
     },
   });
+
+  // Load history from localStorage
+  useEffect(() => {
+    try {
+      const savedHistory = localStorage.getItem("taggerHistory");
+      const query = searchParams.get('q');
+
+      if (savedHistory) {
+        const parsedHistory = JSON.parse(savedHistory);
+        setHistory(parsedHistory);
+        const lastActiveId = localStorage.getItem("taggerLastActiveId");
+
+        if (query && !parsedHistory[query]) {
+           handleNewSearch(query);
+        } else if (lastActiveId && parsedHistory[lastActiveId]) {
+            setActiveSearchId(lastActiveId);
+        } else if (Object.keys(parsedHistory).length > 0) {
+            setActiveSearchId(Object.keys(parsedHistory)[0]);
+        } else {
+            handleNewSearch();
+        }
+      } else if (query) {
+        handleNewSearch(query);
+      } else {
+        handleNewSearch();
+      }
+    } catch (error) {
+      console.error("Failed to load history from localStorage", error);
+      handleNewSearch();
+    }
+  }, []);
+
+  // Save history to localStorage
+  useEffect(() => {
+    if (Object.keys(history).length > 0) {
+      localStorage.setItem("taggerHistory", JSON.stringify(history));
+    }
+    if (activeSearchId) {
+      localStorage.setItem("taggerLastActiveId", activeSearchId);
+    }
+  }, [history, activeSearchId]);
+
+  useEffect(() => {
+    if (activeSearch) {
+      form.setValue('questionText', activeSearch.questionText);
+    } else {
+      form.reset();
+    }
+  }, [activeSearch, form]);
   
-  const handleFormSubmit = useCallback(async (values: z.infer<typeof formSchema>) => {
+  const handleNewSearch = useCallback((initialQuery?: string) => {
+    const newSearchId = Date.now().toString();
+    const newSearch = {
+      id: newSearchId,
+      questionText: initialQuery || '',
+      result: null,
+    };
+    // Don't add empty searches to history unless they have an initial query
+    if (initialQuery) {
+        setHistory(prev => ({ ...prev, [newSearchId]: newSearch as SearchHistoryItem }));
+        setActiveSearchId(newSearchId);
+        if (initialQuery) {
+            handleFormSubmit({ questionText: initialQuery }, newSearchId);
+        }
+    } else {
+        setActiveSearchId(null);
+        form.reset({ questionText: '' });
+    }
+  }, [history]);
+
+  const handleClearHistory = () => {
+    setHistory({});
+    setActiveSearchId(null);
+    localStorage.removeItem("taggerHistory");
+    localStorage.removeItem("taggerLastActiveId");
+    form.reset({ questionText: '' });
+    toast({
+        title: "History Cleared",
+        description: "All your tagging history has been deleted.",
+    })
+  }
+
+  const handleFormSubmit = useCallback(async (values: z.infer<typeof formSchema>, searchId?: string) => {
+    const currentSearchId = searchId || activeSearchId || Date.now().toString();
+
     setIsLoading(true);
-    setTaggingResult(null);
+
+    if (!activeSearchId || searchId) {
+        setActiveSearchId(currentSearchId);
+    }
+    
+    // Update history with the question text first
+    setHistory(prev => ({
+        ...prev,
+        [currentSearchId]: {
+            ...prev[currentSearchId],
+            id: currentSearchId,
+            questionText: values.questionText,
+            result: prev[currentSearchId]?.result || null
+        }
+    }));
+
+
     try {
       const result = await tagQuestionsWithAI(values);
-      setTaggingResult(result);
+      setHistory(prev => ({
+        ...prev,
+        [currentSearchId]: { ...prev[currentSearchId], result }
+      }));
     } catch (error) {
       console.error('Failed to tag question', error);
       toast({
@@ -116,31 +231,79 @@ function TaggingFormComponent() {
       });
     } finally {
       setIsLoading(false);
+       // Clear the URL query parameter after the search is done
+      if (searchParams.get('q')) {
+        router.replace('/tagging', { scroll: false });
+      }
     }
-  }, [toast]);
-
-  useEffect(() => {
-    const query = searchParams.get('q');
-    if (query) {
-      form.setValue('questionText', query);
-      handleFormSubmit({ questionText: query });
-    }
-  }, [searchParams, form, handleFormSubmit]);
+  }, [toast, activeSearchId, searchParams, router]);
 
   const handleTopicClick = (topic: string) => {
     form.setValue('questionText', topic);
     handleFormSubmit({ questionText: topic });
   };
+  
+  const searchHistoryList = Object.values(history).sort((a,b) => parseInt(b.id) - parseInt(a.id));
 
 
   return (
     <div className="flex h-full">
+        {/* History Panel */}
+        <div className="w-1/4 max-w-xs border-r border-white/10 flex flex-col">
+            <header className="p-4 border-b border-white/10 flex items-center justify-between gap-2">
+                 <Button asChild variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/20 hover:text-primary transition-all duration-300 hover:scale-105 hover:glow-sm">
+                    <Link href="/">
+                        <ArrowLeft className="h-5 w-5" />
+                        <span className="sr-only">Back to Dashboard</span>
+                    </Link>
+                </Button>
+                <h2 className="text-xl font-bold font-headline text-center flex-1">History</h2>
+                <Button variant="ghost" size="icon" onClick={() => handleNewSearch()} className="h-8 w-8 hover:bg-primary/20 hover:text-primary transition-all duration-300 hover:scale-105 hover:glow-sm">
+                    <PlusCircle className="h-5 w-5" />
+                </Button>
+            </header>
+            <ScrollArea className="flex-1">
+                <div className="p-2 space-y-1">
+                    {searchHistoryList.map(item => (
+                        <Button
+                            key={item.id}
+                            variant={activeSearchId === item.id ? "secondary" : "ghost"}
+                            className="w-full justify-start gap-2 truncate"
+                            onClick={() => setActiveSearchId(item.id)}
+                        >
+                            <Tag className="h-4 w-4" />
+                            <span className="truncate">{item.questionText || "New Search"}</span>
+                        </Button>
+                    ))}
+                </div>
+            </ScrollArea>
+             <div className="p-4 border-t border-white/10">
+                 <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="destructive" className="w-full transition-all duration-300 hover:scale-105 hover:glow-sm-destructive">
+                            <Trash2 className="mr-2 h-4 w-4" /> Clear All History
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will permanently delete all your tagging history. This action cannot be undone.
+                        </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleClearHistory} className="bg-destructive hover:bg-destructive/80">Confirm Delete All</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+            </div>
+        </div>
+
+        {/* Input Form */}
         <div className="w-1/3 border-r border-white/10 p-6 flex flex-col gap-8">
             <header className="space-y-2">
                 <div className="flex items-center gap-4">
-                     <Button asChild variant="ghost" size="icon" className="h-10 w-10 text-primary hover:bg-primary/10 transition-colors">
-                        <Link href="/"><ArrowLeft /></Link>
-                     </Button>
                     <h1 className="text-3xl font-headline font-bold">AI Question Tagger</h1>
                 </div>
                 <p className="text-muted-foreground text-base">
@@ -164,15 +327,17 @@ function TaggingFormComponent() {
                 />
                 <Button type="submit" disabled={isLoading} size="lg" className="w-full bg-blue-600 hover:bg-blue-700 text-white transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/50">
                     {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Tag className="mr-2 h-5 w-5" />}
-                    Tag with AI
+                    {isLoading ? "Analyzing..." : "Tag with AI"}
                 </Button>
                 </form>
             </Form>
         </div>
-        <div className="w-2/3">
-            <ScrollArea className="h-full">
+
+        {/* Results Panel */}
+        <div className="w-1/3">
+            <ScrollArea className="h-full" ref={scrollAreaRef}>
                  <div className="p-6">
-                    {(isLoading || taggingResult) ? (
+                    {(isLoading || activeSearch?.result) ? (
                          <Card className="bg-transparent border-0 shadow-none">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-3">
@@ -187,7 +352,7 @@ function TaggingFormComponent() {
                                     <Loader2 className="h-12 w-12 animate-spin text-primary" />
                                     <p className="text-muted-foreground">Analyzing question...</p>
                                 </div>
-                                ) : taggingResult && (
+                                ) : activeSearch?.result && (
                                 <div className="space-y-8">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <Card className="bg-secondary/50">
@@ -195,12 +360,12 @@ function TaggingFormComponent() {
                                                 <CardTitle className="text-lg font-semibold">Difficulty</CardTitle>
                                             </CardHeader>
                                             <CardContent>
-                                                <Badge variant={difficultyVariantMap[taggingResult.difficulty]} className={cn('capitalize text-lg', {
-                                                    'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800': taggingResult.difficulty === 'easy',
-                                                    'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-800': taggingResult.difficulty === 'medium',
-                                                    'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800': taggingResult.difficulty === 'hard',
+                                                <Badge variant={difficultyVariantMap[activeSearch.result.difficulty]} className={cn('capitalize text-lg', {
+                                                    'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800': activeSearch.result.difficulty === 'easy',
+                                                    'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-800': activeSearch.result.difficulty === 'medium',
+                                                    'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800': activeSearch.result.difficulty === 'hard',
                                                 })}>
-                                                {taggingResult.difficulty}
+                                                {activeSearch.result.difficulty}
                                                 </Badge>
                                             </CardContent>
                                         </Card>
@@ -209,14 +374,14 @@ function TaggingFormComponent() {
                                                 <CardTitle className="text-lg font-semibold">Past Paper Details</CardTitle>
                                             </CardHeader>
                                             <CardContent className="flex items-center gap-2 text-base">
-                                                {taggingResult.pastPaperDetails.isPastPaper ? (
+                                                {activeSearch.result.pastPaperDetails.isPastPaper ? (
                                                     <CheckCircle className="h-6 w-6 text-green-500" />
                                                 ) : (
                                                     <XCircle className="h-6 w-6 text-red-500" />
                                                 )}
                                                 <span>
-                                                    {taggingResult.pastPaperDetails.isPastPaper 
-                                                        ? `${taggingResult.pastPaperDetails.exam || 'Past Paper'}, ${taggingResult.pastPaperDetails.year || 'Unknown Year'}`
+                                                    {activeSearch.result.pastPaperDetails.isPastPaper 
+                                                        ? `${activeSearch.result.pastPaperDetails.exam || 'Past Paper'}, ${activeSearch.result.pastPaperDetails.year || 'Unknown Year'}`
                                                         : 'Not from a known past paper'}
                                                 </span>
                                             </CardContent>
@@ -231,7 +396,7 @@ function TaggingFormComponent() {
                                         Key Concepts & Study material
                                     </h4>
                                     <Accordion type="single" collapsible className="w-full space-y-3">
-                                        {taggingResult.concepts.map((concept, index) => (
+                                        {activeSearch.result.concepts.map((concept, index) => (
                                         <AccordionItem value={`concept-${index}`} key={index} className="border rounded-lg px-4 bg-secondary/30">
                                             <AccordionTrigger className="font-semibold text-base hover:no-underline">{concept.name}</AccordionTrigger>
                                             <AccordionContent className="space-y-6 pt-4">
@@ -280,7 +445,7 @@ function TaggingFormComponent() {
                                             Suggested Related Topics
                                         </h4>
                                         <div className="flex flex-wrap gap-2">
-                                            {taggingResult.relatedTopics.map((topic, index) => (
+                                            {activeSearch.result.relatedTopics.map((topic, index) => (
                                             <Button 
                                                 key={index}
                                                 variant="secondary"
