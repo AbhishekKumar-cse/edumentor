@@ -158,7 +158,7 @@ function TaggingFormComponent() {
                     </FormItem>
                     )}
                 />
-                <Button type="submit" disabled={isLoading} variant="accent" size="lg" className="w-full transition-all duration-300 hover:scale-105 hover:glow-md">
+                <Button type="submit" disabled={isLoading} size="lg" className="w-full bg-blue-600 hover:bg-blue-700 text-white transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/50">
                     {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Tag className="mr-2 h-5 w-5" />}
                     Tag with AI
                 </Button>
