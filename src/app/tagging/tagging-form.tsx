@@ -447,9 +447,9 @@ function TaggingFormComponent() {
                           </CardContent>
                         </Card>
                       </div>
-                      <Card className="bg-secondary/50"><CardHeader><CardTitle className="flex items-center gap-2 text-lg font-semibold"><GraduationCap className="h-5 w-5 text-primary" />Prerequisite Concepts</CardTitle></CardHeader><CardContent><div className="flex flex-wrap gap-2">{activeSearch.result.prerequisiteConcepts.map((topic, index) => (<Button key={index} variant="outline" size="sm" onClick={() => handleTopicClick(topic)}>{topic}</Button>))}</div></CardContent></Card>
-                      <Card className="bg-secondary/50"><CardHeader><CardTitle className="flex items-center gap-2 text-lg font-semibold"><ListChecks className="h-5 w-5 text-primary" />Solution Steps</CardTitle></CardHeader><CardContent><ul className="space-y-2 list-decimal list-inside">{activeSearch.result.solutionSteps.map((step, index) => (<li key={index}>{step}</li>))}</ul></CardContent></Card>
-                      <Card className="bg-secondary/50"><CardHeader><CardTitle className="flex items-center gap-2 text-lg font-semibold"><AlertTriangle className="h-5 w-5 text-primary" />Common Pitfalls</CardTitle></CardHeader><CardContent><ul className="space-y-2 list-disc list-inside">{activeSearch.result.commonPitfalls.map((pitfall, index) => (<li key={index}>{pitfall}</li>))}</ul></CardContent></Card>
+                      <Card className="bg-secondary/50"><CardHeader><CardTitle className="flex items-center gap-2 text-lg font-semibold"><GraduationCap className="h-5 w-5 text-primary" />Prerequisite Concepts</CardTitle></CardHeader><CardContent><div className="flex flex-wrap gap-2">{activeSearch.result.prerequisiteConcepts.map((topic, index) => (<Button key={`prereq-${index}`} variant="outline" size="sm" onClick={() => handleTopicClick(topic)}>{topic}</Button>))}</div></CardContent></Card>
+                      <Card className="bg-secondary/50"><CardHeader><CardTitle className="flex items-center gap-2 text-lg font-semibold"><ListChecks className="h-5 w-5 text-primary" />Solution Steps</CardTitle></CardHeader><CardContent><ul className="space-y-2 list-decimal list-inside">{activeSearch.result.solutionSteps.map((step, index) => (<li key={`step-${index}`}>{step}</li>))}</ul></CardContent></Card>
+                      <Card className="bg-secondary/50"><CardHeader><CardTitle className="flex items-center gap-2 text-lg font-semibold"><AlertTriangle className="h-5 w-5 text-primary" />Common Pitfalls</CardTitle></CardHeader><CardContent><ul className="space-y-2 list-disc list-inside">{activeSearch.result.commonPitfalls.map((pitfall, index) => (<li key={`pitfall-${index}`}>{pitfall}</li>))}</ul></CardContent></Card>
                       <div>
                         <h4 className="font-headline text-xl mb-4 flex items-center gap-2">
                           <BrainCircuit className="h-6 w-6 text-primary" />
@@ -470,7 +470,7 @@ function TaggingFormComponent() {
                                     </h5>
                                     <div className="space-y-3">
                                       {concept.formulas.map((formula, fIndex) => (
-                                        <div key={`formula-${fIndex}`} className="p-3 bg-background/50 rounded-md text-sm">
+                                        <div key={`formula-${index}-${fIndex}`} className="p-3 bg-background/50 rounded-md text-sm">
                                           <p className="font-semibold">{formula.name}</p>
                                           <code className="block my-1 p-2 rounded bg-muted font-code text-primary">{formula.formula}</code>
                                         </div>
@@ -487,7 +487,7 @@ function TaggingFormComponent() {
                                     </h5>
                                     <div className="space-y-4">
                                       {concept.relatedQuestions.map((q, i) => (
-                                        <QuestionCard key={q.id} question={q} index={i} />
+                                        <QuestionCard key={`related-q-${index}-${i}`} question={q} index={i} />
                                       ))}
                                     </div>
                                   </div>
@@ -545,5 +545,3 @@ export default function TaggingInterface() {
     </Suspense>
   )
 }
-
-    
