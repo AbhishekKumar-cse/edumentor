@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback, Suspense, useRef } from 'react';
@@ -20,7 +19,6 @@ import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Link from 'next/link';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -122,7 +120,6 @@ function TaggingFormComponent() {
   const handleFormSubmit = useCallback(async (values: z.infer<typeof formSchema>, searchIdToUpdate?: string) => {
     let currentSearchId = searchIdToUpdate || activeSearchId;
 
-    // If there's no active search, or if the text has changed, create a new history item.
     if (!currentSearchId || (history[currentSearchId] && history[currentSearchId].questionText !== values.questionText)) {
       currentSearchId = Date.now().toString();
       const newSearchItem: SearchHistoryItem = {
@@ -138,10 +135,10 @@ function TaggingFormComponent() {
 
     try {
       const result = await tagQuestionsWithAI(values);
-      setHistory(prev => {
-        const updatedItem = { ...prev[currentSearchId as string], result };
-        return { ...prev, [currentSearchId as string]: updatedItem };
-      });
+      setHistory(prev => ({ 
+        ...prev, 
+        [currentSearchId as string]: { ...prev[currentSearchId as string], result } 
+      }));
     } catch (error) {
       console.error('Failed to tag question', error);
       toast({
@@ -149,10 +146,10 @@ function TaggingFormComponent() {
         description: 'Failed to tag the question. Please try again.',
         variant: 'destructive',
       });
-       setHistory(prev => {
-        const updatedItem = { ...prev[currentSearchId as string], result: null };
-        return { ...prev, [currentSearchId as string]: updatedItem };
-      });
+       setHistory(prev => ({ 
+        ...prev, 
+        [currentSearchId as string]: { ...prev[currentSearchId as string], result: null } 
+      }));
     } finally {
       setIsLoading(false);
       if (searchParams.get('q')) {
