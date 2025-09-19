@@ -28,9 +28,12 @@ import {
   Trophy,
   FilePlus2,
   BookOpen,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useRef } from 'react';
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: Home },
@@ -66,6 +69,14 @@ function SidebarCollapseButton() {
 
 export default function AppSidebar() {
   const pathname = usePathname();
+  const scrollableContentRef = useRef<HTMLDivElement>(null);
+
+  const handleScroll = (direction: 'up' | 'down') => {
+    if (scrollableContentRef.current) {
+        const scrollAmount = direction === 'up' ? -200 : 200;
+        scrollableContentRef.current.scrollBy({ top: scrollAmount, behavior: 'smooth' });
+    }
+  };
 
   return (
     <Sidebar
@@ -81,7 +92,7 @@ export default function AppSidebar() {
           </span>
         </Link>
       </SidebarHeader>
-      <SidebarContent className="flex-1 p-2">
+      <SidebarContent ref={scrollableContentRef} className="flex-1 p-2">
         <SidebarMenu>
           {navItems.map((item) => (
             <SidebarMenuItem key={item.href}>
@@ -100,6 +111,16 @@ export default function AppSidebar() {
       </SidebarContent>
       <SidebarFooter className="p-2">
          <SidebarMenu>
+            <SidebarMenuItem>
+                <SidebarMenuButton onClick={() => handleScroll('up')} className="w-full justify-center">
+                    <ChevronUp />
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+             <SidebarMenuItem>
+                <SidebarMenuButton onClick={() => handleScroll('down')} className="w-full justify-center">
+                    <ChevronDown />
+                </SidebarMenuButton>
+            </SidebarMenuItem>
             <SidebarMenuItem>
                  <Link href="/settings">
                     <SidebarMenuButton
