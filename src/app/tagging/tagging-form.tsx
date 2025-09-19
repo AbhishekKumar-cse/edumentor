@@ -267,7 +267,7 @@ function TaggingFormComponent() {
     }
   };
   
-  const searchHistoryList = Object.values(history).sort((a,b) => parseInt(b.id) - parseInt(a.id));
+  const searchHistoryList = Object.values(history).sort((a,b) => parseInt(b) - parseInt(a));
 
   const HistoryPanelContent = () => (
     <>
