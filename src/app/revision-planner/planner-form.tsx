@@ -21,7 +21,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Loader2, CalendarCheck, Clock, Calendar as CalendarIcon, BookOpen, Brain, Activity } from 'lucide-react';
+import { Loader2, CalendarCheck, Clock, Calendar as CalendarIcon, BookOpen, Brain, Activity, Sparkles, Check, Goal, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 import { Badge } from '@/components/ui/badge';
@@ -30,6 +30,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 const timeSlots = [
     { id: 'Morning (9am-12pm)', label: 'Morning (9am - 12pm)' },
@@ -265,8 +266,8 @@ export default function PlannerForm() {
                             />
                     </CardContent>
                 </Card>
-                <Button type="submit" disabled={isLoading} size="lg" className={cn("w-full text-white bg-blue-600 hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-500/50 transition-all duration-300")}>
-                    {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <CalendarCheck className="mr-2 h-5 w-5" />}
+                <Button type="submit" disabled={isLoading} size="lg" className={cn("w-full bg-blue-600 text-white hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-500/50 transition-all duration-300")}>
+                    {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
                     Generate My Personalized Plan
                 </Button>
              </div>
@@ -334,18 +335,42 @@ export default function PlannerForm() {
                                     </div>
                                     <div className="space-y-4 border-l-2 border-border pl-6">
                                         {groupedSchedule[dateStr].map((item, index) => (
-                                            <Card key={index} className="hover:shadow-md hover:border-primary/50 transition-all">
-                                                <CardHeader>
+                                           <Accordion type="single" collapsible className="w-full bg-secondary/30 rounded-lg border hover:border-primary/50 transition-colors" key={index}>
+                                             <AccordionItem value={`item-${index}`} className="border-b-0">
+                                               <AccordionTrigger className="p-4 hover:no-underline">
+                                                 <div className="w-full">
                                                     <CardTitle className="font-headline text-xl flex items-center justify-between">
                                                         <span>{item.topic}</span>
                                                         <Badge variant="secondary">{item.task}</Badge>
                                                     </CardTitle>
-                                                     <CardDescription className="flex items-center gap-4 pt-2">
+                                                     <CardDescription className="flex items-center gap-4 pt-2 text-left">
                                                         <span className="flex items-center gap-1.5"><Clock className="h-4 w-4"/> {item.startTime} - {item.endTime}</span>
                                                         <span className="flex items-center gap-1.5"><CalendarIcon className="h-4 w-4"/> {item.durationHours}hr session</span>
                                                     </CardDescription>
-                                                </CardHeader>
-                                            </Card>
+                                                 </div>
+                                               </AccordionTrigger>
+                                               <AccordionContent className="p-4 pt-0 space-y-4">
+                                                    <div className="p-3 rounded-md bg-background/50">
+                                                        <h4 className="font-semibold flex items-center gap-2 mb-2"><Info className="h-4 w-4 text-blue-400"/>Rationale</h4>
+                                                        <p className="text-sm text-muted-foreground">{item.rationale}</p>
+                                                    </div>
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                        <div className="p-3 rounded-md bg-background/50">
+                                                            <h4 className="font-semibold flex items-center gap-2 mb-2"><Brain className="h-4 w-4 text-purple-400"/>Key Concepts</h4>
+                                                            <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+                                                                {item.keyConcepts.map((concept, i) => <li key={i}>{concept}</li>)}
+                                                            </ul>
+                                                        </div>
+                                                        <div className="p-3 rounded-md bg-background/50">
+                                                            <h4 className="font-semibold flex items-center gap-2 mb-2"><Goal className="h-4 w-4 text-green-400"/>Objectives</h4>
+                                                             <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+                                                                {item.specificObjectives.map((obj, i) => <li key={i}>{obj}</li>)}
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                               </AccordionContent>
+                                             </AccordionItem>
+                                           </Accordion>
                                         ))}
                                     </div>
                                </div>
