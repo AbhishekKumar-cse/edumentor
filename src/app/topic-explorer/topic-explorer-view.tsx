@@ -126,6 +126,7 @@ const QuestionCard = ({ question, index }: { question: Question; index: number }
 export default function TopicExplorerView({ subjects }: { subjects: Subject[] }) {
   const [activeConcept, setActiveConcept] = useState<Concept | null>(null);
   const [filterSubject, setFilterSubject] = useState<string>('all');
+  const [filterChapter, setFilterChapter] = useState<string>('all');
   const [sortOrder, setSortOrder] = useState<string>('pastPaperCount');
 
   const allConcepts: Concept[] = useMemo(() => {
@@ -160,18 +161,31 @@ export default function TopicExplorerView({ subjects }: { subjects: Subject[] })
     return Array.from(conceptsMap.values());
   }, [subjects]);
 
+  const chaptersForSelectedSubject = useMemo(() => {
+    if (filterSubject === 'all') return [];
+    const subject = subjects.find(s => s.name === filterSubject);
+    return subject ? subject.chapters : [];
+  }, [filterSubject, subjects]);
+
+
   const filteredAndSortedConcepts = useMemo(() => {
     let concepts = allConcepts;
+    
     if (filterSubject !== 'all') {
         concepts = concepts.filter(c => c.subjectName === filterSubject);
     }
+    
+    if (filterChapter !== 'all') {
+        concepts = concepts.filter(c => c.chapterName === filterChapter);
+    }
+
     return concepts.sort((a, b) => {
         if (sortOrder === 'questionCount') return b.questionCount - a.questionCount;
         if (sortOrder === 'name') return a.name.localeCompare(b.name);
         // default to pastPaperCount
         return b.pastPaperCount - a.pastPaperCount;
     });
-  }, [allConcepts, filterSubject, sortOrder]);
+  }, [allConcepts, filterSubject, filterChapter, sortOrder]);
 
 
   const chartConfig = {
@@ -179,6 +193,11 @@ export default function TopicExplorerView({ subjects }: { subjects: Subject[] })
       Easy: { label: "Easy", color: difficultyColors.Easy },
       Medium: { label: "Medium", color: difficultyColors.Medium },
       Hard: { label: "Hard", color: difficultyColors.Hard },
+  }
+
+  const handleSubjectChange = (subject: string) => {
+    setFilterSubject(subject);
+    setFilterChapter('all');
   }
 
   return (
@@ -196,9 +215,9 @@ export default function TopicExplorerView({ subjects }: { subjects: Subject[] })
             <div className="flex flex-col sm:flex-row gap-4 mb-6 p-4 bg-secondary/50 rounded-lg border">
                 <div className="flex items-center gap-2 flex-1">
                     <Filter className="w-5 h-5" />
-                    <Label htmlFor="subject-filter" className="font-semibold">Filter by Subject:</Label>
-                    <Select value={filterSubject} onValueChange={setFilterSubject}>
-                        <SelectTrigger id="subject-filter" className="w-full sm:w-[200px]">
+                    <Label htmlFor="subject-filter" className="font-semibold shrink-0">Filter by Subject:</Label>
+                    <Select value={filterSubject} onValueChange={handleSubjectChange}>
+                        <SelectTrigger id="subject-filter" className="w-full sm:w-auto">
                             <SelectValue placeholder="Select subject" />
                         </SelectTrigger>
                         <SelectContent>
@@ -208,10 +227,23 @@ export default function TopicExplorerView({ subjects }: { subjects: Subject[] })
                     </Select>
                 </div>
                  <div className="flex items-center gap-2 flex-1">
+                    <Filter className="w-5 h-5" />
+                    <Label htmlFor="chapter-filter" className="font-semibold shrink-0">Filter by Chapter:</Label>
+                    <Select value={filterChapter} onValueChange={setFilterChapter} disabled={filterSubject === 'all'}>
+                        <SelectTrigger id="chapter-filter" className="w-full sm:w-auto">
+                            <SelectValue placeholder="Select chapter" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Chapters</SelectItem>
+                            {chaptersForSelectedSubject.map(c => <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                </div>
+                 <div className="flex items-center gap-2 flex-1">
                     <SortAsc className="w-5 h-5" />
-                    <Label htmlFor="sort-order" className="font-semibold">Sort by:</Label>
+                    <Label htmlFor="sort-order" className="font-semibold shrink-0">Sort by:</Label>
                     <Select value={sortOrder} onValueChange={setSortOrder}>
-                        <SelectTrigger id="sort-order" className="w-full sm:w-[200px]">
+                        <SelectTrigger id="sort-order" className="w-full sm:w-auto">
                             <SelectValue placeholder="Sort order" />
                         </SelectTrigger>
                         <SelectContent>
