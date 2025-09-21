@@ -11,23 +11,10 @@ export default function TopicExplorerPage() {
         <header className="space-y-2">
           <h1 className="text-4xl font-headline font-bold">Topic Explorer</h1>
           <p className="text-muted-foreground">
-            Analyze question trends and focus on the most important topics.
+            Analyze question trends, difficulty distribution, and focus on the most important topics for your exams.
           </p>
         </header>
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3">
-              <Telescope className="w-6 h-6 text-primary" />
-              <span className="font-headline text-2xl">JEE Hot Topics</span>
-            </CardTitle>
-            <CardDescription>
-              Discover which concepts appear most frequently in past JEE papers based on our question bank.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <TopicExplorerView subjects={subjects} />
-          </CardContent>
-        </Card>
+        <TopicExplorerView subjects={subjects} />
       </div>
     </div>
   );
