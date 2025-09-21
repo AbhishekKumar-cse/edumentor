@@ -287,7 +287,7 @@ function TaggingFormComponent() {
       <ScrollArea className="flex-1">
           <div className="p-2 space-y-1">
               {searchHistoryList.map(item => (
-                  <div key={item.id} className="flex items-center group">
+                   <div key={item.id} className="flex items-center group">
                       <Button
                           variant={activeSearchId === item.id ? "secondary" : "ghost"}
                           className="w-full justify-start gap-2 truncate"
@@ -355,18 +355,26 @@ function TaggingFormComponent() {
         {/* Input Form Section */}
         <div className="p-6 flex flex-col gap-8 border-r border-white/10 md:col-span-2 xl:col-span-1">
           <header className="space-y-2">
-            <div className='flex items-center gap-4'>
-                <Sheet>
-                    <SheetTrigger asChild>
-                        <Button variant="outline" size="icon" className="md:hidden">
-                            <History className="h-5 w-5"/>
-                        </Button>
-                    </SheetTrigger>
-                    <SheetContent side="left" className="p-0 flex flex-col w-[80%] max-w-sm">
-                        <HistoryPanelContent/>
-                    </SheetContent>
-                </Sheet>
-                <h1 className="text-3xl font-headline font-bold">AI Question Tagger</h1>
+            <div className='flex items-center justify-between gap-4'>
+                <div className='flex items-center gap-4'>
+                    <Sheet>
+                        <SheetTrigger asChild>
+                            <Button variant="outline" size="icon" className="md:hidden">
+                                <History className="h-5 w-5"/>
+                            </Button>
+                        </SheetTrigger>
+                        <SheetContent side="left" className="p-0 flex flex-col w-[80%] max-w-sm">
+                            <HistoryPanelContent/>
+                        </SheetContent>
+                    </Sheet>
+                    <h1 className="text-3xl font-headline font-bold">AI Tagger</h1>
+                </div>
+                 <Button asChild variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/20 hover:text-primary transition-all duration-300 hover:scale-105 hover:glow-sm">
+                    <Link href="/">
+                        <ArrowLeft className="h-5 w-5" />
+                        <span className="sr-only">Back to Dashboard</span>
+                    </Link>
+                </Button>
             </div>
             <p className="text-muted-foreground">
               Automatically classify questions by difficulty, concepts, and more. Paste a question to get started.
