@@ -357,7 +357,7 @@ function TaggingFormComponent() {
           <header className="space-y-2">
             <div className='flex items-center gap-4'>
                 <Sheet>
-                    <SheetTrigger key="history-sheet-trigger" asChild>
+                    <SheetTrigger asChild>
                         <Button variant="outline" size="icon" className="md:hidden">
                             <History className="h-5 w-5"/>
                         </Button>
