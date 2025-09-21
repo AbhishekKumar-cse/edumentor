@@ -24,6 +24,7 @@ import {
   DrawerTitle,
   DrawerDescription,
   DrawerClose,
+  DrawerTrigger,
 } from "@/components/ui/drawer"
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
@@ -270,9 +271,11 @@ export default function TopicExplorerView({ subjects }: { subjects: Subject[] })
                                     </div>
                                 </CardContent>
                                 <div className="p-4 pt-0">
-                                    <Button onClick={() => setActiveConcept(concept)} className="w-full">
-                                        View Questions <ChevronRight className="w-4 h-4 ml-2" />
-                                    </Button>
+                                    <DrawerTrigger asChild>
+                                        <Button onClick={() => setActiveConcept(concept)} className="w-full">
+                                            View Questions <ChevronRight className="w-4 h-4 ml-2" />
+                                        </Button>
+                                    </DrawerTrigger>
                                 </div>
                             </Card>
                         )
