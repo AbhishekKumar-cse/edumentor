@@ -29,6 +29,7 @@ import { getISOWeek, format, parseISO, startOfWeek, endOfWeek } from 'date-fns';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 
 const timeSlots = [
     { id: 'Morning (9am-12pm)', label: 'Morning (9am - 12pm)' },
@@ -264,7 +265,7 @@ export default function PlannerForm() {
                             />
                     </CardContent>
                 </Card>
-                <Button type="submit" disabled={isLoading} variant="accent" size="lg" className="w-full">
+                <Button type="submit" disabled={isLoading} size="lg" className={cn("w-full text-white bg-blue-600 hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-500/50 transition-all duration-300")}>
                     {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <CalendarCheck className="mr-2 h-5 w-5" />}
                     Generate My Personalized Plan
                 </Button>
