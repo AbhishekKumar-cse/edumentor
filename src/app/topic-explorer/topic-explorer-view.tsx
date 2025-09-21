@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react';
 import type { Subject, Question } from '@/lib/data';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, Flame, Atom, FlaskConical, Calculator, BookOpen, BarChart3, ChevronRight, Filter, SortAsc, FileQuestion, X } from 'lucide-react';
+import { Check, Flame, Atom, FlaskConical, Calculator, BookOpen, BarChart3, ChevronRight, Filter, SortAsc, FileQuestion, X, Telescope } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -233,51 +233,51 @@ export default function TopicExplorerView({ subjects }: { subjects: Subject[] })
                         ].filter(d => d.value > 0);
 
                         return (
-                            <Card key={concept.name} className="flex flex-col bg-secondary/30 hover:bg-secondary/50 hover:shadow-lg transition-all duration-300">
-                                <CardHeader className="pb-4">
-                                    <CardTitle className="font-headline text-xl">{concept.name}</CardTitle>
-                                    <CardDescription>{concept.subjectName} - {concept.chapterName}</CardDescription>
-                                </CardHeader>
-                                <CardContent className="flex-1 grid grid-cols-2 gap-4 items-center">
-                                    <div className="space-y-3">
-                                        <div className="flex items-center gap-2">
-                                            <FileQuestion className="w-5 h-5 text-primary" />
-                                            <div>
-                                                <p className="font-bold text-lg">{concept.questionCount}</p>
-                                                <p className="text-xs text-muted-foreground">Total Questions</p>
+                            <DrawerTrigger asChild key={concept.name}>
+                                <Card className="flex flex-col bg-secondary/30 hover:bg-secondary/50 hover:shadow-lg transition-all duration-300 cursor-pointer" onClick={() => setActiveConcept(concept)}>
+                                    <CardHeader className="pb-4">
+                                        <CardTitle className="font-headline text-xl">{concept.name}</CardTitle>
+                                        <CardDescription>{concept.subjectName} - {concept.chapterName}</CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="flex-1 grid grid-cols-2 gap-4 items-center">
+                                        <div className="space-y-3">
+                                            <div className="flex items-center gap-2">
+                                                <FileQuestion className="w-5 h-5 text-primary" />
+                                                <div>
+                                                    <p className="font-bold text-lg">{concept.questionCount}</p>
+                                                    <p className="text-xs text-muted-foreground">Total Questions</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Flame className="w-5 h-5 text-amber-500" />
+                                                 <div>
+                                                    <p className="font-bold text-lg">{concept.pastPaperCount}</p>
+                                                    <p className="text-xs text-muted-foreground">Past Papers</p>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <Flame className="w-5 h-5 text-amber-500" />
-                                             <div>
-                                                <p className="font-bold text-lg">{concept.pastPaperCount}</p>
-                                                <p className="text-xs text-muted-foreground">Past Papers</p>
-                                            </div>
+                                        <div className="flex items-center justify-center">
+                                            {chartData.length > 0 ? (
+                                                <ChartContainer config={chartConfig} className="w-full h-[80px]">
+                                                    <PieChart>
+                                                         <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+                                                        <Pie data={chartData} dataKey="value" nameKey="name" innerRadius={20} outerRadius={35} strokeWidth={2}>
+                                                             {chartData.map((entry) => (
+                                                                <Cell key={`cell-${entry.name}`} fill={entry.fill} />
+                                                            ))}
+                                                        </Pie>
+                                                    </PieChart>
+                                                </ChartContainer>
+                                            ) : <p className="text-xs text-muted-foreground">No data</p>}
                                         </div>
-                                    </div>
-                                    <div className="flex items-center justify-center">
-                                        {chartData.length > 0 ? (
-                                            <ChartContainer config={chartConfig} className="w-full h-[80px]">
-                                                <PieChart>
-                                                     <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-                                                    <Pie data={chartData} dataKey="value" nameKey="name" innerRadius={20} outerRadius={35} strokeWidth={2}>
-                                                         {chartData.map((entry) => (
-                                                            <Cell key={`cell-${entry.name}`} fill={entry.fill} />
-                                                        ))}
-                                                    </Pie>
-                                                </PieChart>
-                                            </ChartContainer>
-                                        ) : <p className="text-xs text-muted-foreground">No data</p>}
-                                    </div>
-                                </CardContent>
-                                <div className="p-4 pt-0">
-                                    <DrawerTrigger asChild>
-                                        <Button onClick={() => setActiveConcept(concept)} className="w-full">
+                                    </CardContent>
+                                    <div className="p-4 pt-0">
+                                        <Button className="w-full">
                                             View Questions <ChevronRight className="w-4 h-4 ml-2" />
                                         </Button>
-                                    </DrawerTrigger>
-                                </div>
-                            </Card>
+                                    </div>
+                                </Card>
+                            </DrawerTrigger>
                         )
                     })}
                 </div>
