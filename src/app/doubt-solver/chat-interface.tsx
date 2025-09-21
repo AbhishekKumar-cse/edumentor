@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Send, User, Bot, Loader2, Paperclip, X, FileText, PlusCircle, Trash2, MessageSquare, History, Lightbulb, HelpCircle, BookOpen, Mic, ArrowLeft } from "lucide-react";
+import { Send, User, Bot, Loader2, Paperclip, X, FileText, PlusCircle, Trash2, MessageSquare, History, Lightbulb, HelpCircle, BookOpen, Mic, ArrowLeft, GraduationCap, ListChecks, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -31,7 +31,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { Separator } from "@/components/ui/separator";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Logo } from "@/components/icons";
@@ -50,6 +50,13 @@ type Chat = {
     title: string;
     messages: Message[];
 }
+
+const difficultyVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive' } = {
+  Easy: 'secondary',
+  Medium: 'default',
+  Hard: 'destructive',
+};
+
 
 export default function ChatInterface() {
   const [chats, setChats] = useState<Record<string, Chat>>({});
@@ -234,6 +241,9 @@ export default function ChatInterface() {
         content: result.answer + (result.explanation ? `\n\n**Explanation:**\n${result.explanation}` : ''),
         analysis: {
             summary: result.summary,
+            difficulty: result.difficulty,
+            solutionStrategy: result.solutionStrategy,
+            commonMistakes: result.commonMistakes,
             keyConcepts: result.keyConcepts,
             practiceQuestions: result.practiceQuestions,
         }
@@ -387,16 +397,42 @@ export default function ChatInterface() {
                         )}
                         <p className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</p>
 
-                        {message.analysis && (message.analysis.summary || (message.analysis.keyConcepts && message.analysis.keyConcepts.length > 0) || (message.analysis.practiceQuestions && message.analysis.practiceQuestions.length > 0)) && (
+                        {message.analysis && (
                             <Card className="mt-4 bg-background/30 border-white/20">
                                 <CardHeader>
                                     <CardTitle className="text-lg font-headline">Detailed Analysis</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
-                                    {message.analysis.summary && (
+                                     {message.analysis.summary && (
                                         <div>
                                             <h4 className="font-semibold text-base mb-2 flex items-center"><BookOpen className="w-4 h-4 mr-2" />Summary</h4>
                                             <p className="text-sm text-muted-foreground prose prose-sm dark:prose-invert">{message.analysis.summary}</p>
+                                        </div>
+                                    )}
+                                     {message.analysis.difficulty && (
+                                        <div>
+                                            <h4 className="font-semibold text-base mb-2 flex items-center"><GraduationCap className="w-4 h-4 mr-2" />Difficulty</h4>
+                                            <Badge variant={difficultyVariantMap[message.analysis.difficulty]} className="capitalize">{message.analysis.difficulty}</Badge>
+                                        </div>
+                                    )}
+                                     {message.analysis.solutionStrategy && message.analysis.solutionStrategy.length > 0 && (
+                                        <div>
+                                            <h4 className="font-semibold text-base mb-2 flex items-center"><ListChecks className="w-4 h-4 mr-2" />Solution Strategy</h4>
+                                            <ul className="list-decimal list-inside text-sm text-muted-foreground space-y-1">
+                                                {message.analysis.solutionStrategy.map((step, index) => (
+                                                    <li key={index}>{step}</li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+                                     {message.analysis.commonMistakes && message.analysis.commonMistakes.length > 0 && (
+                                        <div>
+                                            <h4 className="font-semibold text-base mb-2 flex items-center"><AlertTriangle className="w-4 h-4 mr-2" />Common Mistakes</h4>
+                                            <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+                                                {message.analysis.commonMistakes.map((mistake, index) => (
+                                                    <li key={index}>{mistake}</li>
+                                                ))}
+                                            </ul>
                                         </div>
                                     )}
                                     {message.analysis.keyConcepts && message.analysis.keyConcepts.length > 0 && (

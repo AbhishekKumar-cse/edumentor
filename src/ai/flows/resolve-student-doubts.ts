@@ -43,6 +43,9 @@ const ResolveStudentDoubtsOutputSchema = z.object({
   answer: z.string().describe("The AI assistant's answer to the question."),
   explanation: z.string().optional().describe('A detailed, step-by-step explanation of the concept or solution.'),
   summary: z.string().describe('A brief summary of the provided document or the solution.'),
+  difficulty: z.enum(['Easy', 'Medium', 'Hard']).optional().describe('The estimated difficulty of the question.'),
+  solutionStrategy: z.array(z.string()).optional().describe('A high-level, step-by-step plan to guide the student towards the solution.'),
+  commonMistakes: z.array(z.string()).optional().describe('A list of common mistakes or pitfalls related to the question.'),
   keyConcepts: z.array(KeyConceptSchema).describe('A list of key concepts related to the question or extracted from the document.'),
   practiceQuestions: z.array(PracticeQuestionSchema).describe('A list of practice questions based on the question or document.'),
 });
@@ -182,7 +185,8 @@ SPECIAL RULES (must follow)
 2. Always do arithmetic step-by-step to avoid mistakes.
 3. If the user explicitly asks to search the web, do so. If the topic could have changed since June 2024 (news, people, prices) or is a factual question (geography, history, science facts), perform a web search automatically.
 4. When presenting past-year exam questions or PYQs, label each with the exam name and year; if unavailable, generate equivalent-quality practice questions instead of saying "I don't have them".
-5. ALWAYS provide a detailed analysis with a summary, key concepts, and practice questions for EVERY response, even if the user only asks a simple question.`,
+5. ALWAYS provide a detailed analysis with a summary, key concepts, and practice questions for EVERY response, even if the user only asks a simple question.
+6. For every academic question, also provide a difficulty assessment, a high-level solution strategy, and a list of common mistakes.`,
   input: {schema: ResolveStudentDoubtsInputSchema },
   output: {schema: ResolveStudentDoubtsOutputSchema},
   prompt: `
