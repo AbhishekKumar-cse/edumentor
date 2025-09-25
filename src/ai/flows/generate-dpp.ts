@@ -48,7 +48,7 @@ const DppOutputSchema = z.object({
 export type DppOutput = z.infer<typeof DppOutputSchema>;
 
 async function getQuestionsFromChapters({ chapters, difficulty }: {
-    chapters: { id: number; count: number }[];
+    chapters: { id: number; questionCount: number }[];
     difficulty?: 'Easy' | 'Medium' | 'Hard' | 'Mixed';
 }): Promise<Question[]> {
     const allQuestions: Question[] = [];
@@ -69,7 +69,7 @@ async function getQuestionsFromChapters({ chapters, difficulty }: {
             
             // Shuffle questions to get a random selection
             const shuffled = [...potentialQuestions].sort(() => 0.5 - Math.random());
-            const selected = shuffled.slice(0, chapterInfo.count);
+            const selected = shuffled.slice(0, chapterInfo.questionCount);
             allQuestions.push(...selected);
         }
     }
@@ -91,7 +91,7 @@ const generateDppFlow = ai.defineFlow(
   async (input) => {
     
     const questions = await getQuestionsFromChapters({
-        chapters: input.chapters.map(c => ({ id: c.id, count: c.questionCount })),
+        chapters: input.chapters,
         difficulty: input.difficulty
     });
     
