@@ -47,67 +47,40 @@ const DppOutputSchema = z.object({
 
 export type DppOutput = z.infer<typeof DppOutputSchema>;
 
-const getQuestionsFromChapters = ai.defineTool(
-    {
-        name: 'getQuestionsFromChapters',
-        description: 'Retrieves a specified number of questions from a list of chapter IDs, with an optional difficulty filter.',
-        inputSchema: z.object({
-            chapters: z.array(z.object({
-                id: z.number().describe('The ID of the chapter.'),
-                count: z.number().describe('The number of questions to fetch from this chapter.'),
-            })),
-            difficulty: z.enum(['Easy', 'Medium', 'Hard', 'Mixed']).optional().describe('The desired difficulty of the questions.'),
-        }),
-        outputSchema: z.array(QuestionOutputSchema),
-    },
-    async ({ chapters, difficulty }) => {
-        const allQuestions: Question[] = [];
-        const chapterMap = new Map<number, Chapter>();
-        subjects.forEach(subject => {
-            subject.chapters.forEach(chapter => {
-                chapterMap.set(chapter.id, chapter);
-            });
+async function getQuestionsFromChapters({ chapters, difficulty }: {
+    chapters: { id: number; count: number }[];
+    difficulty?: 'Easy' | 'Medium' | 'Hard' | 'Mixed';
+}): Promise<Question[]> {
+    const allQuestions: Question[] = [];
+    const chapterMap = new Map<number, Chapter>();
+    subjects.forEach(subject => {
+        subject.chapters.forEach(chapter => {
+            chapterMap.set(chapter.id, chapter);
         });
+    });
 
-        for (const chapterInfo of chapters) {
-            const chapter = chapterMap.get(chapterInfo.id);
-            if (chapter) {
-                let potentialQuestions = chapter.questions;
-                if (difficulty && difficulty !== 'Mixed') {
-                    potentialQuestions = potentialQuestions.filter(q => q.difficulty === difficulty);
-                }
-                
-                // Shuffle questions to get a random selection
-                const shuffled = [...potentialQuestions].sort(() => 0.5 - Math.random());
-                const selected = shuffled.slice(0, chapterInfo.count);
-                allQuestions.push(...selected);
+    for (const chapterInfo of chapters) {
+        const chapter = chapterMap.get(chapterInfo.id);
+        if (chapter) {
+            let potentialQuestions = chapter.questions;
+            if (difficulty && difficulty !== 'Mixed') {
+                potentialQuestions = potentialQuestions.filter(q => q.difficulty === difficulty);
             }
+            
+            // Shuffle questions to get a random selection
+            const shuffled = [...potentialQuestions].sort(() => 0.5 - Math.random());
+            const selected = shuffled.slice(0, chapterInfo.count);
+            allQuestions.push(...selected);
         }
-        return allQuestions;
     }
-);
+    return allQuestions;
+}
 
 
 export async function generateDpp(input: DppInput): Promise<DppOutput> {
   return generateDppFlow(input);
 }
 
-const generateDppPrompt = ai.definePrompt({
-    name: 'generateDppPrompt',
-    tools: [getQuestionsFromChapters],
-    input: { schema: DppInputSchema },
-    output: { schema: DppOutputSchema },
-    prompt: `Generate a Daily Practice Problem (DPP) sheet.
-    
-    DPP Name: {{dppName}}
-    Exam Type: {{examType}}
-    Difficulty: {{difficulty}}
-
-    Use the getQuestionsFromChapters tool to fetch the questions based on the provided chapter selections.
-    The final output should be a well-formed DPP with the specified name and the fetched questions.
-    Do not make up questions. Only use the questions returned by the tool.
-    `,
-});
 
 const generateDppFlow = ai.defineFlow(
   {
@@ -117,37 +90,24 @@ const generateDppFlow = ai.defineFlow(
   },
   async (input) => {
     
-    const llmResponse = await generateDppPrompt({
-        ...input,
-        chapters: input.chapters.map(c => ({id: c.id, questionCount: c.questionCount}))
+    const questions = await getQuestionsFromChapters({
+        chapters: input.chapters.map(c => ({ id: c.id, count: c.questionCount })),
+        difficulty: input.difficulty
     });
-
-    const toolRequest = llmResponse.toolRequests.find(
-        (req) => req.tool.name === 'getQuestionsFromChapters'
-    );
-
-    if (toolRequest) {
-        const questions = await toolRequest.tool.fn(toolRequest.input);
-        return {
-            name: input.dppName || 'Your Daily Practice Problems',
-            questions: questions.map(q => ({
-                id: q.id,
-                text: q.text,
-                options: q.options,
-                answer: q.answer,
-                difficulty: q.difficulty,
-                pageReference: q.pageReference,
-                concepts: q.concepts,
-                isPastPaper: q.isPastPaper,
-                explanation: q.explanation
-            })),
-        };
-    }
-
-    // Fallback or error handling if the tool wasn't called
+    
     return {
-        name: input.dppName || 'Generated DPP',
-        questions: [],
+        name: input.dppName || 'Your Daily Practice Problems',
+        questions: questions.map(q => ({
+            id: q.id,
+            text: q.text,
+            options: q.options,
+            answer: q.answer,
+            difficulty: q.difficulty,
+            pageReference: q.pageReference,
+            concepts: q.concepts,
+            isPastPaper: q.isPastPaper,
+            explanation: q.explanation
+        })),
     };
   }
 );
