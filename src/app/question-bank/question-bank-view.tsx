@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect } from 'react';
 import type { Subject, Chapter, Question } from '@/lib/data';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Flame, Telescope, X, Check, Filter, SortAsc } from 'lucide-react';
+import { Flame, Telescope, X, Check, Filter, SortAsc, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -25,6 +25,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import Link from 'next/link';
 
 const QuestionCard = ({ question, index }: { question: Question; index: number }) => {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -145,6 +146,12 @@ export default function QuestionBankView({ subject }: { subject: Subject }) {
   const renderSelectionScreen = () => (
     <Card>
       <CardHeader>
+        <Button asChild variant="outline" className="w-fit mb-4">
+            <Link href="/question-bank">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Subjects
+            </Link>
+        </Button>
         <CardTitle className="font-headline text-3xl">{subject.name} Question Bank</CardTitle>
         <CardDescription>Select units and chapters to start practicing.</CardDescription>
       </CardHeader>
@@ -244,3 +251,4 @@ export default function QuestionBankView({ subject }: { subject: Subject }) {
   
   return isStarted ? renderQuestionList() : renderSelectionScreen();
 }
+
