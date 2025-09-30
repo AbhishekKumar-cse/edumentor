@@ -3,11 +3,14 @@
 
 import { subjects } from "@/lib/data";
 import QuestionBankView from "../question-bank-view";
+import { useParams } from 'next/navigation';
 
-export default function SubjectQuestionBankPage({ params }: { params: { subject: string } }) {
-  
-  const subjectName = params.subject.charAt(0).toUpperCase() + params.subject.slice(1);
-  const subjectData = subjects.find(s => s.name.toLowerCase() === params.subject.toLowerCase());
+export default function SubjectQuestionBankPage() {
+  const params = useParams();
+  const subjectParam = Array.isArray(params.subject) ? params.subject[0] : params.subject;
+
+  const subjectName = subjectParam.charAt(0).toUpperCase() + subjectParam.slice(1);
+  const subjectData = subjects.find(s => s.name.toLowerCase() === subjectParam.toLowerCase());
 
   if (!subjectData) {
     return (
@@ -28,4 +31,3 @@ export default function SubjectQuestionBankPage({ params }: { params: { subject:
     </div>
   );
 }
-
