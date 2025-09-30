@@ -11,9 +11,6 @@ import { cn } from '@/lib/utils';
 import { Check, X, Flag, BarChart, FileText, ArrowLeft, Lightbulb, Clock, Repeat, BrainCircuit } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-
-// Re-using the history item type from generator-form, assuming it's exported
-// If not, it should be moved to a shared types file.
 import type { MockTestHistoryItem } from '../generator-form';
 
 
@@ -90,7 +87,6 @@ export default function ResultsPage() {
     setUnanswered(notAttempted);
     setScore(currentScore);
 
-    // Save to history only if it came from a live attempt (not a review)
     const isReviewing = sessionStorage.getItem('isReviewing');
     if (!isReviewing && config) {
       const historyItem: MockTestHistoryItem = {
@@ -107,7 +103,7 @@ export default function ResultsPage() {
 
       try {
         const existingHistory: MockTestHistoryItem[] = JSON.parse(localStorage.getItem('mockTestHistory') || '[]');
-        const updatedHistory = [historyItem, ...existingHistory].slice(0, 10); // Keep last 10 attempts
+        const updatedHistory = [historyItem, ...existingHistory].slice(0, 10);
         localStorage.setItem('mockTestHistory', JSON.stringify(updatedHistory));
       } catch (error) {
         console.error("Failed to save mock test history to localStorage", error);
