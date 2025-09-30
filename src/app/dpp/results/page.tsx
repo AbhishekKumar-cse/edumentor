@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Check, X, Flag, BarChart, FileText, ArrowLeft, Lightbulb, Repeat, Clock } from 'lucide-react';
+import { Check, X, Flag, BarChart, FileText, ArrowLeft, Lightbulb, Repeat, Clock, BrainCircuit } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import type { DppHistoryItem } from './../dpp-generator';
@@ -289,16 +289,25 @@ export default function DppResultsPage() {
                       </>
                    )}
                 </div>
+
+                <div className="mt-4 p-3 rounded-md bg-background/50">
+                    <h4 className="font-semibold flex items-center gap-2 mb-2"><BrainCircuit className="h-4 w-4 text-blue-400"/>Related Concepts</h4>
+                    <div className="flex flex-wrap gap-2">
+                        {question.concepts.map((concept, i) => (
+                            <Badge key={i} variant="outline">{concept}</Badge>
+                        ))}
+                    </div>
+                </div>
                 
-                  <Accordion type="single" collapsible className="w-full mt-4">
-                    <AccordionItem value="explanation">
-                      <AccordionTrigger className='text-sm font-semibold text-primary hover:no-underline'>
+                  <Accordion type="single" collapsible className="w-full mt-2">
+                    <AccordionItem value="explanation" className='bg-background/50 rounded-md border px-3'>
+                      <AccordionTrigger className='text-sm font-semibold text-primary hover:no-underline py-3'>
                          <div className='flex items-center gap-2'>
                           <Lightbulb className='h-4 w-4' />
                           Show Explanation
                          </div>
                       </AccordionTrigger>
-                      <AccordionContent className="pt-2 text-sm text-muted-foreground prose dark:prose-invert">
+                      <AccordionContent className="pt-2 pb-3 text-sm text-muted-foreground prose dark:prose-invert">
                           {question.explanation ? (
                               <p>{question.explanation}</p>
                           ) : (
