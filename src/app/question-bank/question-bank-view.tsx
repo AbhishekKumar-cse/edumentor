@@ -146,7 +146,7 @@ export default function QuestionBankView({ subject }: { subject: Subject }) {
     <Card>
       <CardHeader>
         <CardTitle className="font-headline text-3xl">{subject.name} Question Bank</CardTitle>
-        <CardDescription>Select chapters to start practicing.</CardDescription>
+        <CardDescription>Select units and chapters to start practicing.</CardDescription>
       </CardHeader>
       <CardContent>
           <div className="flex justify-between items-center mb-4">
