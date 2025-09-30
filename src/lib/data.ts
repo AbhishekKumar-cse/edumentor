@@ -31,6 +31,7 @@ import { electronicDevicesQuestions } from './data/electronic-devices';
 import { communicationSystemsQuestions } from './data/communication-systems';
 import { isomerismQuestions } from './data/isomerism';
 import { pBlockElementsQuestions } from './data/p-block-elements';
+import { dAndFBlockElementsQuestions } from './data/d-and-f-block-elements';
 
 
 export type Question = {
@@ -213,6 +214,7 @@ export const subjects: Subject[] = [
                 chemicalBondingQuestions,
                 coordinationCompoundQuestions,
                 pBlockElementsQuestions,
+                dAndFBlockElementsQuestions,
             ]
         },
         {
@@ -240,6 +242,7 @@ export const subjects: Subject[] = [
       alcoholsPhenolsEthersQuestions,
       isomerismQuestions,
       pBlockElementsQuestions,
+      dAndFBlockElementsQuestions,
     ]
   },
   {
@@ -385,7 +388,7 @@ export const formulas: FormulaSubject[] = [
     },
     {
         subject: 'Chemistry',
-        chapters: [
+        topics: [
             {
                 name: 'Mole Concept',
                 formulae: [
