@@ -2,7 +2,7 @@
 'use client';
 
 import { Card } from "@/components/ui/card";
-import { ClipboardList, FileText, Users } from "lucide-react";
+import { ClipboardList, FileText, Users, Bot } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 
@@ -52,6 +52,45 @@ export default function MockTestPage() {
             </div>
           </div>
         </Card>
+
+        <div className="space-y-4">
+            <h2 className="text-center text-2xl font-bold text-cyan-400 flex items-center justify-center gap-2">
+                <Bot className="w-6 h-6"/>
+                Interactive AI Tests
+            </h2>
+            <Card 
+              className="bg-gray-800 border-cyan-500/50 p-6 rounded-2xl cursor-pointer hover:bg-gray-700/50 transition-all group relative overflow-hidden"
+              onClick={() => router.push('/mock-test/start')}
+            >
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent animate-[shine_4s_linear_infinite]"></div>
+              <div className="flex justify-between items-center">
+                <div className="space-y-2">
+                  <h2 className="text-xl font-bold">Full Combined Syllabus Test</h2>
+                  <p className="text-gray-400">100 Questions</p>
+                </div>
+                <div className="p-3 bg-gray-700/50 rounded-lg">
+                  <ClipboardList className="w-8 h-8 text-cyan-400" />
+                </div>
+              </div>
+            </Card>
+
+            <Card 
+              className="bg-gray-800 border-teal-500/50 p-6 rounded-2xl cursor-pointer hover:bg-gray-700/50 transition-all group relative overflow-hidden"
+              onClick={() => router.push('/mock-test/start')}
+            >
+               <div className="absolute bottom-0 right-0 w-full h-1 bg-gradient-to-l from-transparent via-teal-400 to-transparent animate-[shine_4s_linear_infinite]"></div>
+              <div className="flex justify-between items-center">
+                <div className="space-y-2">
+                  <h2 className="text-xl font-bold">Chapter-wise Test</h2>
+                   <p className="text-gray-400">60 Questions</p>
+                </div>
+                <div className="p-3 bg-gray-700/50 rounded-lg">
+                  <FileText className="w-8 h-8 text-teal-400" />
+                </div>
+              </div>
+            </Card>
+        </div>
+
       </div>
        <style jsx>{`
         @keyframes shine {
