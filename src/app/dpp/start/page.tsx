@@ -246,6 +246,7 @@ export default function DppStartPage() {
                         Question {currentQuestionIndex + 1}: {currentQuestion.text}
                     </p>
                     <div className="flex items-center gap-2">
+                        <Badge variant={currentQuestion.difficulty === 'Easy' ? 'secondary' : currentQuestion.difficulty === 'Hard' ? 'destructive' : 'default'} className="capitalize">{currentQuestion.difficulty}</Badge>
                          {currentQuestion.isPastPaper && (
                             <Badge variant="outline" className="border-amber-500 text-amber-500">
                                 <Flame className="mr-1.5 h-3.5 w-3.5" />
