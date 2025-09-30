@@ -84,11 +84,11 @@ async function getQuestionsFromBank({ chapters, difficulty, count, subjectsToInc
                 allQuestions.push(...selected);
             }
         }
-    } else if (count && difficulty) {
+    } else if (count) {
         let potentialQuestions: Question[] = [];
          relevantSubjects.forEach(subject => {
             subject.chapters.forEach(chapter => {
-                if (difficulty !== 'Mixed') {
+                if (difficulty && difficulty !== 'Mixed') {
                     potentialQuestions.push(...chapter.questions.filter(q => q.difficulty === difficulty));
                 } else {
                     potentialQuestions.push(...chapter.questions);
@@ -131,7 +131,7 @@ const generateDppFlow = ai.defineFlow(
             name: 'Full Syllabus Mock Test',
             questions: shuffledAll, // For results page flat list
             sections: [
-                { name: 'Easy', duration: 25 * 60, questions: shuffledEasy },
+                { name: 'Easy', duration: 20 * 60, questions: shuffledEasy },
                 { name: 'Medium', duration: 30 * 60, questions: shuffledMedium },
                 { name: 'Hard', duration: 35 * 60, questions: shuffledHard },
             ],

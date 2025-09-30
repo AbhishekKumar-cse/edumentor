@@ -7,7 +7,7 @@ import { subjects, type Question } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -48,6 +48,27 @@ export default function TestPage() {
   const activeSection = testConfig?.sections ? testConfig.sections[currentSectionIndex] : null;
   const currentQuestion = activeSection ? activeSection.questions[currentQuestionIndex] : testQuestions[currentQuestionIndex];
 
+  const submitSection = useCallback(() => {
+    if (!testConfig || !activeSection) return;
+    
+    updateQuestionTime(currentQuestionIndex); // Final update for the current question
+
+    sessionStorage.setItem('testSectionResults', JSON.stringify(activeSection.questions));
+    sessionStorage.setItem('testConfig', JSON.stringify(testConfig));
+    sessionStorage.setItem('currentSectionIndex', JSON.stringify(currentSectionIndex));
+
+    if (activeSection.name === 'Easy') {
+      router.replace('/mock-test/review');
+    } else {
+       // For Medium and Hard, or other tests, go to next section or final results
+      if (testConfig.sections && currentSectionIndex < testConfig.sections.length - 1) {
+        handleNextSection();
+      } else {
+        submitTest();
+      }
+    }
+  }, [testConfig, activeSection, currentQuestionIndex, router]);
+
   const submitTest = useCallback(() => {
     if (!testConfig) return;
     
@@ -67,7 +88,7 @@ export default function TestPage() {
 
     sessionStorage.setItem('testResults', JSON.stringify(allQuestions));
     sessionStorage.setItem('totalTimeTaken', JSON.stringify(totalTimeTaken));
-    sessionStorage.setItem('mockTestConfig', JSON.stringify(testConfig));
+    // Keep mockTestConfig in session for re-attempts from results page
     router.replace('/mock-test/results');
   }, [testConfig, testQuestions, currentQuestionIndex, router]);
 
@@ -80,6 +101,13 @@ export default function TestPage() {
     }
     const config: TestConfig = JSON.parse(configStr);
     
+    // Resume from a specific section if specified, e.g., after completing practice
+    const resumeSectionIndex = sessionStorage.getItem('resumeSectionIndex');
+    const sectionIndex = resumeSectionIndex ? parseInt(resumeSectionIndex, 10) : 0;
+    setCurrentSectionIndex(sectionIndex);
+    sessionStorage.removeItem('resumeSectionIndex');
+
+
     if (config.sections) {
         const processedSections = config.sections.map(section => ({
             ...section,
@@ -91,7 +119,7 @@ export default function TestPage() {
             }))
         }));
         config.sections = processedSections;
-        setTimeLeft(processedSections[0].duration);
+        setTimeLeft(processedSections[sectionIndex].duration);
     } else {
        // Legacy or single-section tests
        const questions = (config.questions || []).map(q => ({
@@ -112,10 +140,10 @@ export default function TestPage() {
   useEffect(() => {
      if (timeLeft <= 0 && testConfig) {
         // If time is up for a section, move to next or submit
-        if (testConfig.sections && currentSectionIndex < testConfig.sections.length - 1) {
-            handleNextSection();
+        if (activeSection) {
+          submitSection();
         } else {
-            submitTest();
+          submitTest();
         }
         return;
      }
@@ -125,7 +153,7 @@ export default function TestPage() {
       }, 1000);
       return () => clearInterval(timerIntervalRef.current as NodeJS.Timeout);
      }
-  }, [timeLeft, submitTest, currentSectionIndex, testConfig]);
+  }, [timeLeft, submitTest, submitSection, testConfig, activeSection]);
 
   const updateQuestionTime = (index: number) => {
       const timeSpent = (Date.now() - questionStartTime.current) / 1000;
@@ -288,7 +316,7 @@ export default function TestPage() {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Are you sure you want to submit?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This action cannot be undone. Your test will be evaluated.
+                    This will end the entire test and submit all your answers for evaluation.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -348,9 +376,9 @@ export default function TestPage() {
                     {currentQuestion?.status === 'review' ? 'Unmark' : 'Mark for Review'}
                 </Button>
                 {isLastQuestionInSection ? (
-                     <Button onClick={handleNextSection} variant="accent">
+                     <Button onClick={submitSection} variant="accent">
                         {testConfig.sections && currentSectionIndex < testConfig.sections.length - 1 
-                            ? "Next Section" 
+                            ? "Submit Section" 
                             : "Submit Test"}
                         <CheckCircle className="ml-2 h-4 w-4" />
                     </Button>
