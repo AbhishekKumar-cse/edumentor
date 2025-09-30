@@ -39,7 +39,7 @@ export type DppHistoryItem = {
     id: string;
     name: string;
     questions: Question[];
-    submittedQuestions: (Question & { userAnswer?: string | undefined; status: 'unanswered' | 'answered'; })[];
+    submittedQuestions: (Question & { userAnswer?: string | undefined; status: 'unanswered' | 'answered'; timeTaken: number; })[];
     score: number;
     totalMarks: number;
     timestamp: number;
@@ -102,6 +102,8 @@ export default function DppGenerator({ subjects }: DppGeneratorProps) {
   const handleReview = (dpp: DppHistoryItem) => {
     sessionStorage.setItem('dppSubmission', JSON.stringify(dpp.submittedQuestions));
     sessionStorage.setItem('dppName', dpp.name);
+    // You might want to store total time if it was tracked for history items too
+    // sessionStorage.setItem('dppTotalTime', JSON.stringify(dpp.totalTime || 0));
     router.push('/dpp/results');
   };
 

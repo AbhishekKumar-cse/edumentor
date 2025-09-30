@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Question } from '@/lib/data';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,7 @@ import { Progress } from '@/components/ui/progress';
 interface DppQuestion extends Question {
   userAnswer?: string;
   status: 'unanswered' | 'answered' | 'review';
+  timeTaken: number; // in seconds
 }
 
 interface DppResult {
@@ -30,6 +31,11 @@ export default function DppStartPage() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [originalQuestions, setOriginalQuestions] = useState<Question[]>([]);
   const router = useRouter();
+
+  const questionTimers = useRef<number[]>([]);
+  const questionStartTime = useRef<number>(Date.now());
+  const totalTimeTaken = useRef<number>(0);
+  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const configStr = sessionStorage.getItem('dppResult');
@@ -45,10 +51,37 @@ export default function DppStartPage() {
         ...q,
         status: 'unanswered',
         userAnswer: undefined, // Ensure re-attempts start fresh
+        timeTaken: 0,
       })),
     });
     sessionStorage.setItem('dppOriginalQuestions', JSON.stringify(parsedData.questions));
+    questionStartTime.current = Date.now();
+
+    // Start a timer to track total time
+    timerIntervalRef.current = setInterval(() => {
+        totalTimeTaken.current += 1;
+    }, 1000);
+
+    return () => {
+        if(timerIntervalRef.current) {
+            clearInterval(timerIntervalRef.current);
+        }
+    }
   }, [router]);
+
+  const updateQuestionTime = (index: number) => {
+    const timeSpent = (Date.now() - questionStartTime.current) / 1000;
+    setDppData(prev => {
+        if (!prev) return null;
+        const newQuestions = [...prev.questions];
+        if(newQuestions[index]) {
+            newQuestions[index].timeTaken += timeSpent;
+        }
+        return {...prev, questions: newQuestions};
+    });
+    questionStartTime.current = Date.now();
+  }
+
 
   const handleAnswerChange = (answer: string) => {
     if (!dppData) return;
@@ -77,24 +110,36 @@ export default function DppStartPage() {
 
   const handleNext = () => {
     if (dppData && currentQuestionIndex < dppData.questions.length - 1) {
+      updateQuestionTime(currentQuestionIndex);
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     }
   };
 
   const handlePrevious = () => {
     if (currentQuestionIndex > 0) {
+      updateQuestionTime(currentQuestionIndex);
       setCurrentQuestionIndex(currentQuestionIndex - 1);
     }
   };
   
   const handlePaletteClick = (index: number) => {
-    setCurrentQuestionIndex(index);
+    if(index !== currentQuestionIndex) {
+        updateQuestionTime(currentQuestionIndex);
+        setCurrentQuestionIndex(index);
+    }
   }
 
   const submitDpp = () => {
     if (!dppData) return;
+    
+    if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+    }
+    updateQuestionTime(currentQuestionIndex); // Final update
+
     sessionStorage.setItem('dppSubmission', JSON.stringify(dppData.questions));
     sessionStorage.setItem('dppName', dppData.name);
+    sessionStorage.setItem('dppTotalTime', JSON.stringify(totalTimeTaken.current));
     sessionStorage.removeItem('dppResult'); // Clear the initial data
     router.replace('/dpp/results');
   };

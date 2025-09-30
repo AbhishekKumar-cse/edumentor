@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Check, X, Flag, BarChart, FileText, ArrowLeft, Lightbulb, Repeat } from 'lucide-react';
+import { Check, X, Flag, BarChart, FileText, ArrowLeft, Lightbulb, Repeat, Clock } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import type { DppHistoryItem } from './../dpp-generator';
@@ -17,6 +17,7 @@ import type { DppHistoryItem } from './../dpp-generator';
 interface DPPQuestion extends Question {
   userAnswer?: string;
   status: 'unanswered' | 'answered';
+  timeTaken: number;
 }
 
 const difficultyVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive' } = {
@@ -25,6 +26,13 @@ const difficultyVariantMap: { [key: string]: 'default' | 'secondary' | 'destruct
   Hard: 'destructive',
 };
 
+const formatTime = (seconds: number) => {
+    if (seconds < 60) return `${Math.round(seconds)}s`;
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.round(seconds % 60);
+    return `${mins}m ${secs}s`;
+}
+
 export default function DppResultsPage() {
   const [results, setResults] = useState<DPPQuestion[]>([]);
   const [score, setScore] = useState(0);
@@ -32,12 +40,14 @@ export default function DppResultsPage() {
   const [incorrectAnswers, setIncorrectAnswers] = useState(0);
   const [unanswered, setUnanswered] = useState(0);
   const [dppName, setDppName] = useState('DPP Results');
+  const [totalTime, setTotalTime] = useState(0);
 
   const router = useRouter();
 
   useEffect(() => {
     const resultsStr = sessionStorage.getItem('dppSubmission');
     const nameStr = sessionStorage.getItem('dppName');
+    const timeStr = sessionStorage.getItem('dppTotalTime');
     
     if (!resultsStr) {
       router.replace('/dpp');
@@ -46,6 +56,7 @@ export default function DppResultsPage() {
     const testResults: DPPQuestion[] = JSON.parse(resultsStr);
     setResults(testResults);
     if (nameStr) setDppName(nameStr);
+    if (timeStr) setTotalTime(JSON.parse(timeStr));
 
 
     let correct = 0;
@@ -79,7 +90,7 @@ export default function DppResultsPage() {
           id: Date.now().toString(),
           name: nameStr || "Unnamed DPP",
           questions: originalQuestions,
-          submittedQuestions: testResults,
+          submittedQuestions: testResults.map(q => ({...q, status: q.userAnswer ? 'answered' : 'unanswered'})),
           score: currentScore,
           totalMarks: testResults.length * 4,
           timestamp: Date.now(),
@@ -96,6 +107,7 @@ export default function DppResultsPage() {
     }
     sessionStorage.removeItem('dppIsReview');
     sessionStorage.removeItem('dppOriginalQuestions');
+    sessionStorage.removeItem('dppTotalTime');
 
   }, [router]);
 
@@ -125,6 +137,8 @@ export default function DppResultsPage() {
   const accuracy = results.length > 0 && (results.length - unanswered) > 0 
     ? ((correctAnswers / (results.length - unanswered)) * 100) 
     : 0;
+  
+  const averageTime = results.length > 0 ? totalTime / results.length : 0;
 
   if (results.length === 0) {
     return (
@@ -164,12 +178,12 @@ export default function DppResultsPage() {
               <span className="font-headline text-2xl">Performance Summary</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Card className="p-4 flex flex-col justify-center">
               <CardTitle className="text-4xl font-bold text-primary">{score} / {totalMarks}</CardTitle>
               <CardDescription>Your Score</CardDescription>
             </Card>
-             <Card className="p-4 grid grid-cols-3 gap-4">
+             <Card className="lg:col-span-2 p-4 grid grid-cols-3 gap-4">
                 <div className="text-center">
                     <p className="text-3xl font-bold text-green-500">{correctAnswers}</p>
                     <p className="text-sm text-muted-foreground">Correct</p>
@@ -189,9 +203,14 @@ export default function DppResultsPage() {
                <CardDescription>Accuracy</CardDescription>
                <Progress value={accuracy} className="mt-2" />
              </Card>
-              <Card className="p-4 flex flex-col justify-center items-center">
-                <CardTitle className="text-4xl font-bold">{results.length}</CardTitle>
-                <CardDescription>Total Questions</CardDescription>
+             <Card className="p-4 flex flex-col justify-center">
+                <CardTitle className="text-3xl font-bold">{formatTime(totalTime)}</CardTitle>
+                <CardDescription>Total Time Taken</CardDescription>
+              </Card>
+
+              <Card className="p-4 flex flex-col justify-center">
+                <CardTitle className="text-3xl font-bold">{formatTime(averageTime)}</CardTitle>
+                <CardDescription>Avg. Time / Question</CardDescription>
               </Card>
           </CardContent>
         </Card>
@@ -215,7 +234,7 @@ export default function DppResultsPage() {
                         <p className="font-semibold text-base mb-2">
                             Q{index + 1}: {question.text}
                         </p>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
                              <Badge
                                 variant={difficultyVariantMap[question.difficulty]}
                                 className={cn('text-xs', {
@@ -226,6 +245,10 @@ export default function DppResultsPage() {
                             >
                                 {question.difficulty}
                             </Badge>
+                             <div className="flex items-center gap-1.5">
+                                <Clock className="h-4 w-4" />
+                                <span>Time taken: {formatTime(question.timeTaken)}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
