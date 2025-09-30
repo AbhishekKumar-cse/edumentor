@@ -50,7 +50,7 @@ export default function QuestionBankPage() {
                             onClick={() => router.push(`/question-bank/${subject.name.toLowerCase()}`)}
                         >
                             <div className="p-4 bg-white/10 rounded-full group-hover:scale-110 group-hover:bg-primary/20 transition-transform">
-                                <Icon className="w-12 h-12 text-primary" />
+                                <Icon className="w-12 h-12 text-white" />
                             </div>
                             <CardTitle className="font-headline text-3xl">{subject.name}</CardTitle>
                             <CardDescription className="text-white/60">{subject.chapters.length} Chapters</CardDescription>
