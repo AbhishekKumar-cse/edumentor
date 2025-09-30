@@ -19,11 +19,14 @@ import { gravitationQuestions } from './data/gravitation';
 import { currentElectricityQuestions } from './data/current-electricity';
 import { oscillationsAndWavesQuestions } from './data/oscillations-and-waves';
 import { opticsQuestions } from './data/optics';
+import { rayOpticsQuestions } from './data/ray-optics';
 import { modernPhysicsQuestions } from './data/modern-physics';
 import { kinematicsQuestions } from './data/kinematics';
 import { capacitorQuestions } from './data/capacitors';
 import { magneticEffectsQuestions } from './data/magnetic-effects';
 import { emiAcQuestions } from './data/electromagnetic-induction-ac';
+import { electromagneticWavesQuestions } from './data/electromagnetic-waves';
+
 
 export type Question = {
   id: number;
@@ -109,6 +112,7 @@ export const subjects: Subject[] = [
             name: 'Waves & Optics',
             chapters: [
                  oscillationsAndWavesQuestions,
+                 rayOpticsQuestions,
                  opticsQuestions,
             ]
         },
@@ -121,7 +125,7 @@ export const subjects: Subject[] = [
                 capacitorQuestions,
                 magneticEffectsQuestions,
                 emiAcQuestions,
-                { id: 114, name: 'Electromagnetic Waves', questions: [] },
+                electromagneticWavesQuestions,
             ]
         },
         {
@@ -164,12 +168,9 @@ export const subjects: Subject[] = [
       capacitorQuestions,
       magneticEffectsQuestions,
       emiAcQuestions,
-      {
-        id: 114,
-        name: 'Electromagnetic Waves',
-        questions: []
-      },
+      electromagneticWavesQuestions,
       opticsQuestions,
+      rayOpticsQuestions,
       modernPhysicsQuestions,
       {
         id: 117,
