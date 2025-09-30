@@ -11,13 +11,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { ArrowLeft, CheckCircle, Flame, Lightbulb, ChevronsRight } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Flame, Lightbulb, ChevronsRight, ChevronsLeft, Flag } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
 
 interface DppQuestion extends Question {
   userAnswer?: string;
-  status: 'unanswered' | 'answered';
+  status: 'unanswered' | 'answered' | 'review';
 }
 
 interface DppResult {
@@ -53,10 +53,27 @@ export default function DppStartPage() {
   const handleAnswerChange = (answer: string) => {
     if (!dppData) return;
     const newQuestions = [...dppData.questions];
+    if (newQuestions[currentQuestionIndex].status !== 'review') {
+        newQuestions[currentQuestionIndex].status = 'answered';
+    }
     newQuestions[currentQuestionIndex].userAnswer = answer;
-    newQuestions[currentQuestionIndex].status = 'answered';
     setDppData({ ...dppData, questions: newQuestions });
   };
+  
+  const handleMarkForReview = () => {
+    if (!dppData) return;
+    const newQuestions = [...dppData.questions];
+    const currentStatus = newQuestions[currentQuestionIndex].status;
+
+    if (currentStatus === 'review') {
+        // If already marked for review, unmark it. 
+        // If it has an answer, it becomes 'answered', otherwise 'unanswered'.
+        newQuestions[currentQuestionIndex].status = newQuestions[currentQuestionIndex].userAnswer ? 'answered' : 'unanswered';
+    } else {
+        newQuestions[currentQuestionIndex].status = 'review';
+    }
+    setDppData({ ...dppData, questions: newQuestions });
+  }
 
   const handleNext = () => {
     if (dppData && currentQuestionIndex < dppData.questions.length - 1) {
@@ -69,6 +86,10 @@ export default function DppStartPage() {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
     }
   };
+  
+  const handlePaletteClick = (index: number) => {
+    setCurrentQuestionIndex(index);
+  }
 
   const submitDpp = () => {
     if (!dppData) return;
@@ -87,8 +108,20 @@ export default function DppStartPage() {
   }
 
   const currentQuestion = dppData.questions[currentQuestionIndex];
-  const answeredQuestions = dppData.questions.filter(q => q.status === 'answered').length;
-  const progress = (answeredQuestions / dppData.questions.length) * 100;
+  const answeredCount = dppData.questions.filter(q => q.status === 'answered').length;
+  const unansweredCount = dppData.questions.filter(q => q.status === 'unanswered').length;
+  const markedForReviewCount = dppData.questions.filter(q => q.status === 'review').length;
+  const progress = ((answeredCount + markedForReviewCount) / dppData.questions.length) * 100;
+  
+  const getStatusColor = (status: DppQuestion['status']) => {
+    switch (status) {
+      case 'answered': return 'bg-green-500 hover:bg-green-600';
+      case 'unanswered': return 'bg-muted-foreground/50 hover:bg-muted-foreground/70';
+      case 'review': return 'bg-purple-500 hover:bg-purple-600';
+      default: return 'bg-muted-foreground/50 hover:bg-muted-foreground/70';
+    }
+  };
+
 
   return (
     <div className="fixed inset-0 bg-background flex flex-col">
@@ -118,16 +151,11 @@ export default function DppStartPage() {
             </AlertDialog>
         </div>
       </header>
-       {/* Progress Bar */}
-      <div className='p-4'>
-        <Progress value={progress} className="w-full" />
-        <p className='text-sm text-muted-foreground mt-2 text-center'>{answeredQuestions} of {dppData.questions.length} questions answered</p>
-      </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col justify-center items-center p-6 overflow-y-auto">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6 p-6 overflow-y-auto">
         {/* Question Area */}
-        <div className="w-full max-w-4xl flex flex-col">
+        <div className="lg:col-span-3 flex flex-col">
           <Card className="flex-1 flex flex-col">
             <CardContent className="p-6 flex-1 flex flex-col">
                 <div className="flex justify-between items-start mb-4">
@@ -164,8 +192,12 @@ export default function DppStartPage() {
             </CardContent>
             <div className="p-4 border-t flex justify-between items-center bg-secondary/30">
                 <Button onClick={handlePrevious} disabled={currentQuestionIndex === 0}>
-                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    <ChevronsLeft className="mr-2 h-4 w-4" />
                     Previous
+                </Button>
+                 <Button variant="outline" onClick={handleMarkForReview}>
+                    <Flag className="mr-2 h-4 w-4" />
+                    {currentQuestion.status === 'review' ? 'Unmark' : 'Mark for Review'}
                 </Button>
                 {currentQuestionIndex === dppData.questions.length - 1 ? (
                      <Button onClick={submitDpp} variant="accent">
@@ -180,6 +212,43 @@ export default function DppStartPage() {
                 )}
             </div>
           </Card>
+        </div>
+
+        {/* Side Panel */}
+        <div className="lg:col-span-1">
+             <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg font-headline">Question Palette</CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-5 gap-2">
+                {dppData.questions.map((q, index) => (
+                    <Button
+                    key={q.id}
+                    variant="default"
+                    size="icon"
+                    className={cn(
+                        'h-10 w-10 text-white',
+                        getStatusColor(q.status),
+                        index === currentQuestionIndex && 'ring-2 ring-primary ring-offset-2'
+                    )}
+                    onClick={() => handlePaletteClick(index)}
+                    >
+                    {index + 1}
+                    </Button>
+                ))}
+                </CardContent>
+                <div className="p-4 space-y-3">
+                    <div className='p-4'>
+                        <Progress value={progress} className="w-full" />
+                        <p className='text-sm text-muted-foreground mt-2 text-center'>{dppData.questions.length - unansweredCount} of {dppData.questions.length} questions visited</p>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2"><div className="h-4 w-4 rounded-full bg-green-500"></div>{answeredCount} Answered</div>
+                        <div className="flex items-center gap-2"><div className="h-4 w-4 rounded-full bg-muted-foreground/50"></div>{unansweredCount} Not Answered</div>
+                        <div className="flex items-center gap-2"><div className="h-4 w-4 rounded-full bg-purple-500"></div>{markedForReviewCount} Marked for Review</div>
+                    </div>
+                </div>
+            </Card>
         </div>
       </div>
     </div>
