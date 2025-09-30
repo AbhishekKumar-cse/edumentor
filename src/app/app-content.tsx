@@ -12,9 +12,10 @@ export default function AppContent({ children }: { children: React.ReactNode }) 
   const isDppStartPage = pathname.startsWith('/dpp/start');
   const isTaggingPage = pathname.startsWith('/tagging');
   const isQuestionBankPage = pathname.startsWith('/question-bank/');
+  const isMockTestStartPage = pathname.startsWith('/mock-test/start');
 
 
-  if (isDoubtSolverPage || isDppStartPage || isTaggingPage || isQuestionBankPage) {
+  if (isDoubtSolverPage || isDppStartPage || isTaggingPage || isQuestionBankPage || isMockTestStartPage) {
     return <main>{children}</main>;
   }
 
