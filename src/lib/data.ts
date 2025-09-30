@@ -30,6 +30,7 @@ import { atomsAndNucleiQuestions } from './data/atoms-and-nuclei';
 import { electronicDevicesQuestions } from './data/electronic-devices';
 import { communicationSystemsQuestions } from './data/communication-systems';
 import { isomerismQuestions } from './data/isomerism';
+import { pBlockElementsQuestions } from './data/p-block-elements';
 
 
 export type Question = {
@@ -211,6 +212,7 @@ export const subjects: Subject[] = [
             chapters: [
                 chemicalBondingQuestions,
                 coordinationCompoundQuestions,
+                pBlockElementsQuestions,
             ]
         },
         {
@@ -237,6 +239,7 @@ export const subjects: Subject[] = [
       coordinationCompoundQuestions,
       alcoholsPhenolsEthersQuestions,
       isomerismQuestions,
+      pBlockElementsQuestions,
     ]
   },
   {
