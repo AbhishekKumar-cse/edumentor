@@ -21,6 +21,8 @@ import { oscillationsAndWavesQuestions } from './data/oscillations-and-waves';
 import { opticsQuestions } from './data/optics';
 import { modernPhysicsQuestions } from './data/modern-physics';
 import { kinematicsQuestions } from './data/kinematics';
+import { fluidMechanicsQuestions } from './data/fluid-mechanics';
+import { capacitorQuestions } from './data/capacitors';
 
 export type Question = {
   id: number;
@@ -90,6 +92,7 @@ export const subjects: Subject[] = [
             chapters: [
                 rotationalMotionQuestions,
                 gravitationQuestions,
+                fluidMechanicsQuestions,
             ]
         },
         {
@@ -115,6 +118,7 @@ export const subjects: Subject[] = [
             chapters: [
                 electrostaticsQuestions,
                 currentElectricityQuestions,
+                capacitorQuestions,
                 { id: 112, name: 'Magnetic Effects of Current and Magnetism', questions: [] },
                 { id: 113, name: 'Electromagnetic Induction and Alternating Currents', questions: [] },
                 { id: 114, name: 'Electromagnetic Waves', questions: [] },
@@ -143,6 +147,7 @@ export const subjects: Subject[] = [
       workPowerEnergyQuestions,
       rotationalMotionQuestions,
       gravitationQuestions,
+      fluidMechanicsQuestions,
       {
         id: 106,
         name: 'Properties of Solids and Liquids',
@@ -157,6 +162,7 @@ export const subjects: Subject[] = [
       oscillationsAndWavesQuestions,
       electrostaticsQuestions,
       currentElectricityQuestions,
+      capacitorQuestions,
       {
         id: 112,
         name: 'Magnetic Effects of Current and Magnetism',
@@ -334,8 +340,8 @@ export const formulas: FormulaSubject[] = [
             },
             {
                 name: 'Work, Energy, and Power',
-                formulae: [
-                     {
+                concepts: [
+                    {
                         title: 'Work-Energy Theorem',
                         explanation: 'The net work done by the forces on an object equals the change in its kinetic energy.',
                         formula: 'W_net = ΔK = (1/2)mv_f^2 - (1/2)mv_i^2',
@@ -403,5 +409,7 @@ export const conceptMaps = [
     }
 ]
 
+
+    
 
     
