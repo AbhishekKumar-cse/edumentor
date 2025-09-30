@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, Suspense, useCallback } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import type { Question } from '@/lib/data';
 import { generatePracticeQuestion } from '@/ai/flows/generate-practice-question';
 import type { GeneratePracticeQuestionOutput } from '@/ai/flows/practice-question.types';
@@ -27,6 +27,7 @@ interface PracticeItem {
     isAlternativeCorrect: boolean;
     userAnswerAlternative?: string;
     isLoading: boolean;
+    error: boolean;
 }
 
 function ReviewPageComponent() {
@@ -34,6 +35,48 @@ function ReviewPageComponent() {
   const [testConfig, setTestConfig] = useState<any>(null);
   const [currentSectionIndex, setCurrentSectionIndex] = useState<number>(0);
   const router = useRouter();
+  
+  const generateSingleQuestion = useCallback(async (itemIndex: number) => {
+    setPracticeItems(prev => {
+        const newItems = [...prev];
+        if (newItems[itemIndex]) {
+            newItems[itemIndex].isLoading = true;
+            newItems[itemIndex].error = false;
+        }
+        return newItems;
+    });
+
+    try {
+      const q = practiceItems[itemIndex].originalQuestion;
+      const altQ = await generatePracticeQuestion({
+        originalQuestion: q.text,
+        originalAnswer: q.answer,
+        topic: q.concepts[0] || 'General',
+        difficulty: q.difficulty,
+        concepts: q.concepts,
+      });
+
+      setPracticeItems(prev => {
+          const newItems = [...prev];
+          if (newItems[itemIndex]) {
+              newItems[itemIndex].alternativeQuestion = altQ;
+              newItems[itemIndex].isLoading = false;
+          }
+          return newItems;
+      });
+    } catch (error) {
+        console.error("Could not generate practice question for item", itemIndex, error);
+        setPracticeItems(prev => {
+            const newItems = [...prev];
+            if (newItems[itemIndex]) {
+                newItems[itemIndex].isLoading = false;
+                newItems[itemIndex].error = true;
+            }
+            return newItems;
+        });
+    }
+  }, [practiceItems]);
+
 
   useEffect(() => {
     const resultsStr = sessionStorage.getItem('testSectionResults');
@@ -52,45 +95,41 @@ function ReviewPageComponent() {
     setTestConfig(config);
     setCurrentSectionIndex(sectionIndex);
     
-    const incorrectQuestions = sectionResults.filter(q => q.userAnswer !== q.answer);
+    const incorrectOrUnattempted = sectionResults.filter(q => q.userAnswer !== q.answer || !q.userAnswer);
 
-    if (incorrectQuestions.length === 0) {
-      // If no incorrect answers, proceed to the next section or results immediately
+    if (incorrectOrUnattempted.length === 0) {
       proceedToNextStep(sectionIndex, config);
       return;
     }
 
-    const initialPracticeItems: PracticeItem[] = incorrectQuestions.map(q => ({
+    const initialPracticeItems: PracticeItem[] = incorrectOrUnattempted.map(q => ({
         originalQuestion: q,
         alternativeQuestion: null,
         isAlternativeCorrect: false,
         userAnswerAlternative: undefined,
         isLoading: true,
+        error: false
     }));
     
     setPracticeItems(initialPracticeItems);
-
-    // Generate alternative questions for each incorrect answer
-    incorrectQuestions.forEach((q, index) => {
-      generatePracticeQuestion({
-        originalQuestion: q.text,
-        originalAnswer: q.answer,
-        topic: q.concepts[0] || 'General',
-        difficulty: q.difficulty,
-        concepts: q.concepts,
-      }).then(altQ => {
-        setPracticeItems(prev => {
-            const newItems = [...prev];
-            if (newItems[index]) {
-                newItems[index].alternativeQuestion = altQ;
-                newItems[index].isLoading = false;
-            }
-            return newItems;
-        });
-      });
-    });
-
   }, [router]);
+
+  useEffect(() => {
+    const generateAllQuestions = async () => {
+      for (let i = 0; i < practiceItems.length; i++) {
+        if (practiceItems[i].isLoading && !practiceItems[i].alternativeQuestion) {
+          await generateSingleQuestion(i);
+          // Add a delay between API calls to avoid rate limiting
+          await new Promise(resolve => setTimeout(resolve, 1000)); 
+        }
+      }
+    };
+
+    if (practiceItems.length > 0 && practiceItems.some(item => item.isLoading)) {
+      generateAllQuestions();
+    }
+  }, [practiceItems, generateSingleQuestion]);
+
 
   const handleAnswerChange = (itemIndex: number, answer: string) => {
     setPracticeItems(prev => {
@@ -108,23 +147,21 @@ function ReviewPageComponent() {
     const isLastSection = sectionIndex >= (config.sections?.length - 1);
 
     if (isLastSection) {
-      // Submit the whole test for final results
       const allQuestions = config.sections.flatMap((s: any) => s.questions);
-      const totalTimeTaken = allQuestions.reduce((acc: number, q: any) => acc + q.timeTaken, 0);
+      const totalTimeTaken = allQuestions.reduce((acc: number, q: any) => acc + (q.timeTaken || 0), 0);
       sessionStorage.setItem('testResults', JSON.stringify(allQuestions));
       sessionStorage.setItem('totalTimeTaken', JSON.stringify(totalTimeTaken));
       router.push('/mock-test/results');
 
     } else {
-      // Proceed to the next section
       const nextSectionIndex = sectionIndex + 1;
       sessionStorage.setItem('resumeSectionIndex', nextSectionIndex.toString());
-      sessionStorage.removeItem('testSectionResults'); // Clean up
+      sessionStorage.removeItem('testSectionResults'); 
       router.push('/mock-test/start');
     }
   };
 
-  const allCorrect = practiceItems.length > 0 && practiceItems.every(item => item.isAlternativeCorrect);
+  const allCorrect = practiceItems.length > 0 && practiceItems.every(item => item.isAlternativeCorrect || item.error);
   
   const getOriginalOptionClass = (option: string, question: SubmittedQuestion) => {
     if (option === question.answer) return 'bg-green-500/30 border-green-500 text-white';
@@ -132,8 +169,10 @@ function ReviewPageComponent() {
     return 'border-white/20';
   };
 
-  if (practiceItems.length === 0) {
-    return <div className="flex items-center justify-center h-screen bg-background"><Loader2 className="h-8 w-8 animate-spin" /> <p className="ml-4 text-lg">Loading review...</p></div>;
+  const showLoadingState = practiceItems.length > 0 && practiceItems.some(item => item.isLoading);
+
+  if (practiceItems.length === 0 && !testConfig) {
+      return <div className="flex items-center justify-center h-screen bg-background"><Loader2 className="h-8 w-8 animate-spin" /> <p className="ml-4 text-lg">Loading review...</p></div>;
   }
 
   return (
@@ -175,6 +214,19 @@ function ReviewPageComponent() {
 
                          {item.isLoading ? (
                             <div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin"/> Generating practice question and topics...</div>
+                        ) : item.error ? (
+                            <div className="p-4 bg-red-900/50 border border-red-500/50 rounded-md text-red-200">
+                                <p>Could not generate a practice question. Would you like to try again?</p>
+                                <div className="flex gap-2 mt-2">
+                                    <Button onClick={() => generateSingleQuestion(index)} size="sm">Retry</Button>
+                                    <Button onClick={() => setPracticeItems(prev => {
+                                        const newItems = [...prev];
+                                        newItems[index].error = false;
+                                        newItems[index].isAlternativeCorrect = true; // Mark as "correct" to allow proceeding
+                                        return newItems;
+                                    })} variant="secondary" size="sm">Skip for now</Button>
+                                </div>
+                            </div>
                         ) : item.alternativeQuestion && (
                         <>
                             <div className="border-t border-white/10 pt-6">
@@ -219,9 +271,11 @@ function ReviewPageComponent() {
         </div>
 
         <footer className="text-center mt-8">
-            <Button onClick={() => proceedToNextStep(currentSectionIndex, testConfig)} disabled={!allCorrect} size="lg">
-                {allCorrect ? 'Proceed to Next Section' : 'Answer All Practice Questions Correctly to Proceed'}
-                <ChevronsRight className="ml-2 h-5 w-5" />
+            <Button onClick={() => proceedToNextStep(currentSectionIndex, testConfig)} disabled={!allCorrect || showLoadingState} size="lg">
+                 {showLoadingState ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating Questions...</> :
+                    (allCorrect ? 'Proceed to Next Section' : 'Answer All Practice Questions Correctly to Proceed')
+                }
+                {!showLoadingState && <ChevronsRight className="ml-2 h-5 w-5" />}
             </Button>
         </footer>
 
@@ -238,3 +292,4 @@ export default function ReviewPage() {
       </Suspense>
     )
   }
+
