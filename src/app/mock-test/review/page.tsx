@@ -124,7 +124,7 @@ function ReviewPageComponent() {
     }
   };
 
-  const allCorrect = practiceItems.every(item => item.isAlternativeCorrect);
+  const allCorrect = practiceItems.length > 0 && practiceItems.every(item => item.isAlternativeCorrect);
   
   const getOriginalOptionClass = (option: string, question: SubmittedQuestion) => {
     if (option === question.answer) return 'bg-green-500/30 border-green-500 text-white';
