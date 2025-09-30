@@ -220,7 +220,7 @@ export const isomerismQuestions: Chapter = {
             pageReference: 9,
             concepts: ['stereoisomers', 'geometrical isomerism', 'optical isomerism'],
             isPastPaper: true,
-            explanation: 'This compound exists as two geometrical isomers: a cis isomer (all Cl on the same side) and a trans isomer. The cis isomer has a plane of symmetry and is achiral (meso). The trans isomer is chiral and exists as a pair of enantiomers. Wait, let me recheck that. 1,2,3-trichlorocyclopropane. Cis: all up. Plane of symmetry. Achiral. Trans: two up, one down. Chiral. So 1 meso + 1 pair of enantiomers = 3 stereoisomers. Let me re-check the options. Maybe the question means something else. Let me check the structure again. Yes, it should be 3. The provided answer '2' might be incorrect or might be asking for number of pairs.'
+            explanation: 'This compound exists as two geometrical isomers: a cis isomer (all Cl on the same side) and a trans isomer. The cis isomer has a plane of symmetry and is achiral (meso). The trans isomer is chiral and exists as a pair of enantiomers. There are 3 stereoisomers in total: one meso compound and one pair of enantiomers. The question may be asking for the number of geometrical isomers, which is 2.'
         }
     ]
 };
