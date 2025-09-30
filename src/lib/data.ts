@@ -27,6 +27,7 @@ import { magneticEffectsQuestions } from './data/magnetic-effects';
 import { emiAcQuestions } from './data/electromagnetic-induction-ac';
 import { electromagneticWavesQuestions } from './data/electromagnetic-waves';
 import { atomsAndNucleiQuestions } from './data/atoms-and-nuclei';
+import { electronicDevicesQuestions } from './data/electronic-devices';
 
 
 export type Question = {
@@ -135,7 +136,7 @@ export const subjects: Subject[] = [
             chapters: [
                  modernPhysicsQuestions,
                  atomsAndNucleiQuestions,
-                 { id: 118, name: 'Electronic Devices', questions: [] },
+                 electronicDevicesQuestions,
             ]
         },
         {
@@ -174,11 +175,7 @@ export const subjects: Subject[] = [
       rayOpticsQuestions,
       modernPhysicsQuestions,
       atomsAndNucleiQuestions,
-      {
-        id: 118,
-        name: 'Electronic Devices',
-        questions: []
-      },
+      electronicDevicesQuestions,
       {
         id: 119,
         name: 'Communication Systems',
@@ -465,6 +462,8 @@ export const conceptMaps = [
     }
 ]
 
+
+    
 
     
 
