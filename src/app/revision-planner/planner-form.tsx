@@ -142,138 +142,153 @@ export default function PlannerForm() {
 
   return (
     <div className="space-y-8">
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-             <Card className="flex-1 bg-secondary/30">
-                <CardHeader>
-                    <CardTitle className="font-headline text-xl">Your Performance</CardTitle>
-                    <CardDescription>Enter your recent study performance. Be as detailed as possible.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <FormField
-                        control={form.control}
-                        name="performanceData"
-                        render={({ field }) => (
-                        <FormItem>
-                            <FormControl>
-                            <Textarea
-                                placeholder="e.g., 'Physics - Kinematics: Scored 7/10 in a recent test, struggled with projectile motion questions. Spent 2 hours. Chemistry - Atomic Structure: Feeling confident, scored 9/10, spent 1 hour.'"
-                                rows={8}
-                                {...field}
-                            />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                        )}
-                    />
-                </CardContent>
-             </Card>
-
-             <div className="space-y-6">
-                <Card className="bg-secondary/30">
-                     <CardHeader>
-                        <CardTitle className="font-headline text-xl">Preferences</CardTitle>
-                        <CardDescription>Set your schedule parameters.</CardDescription>
+      <Card className="bg-background/50 backdrop-blur-sm">
+        <CardHeader>
+           <CardTitle className="flex items-center gap-3">
+              <CalendarCheck className="w-6 h-6 text-primary" />
+              <span className="font-headline text-2xl">Create Your Schedule</span>
+            </CardTitle>
+            <CardDescription>
+              Provide your performance data, exam date, and preferred frequency.
+            </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <Card className="flex-1 bg-secondary/30">
+                    <CardHeader>
+                        <CardTitle className="font-headline text-xl">Your Performance</CardTitle>
+                        <CardDescription>Enter your recent study performance. Be as detailed as possible.</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-6">
+                    <CardContent>
                         <FormField
                             control={form.control}
-                            name="examDate"
+                            name="performanceData"
                             render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Target Exam Date</FormLabel>
+                            <FormItem>
                                 <FormControl>
-                                    <Input type="date" {...field} min={new Date().toISOString().split('T')[0]}/>
+                                <Textarea
+                                    placeholder="e.g., 'Physics - Kinematics: Scored 7/10 in a recent test, struggled with projectile motion questions. Spent 2 hours. Chemistry - Atomic Structure: Feeling confident, scored 9/10, spent 1 hour.'"
+                                    rows={8}
+                                    {...field}
+                                />
                                 </FormControl>
                                 <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="frequency"
-                          render={({ field }) => (
-                            <FormItem className="space-y-3">
-                              <FormLabel>Revision Frequency</FormLabel>
-                              <FormControl>
-                                <RadioGroup
-                                  onValueChange={field.onChange}
-                                  defaultValue={field.value}
-                                  className="grid grid-cols-3 gap-4"
-                                >
-                                  <FormItem>
-                                    <RadioGroupItem value="daily" id="daily" className="peer sr-only" />
-                                    <Label htmlFor="daily" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">Daily</Label>
-                                  </FormItem>
-                                  <FormItem>
-                                    <RadioGroupItem value="weekly" id="weekly" className="peer sr-only" />
-                                    <Label htmlFor="weekly" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">Weekly</Label>
-                                  </FormItem>
-                                   <FormItem>
-                                    <RadioGroupItem value="monthly" id="monthly" className="peer sr-only" />
-                                    <Label htmlFor="monthly" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">Monthly</Label>
-                                  </FormItem>
-                                </RadioGroup>
-                              </FormControl>
-                              <FormMessage />
                             </FormItem>
-                          )}
-                        />
-                         <FormField
-                            control={form.control}
-                            name="preferredTimeSlots"
-                            render={() => (
-                                <FormItem>
-                                <div className="mb-4">
-                                    <FormLabel>Preferred Study Time</FormLabel>
-                                </div>
-                                <div className="grid grid-cols-3 gap-4">
-                                    {timeSlots.map((item) => (
-                                        <FormField
-                                        key={item.id}
-                                        control={form.control}
-                                        name="preferredTimeSlots"
-                                        render={({ field }) => {
-                                            return (
-                                            <FormItem key={item.id} className="flex flex-row items-start space-x-3 space-y-0">
-                                                <FormControl>
-                                                <Checkbox
-                                                    checked={field.value?.includes(item.id)}
-                                                    onCheckedChange={(checked) => {
-                                                    return checked
-                                                        ? field.onChange([...(field.value || []), item.id])
-                                                        : field.onChange(
-                                                            field.value?.filter(
-                                                            (value) => value !== item.id
-                                                            )
-                                                        )
-                                                    }}
-                                                />
-                                                </FormControl>
-                                                <FormLabel className="font-normal text-sm">
-                                                    {item.label}
-                                                </FormLabel>
-                                            </FormItem>
-                                            )
-                                        }}
-                                        />
-                                    ))}
-                                </div>
-                                <FormMessage />
-                                </FormItem>
                             )}
-                            />
+                        />
                     </CardContent>
                 </Card>
-                <Button type="submit" disabled={isLoading} size="lg" className={cn("w-full bg-blue-600 text-white hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-500/50 transition-all duration-300")}>
+
+                <div className="space-y-6">
+                    <Card className="bg-secondary/30">
+                        <CardHeader>
+                            <CardTitle className="font-headline text-xl">Preferences</CardTitle>
+                            <CardDescription>Set your schedule parameters.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <FormField
+                                control={form.control}
+                                name="examDate"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Target Exam Date</FormLabel>
+                                    <FormControl>
+                                        <Input type="date" {...field} min={new Date().toISOString().split('T')[0]}/>
+                                    </FormControl>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="frequency"
+                              render={({ field }) => (
+                                <FormItem className="space-y-3">
+                                  <FormLabel>Revision Frequency</FormLabel>
+                                  <FormControl>
+                                    <RadioGroup
+                                      onValueChange={field.onChange}
+                                      defaultValue={field.value}
+                                      className="grid grid-cols-3 gap-4"
+                                    >
+                                      <FormItem>
+                                        <RadioGroupItem value="daily" id="daily" className="peer sr-only" />
+                                        <Label htmlFor="daily" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">Daily</Label>
+                                      </FormItem>
+                                      <FormItem>
+                                        <RadioGroupItem value="weekly" id="weekly" className="peer sr-only" />
+                                        <Label htmlFor="weekly" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">Weekly</Label>
+                                      </FormItem>
+                                      <FormItem>
+                                        <RadioGroupItem value="monthly" id="monthly" className="peer sr-only" />
+                                        <Label htmlFor="monthly" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">Monthly</Label>
+                                      </FormItem>
+                                    </RadioGroup>
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="preferredTimeSlots"
+                                render={() => (
+                                    <FormItem>
+                                    <div className="mb-4">
+                                        <FormLabel>Preferred Study Time</FormLabel>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-4">
+                                        {timeSlots.map((item) => (
+                                            <FormField
+                                            key={item.id}
+                                            control={form.control}
+                                            name="preferredTimeSlots"
+                                            render={({ field }) => {
+                                                return (
+                                                <FormItem key={item.id} className="flex flex-row items-start space-x-3 space-y-0">
+                                                    <FormControl>
+                                                    <Checkbox
+                                                        checked={field.value?.includes(item.id)}
+                                                        onCheckedChange={(checked) => {
+                                                        return checked
+                                                            ? field.onChange([...(field.value || []), item.id])
+                                                            : field.onChange(
+                                                                field.value?.filter(
+                                                                (value) => value !== item.id
+                                                                )
+                                                            )
+                                                        }}
+                                                    />
+                                                    </FormControl>
+                                                    <FormLabel className="font-normal text-sm">
+                                                        {item.label}
+                                                    </FormLabel>
+                                                </FormItem>
+                                                )
+                                            }}
+                                            />
+                                        ))}
+                                    </div>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                                />
+                        </CardContent>
+                    </Card>
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <Button type="submit" disabled={isLoading} size="lg" className={cn("w-full lg:w-auto bg-blue-600 text-white hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-500/50 transition-all duration-300")}>
                     {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Sparkles className="mr-2 h-5 w-5" />}
                     Generate My Personalized Plan
                 </Button>
-             </div>
-           </div>
-        </form>
-      </Form>
+              </div>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
 
       {(isLoading || revisionSchedule) && (
         <div className="mt-12">
@@ -285,7 +300,7 @@ export default function PlannerForm() {
                      <p className="text-muted-foreground max-w-2xl mx-auto">{revisionSchedule.summary}</p>
                 )}
             </header>
-          <Card>
+          <Card className="bg-background/50 backdrop-blur-sm">
           <CardContent className="p-6">
             {isLoading ? (
                 <div className="flex items-center justify-center p-16">
