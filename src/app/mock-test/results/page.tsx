@@ -8,10 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Check, X, Flag, BarChart, FileText, ArrowLeft, Lightbulb, Clock, Repeat } from 'lucide-react';
+import { Check, X, Flag, BarChart, FileText, ArrowLeft, Lightbulb, Clock, Repeat, BrainCircuit } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import type { MockTestHistoryItem } from './generator-form';
+
+// Re-using the history item type from generator-form, assuming it's exported
+// If not, it should be moved to a shared types file.
+import type { MockTestHistoryItem } from '../generator-form';
 
 
 interface TestQuestion extends Question {
@@ -41,6 +44,7 @@ export default function ResultsPage() {
   const [unanswered, setUnanswered] = useState(0);
   const [totalTime, setTotalTime] = useState(0);
   const [testName, setTestName] = useState("Test Results");
+  const [testConfig, setTestConfig] = useState<any>(null);
 
   const router = useRouter();
 
@@ -55,12 +59,12 @@ export default function ResultsPage() {
     }
 
     const testResults: TestQuestion[] = JSON.parse(resultsStr);
-    const testConfig = configStr ? JSON.parse(configStr) : null;
+    const config = configStr ? JSON.parse(configStr) : null;
     
     setResults(testResults);
     setTotalTime(timeStr ? JSON.parse(timeStr) : 0);
-    if(testConfig?.name) setTestName(testConfig.name);
-
+    if(config?.name) setTestName(config.name);
+    setTestConfig(config);
 
     let correct = 0;
     let incorrect = 0;
@@ -88,11 +92,11 @@ export default function ResultsPage() {
 
     // Save to history only if it came from a live attempt (not a review)
     const isReviewing = sessionStorage.getItem('isReviewing');
-    if (!isReviewing && testConfig) {
+    if (!isReviewing && config) {
       const historyItem: MockTestHistoryItem = {
         id: Date.now().toString(),
-        name: testConfig.name,
-        config: testConfig,
+        name: config.name,
+        config: config,
         questions: testResults,
         score: currentScore,
         totalMarks: testResults.length * 4,
@@ -111,14 +115,12 @@ export default function ResultsPage() {
     }
     
     sessionStorage.removeItem('isReviewing');
-    sessionStorage.removeItem('mockTestConfig');
 
   }, [router]);
 
   const handleReattempt = () => {
-    const configStr = sessionStorage.getItem('mockTestConfig');
-     if (configStr) {
-       sessionStorage.setItem('mockTestConfig', configStr);
+     if (testConfig) {
+       sessionStorage.setItem('mockTestConfig', JSON.stringify(testConfig));
        router.push('/mock-test/start');
      }
   };
@@ -160,6 +162,9 @@ export default function ResultsPage() {
             <Button onClick={() => router.push('/mock-test')}>
                 <ArrowLeft className="mr-2 h-4 w-4" /> Take Another Test
             </Button>
+            <Button variant="outline" onClick={handleReattempt}>
+                <Repeat className="mr-2 h-4 w-4" /> Re-attempt
+            </Button>
           </div>
         </header>
 
@@ -176,7 +181,7 @@ export default function ResultsPage() {
               <CardTitle className="text-4xl font-bold text-primary">{score} / {totalMarks}</CardTitle>
               <CardDescription>Your Score</CardDescription>
             </Card>
-             <Card className="md:col-span-2 lg:col-span-2 p-4 grid grid-cols-3 gap-4">
+             <Card className="lg:col-span-2 p-4 grid grid-cols-3 gap-4">
                 <div className="text-center">
                     <p className="text-3xl font-bold text-green-500">{correctAnswers}</p>
                     <p className="text-sm text-muted-foreground">Correct</p>
@@ -229,7 +234,7 @@ export default function ResultsPage() {
                         <p className="font-semibold text-base mb-2">
                             Q{index + 1}: {question.text}
                         </p>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
                              <Badge
                                 variant={difficultyVariantMap[question.difficulty]}
                                 className={cn('text-xs', {
@@ -285,16 +290,25 @@ export default function ResultsPage() {
                       </>
                    )}
                 </div>
+
+                <div className="mt-4 p-3 rounded-md bg-background/50">
+                    <h4 className="font-semibold flex items-center gap-2 mb-2"><BrainCircuit className="h-4 w-4 text-blue-400"/>Related Concepts</h4>
+                    <div className="flex flex-wrap gap-2">
+                        {question.concepts.map((concept, i) => (
+                            <Badge key={i} variant="outline">{concept}</Badge>
+                        ))}
+                    </div>
+                </div>
                 
-                  <Accordion type="single" collapsible className="w-full mt-4">
-                    <AccordionItem value="explanation">
-                      <AccordionTrigger className='text-sm font-semibold text-primary hover:no-underline'>
+                  <Accordion type="single" collapsible className="w-full mt-2">
+                    <AccordionItem value="explanation" className='bg-background/50 rounded-md border px-3'>
+                      <AccordionTrigger className='text-sm font-semibold text-primary hover:no-underline py-3'>
                          <div className='flex items-center gap-2'>
                           <Lightbulb className='h-4 w-4' />
                           Show Explanation
                          </div>
                       </AccordionTrigger>
-                      <AccordionContent className="pt-2 text-sm text-muted-foreground prose dark:prose-invert">
+                      <AccordionContent className="pt-2 pb-3 text-sm text-muted-foreground prose dark:prose-invert">
                           {question.explanation ? (
                               <p>{question.explanation}</p>
                           ) : (
@@ -311,5 +325,3 @@ export default function ResultsPage() {
     </div>
   );
 }
-
-    

@@ -11,7 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Timer, Flag } from 'lucide-react';
+import { Timer, Flag, ChevronsRight, ChevronsLeft, CheckCircle, Flame } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 
 interface TestQuestion extends Question {
   userAnswer?: string;
@@ -20,12 +21,13 @@ interface TestQuestion extends Question {
 }
 
 interface TestConfig {
-    pattern: string;
+    exam: string;
+    subject: string;
     type: string;
-    name: string;
-    chapters: number[] | 'all';
+    chapters: number[] | 'all' | {id: number, count: number}[];
     duration: number;
     questionCount: number;
+    name: string;
 }
 
 export default function TestPage() {
@@ -51,16 +53,32 @@ export default function TestPage() {
 
     // Generate questions based on config
     let allQuestions: Question[] = [];
-    if (config.type === 'full' || config.chapters === 'all') {
-      subjects.forEach(subject => subject.chapters.forEach(chapter => allQuestions.push(...chapter.questions)));
-    } else {
-      subjects.forEach(subject => {
-        subject.chapters.forEach(chapter => {
-          if (config.chapters.includes(chapter.id)) {
-            allQuestions.push(...chapter.questions);
-          }
+    if (config.type === 'custom') {
+        const customChapters = config.chapters as {id: number, count: number}[];
+        customChapters.forEach(customChapter => {
+            for (const subject of subjects) {
+                const chapter = subject.chapters.find(c => c.id === customChapter.id);
+                if (chapter) {
+                    const shuffled = chapter.questions.sort(() => 0.5 - Math.random());
+                    allQuestions.push(...shuffled.slice(0, customChapter.count));
+                    break; 
+                }
+            }
         });
-      });
+    } else { // subject-wise
+        const subject = subjects.find(s => s.name === config.subject);
+        if (subject) {
+            if (config.chapters === 'all') {
+                subject.chapters.forEach(chapter => allQuestions.push(...chapter.questions));
+            } else {
+                const chapterIds = config.chapters as number[];
+                subject.chapters.forEach(chapter => {
+                    if (chapterIds.includes(chapter.id)) {
+                        allQuestions.push(...chapter.questions);
+                    }
+                });
+            }
+        }
     }
 
     // Shuffle and slice
@@ -71,10 +89,21 @@ export default function TestPage() {
       timeTaken: 0,
       userAnswer: undefined, // ensure fresh start
     }));
+
     setTestQuestions(selectedQuestions);
     questionTimers.current = new Array(selectedQuestions.length).fill(0);
     questionStartTime.current = Date.now();
   }, [router]);
+  
+  const submitTest = () => {
+    updateQuestionTime(currentQuestionIndex); // Final update for the last question
+    
+    // Save results with time taken
+    const resultsToStore = testQuestions.map(q => ({...q})); // creates a new copy to avoid state issues
+    sessionStorage.setItem('testResults', JSON.stringify(resultsToStore));
+    sessionStorage.setItem('totalTimeTaken', JSON.stringify(totalTimeTaken.current));
+    router.replace('/mock-test/results');
+  };
 
   useEffect(() => {
     if (timeLeft <= 0 && testQuestions.length > 0) {
@@ -143,18 +172,6 @@ export default function TestPage() {
     }
   }
 
-  const submitTest = () => {
-    updateQuestionTime(currentQuestionIndex); // Final update for the last question
-    
-    // Save results with time taken
-    const resultsToStore = testQuestions.map(q => ({...q})); // creates a new copy to avoid state issues
-    sessionStorage.setItem('testResults', JSON.stringify(resultsToStore));
-    sessionStorage.setItem('totalTimeTaken', JSON.stringify(totalTimeTaken.current));
-    // Keep testConfig for the results page to access test name and save to history
-    // sessionStorage.removeItem('mockTestConfig'); 
-    router.replace('/mock-test/results');
-  };
-
   if (!testConfig || testQuestions.length === 0) {
     return (
       <div className="flex items-center justify-center h-screen bg-secondary">
@@ -166,6 +183,11 @@ export default function TestPage() {
   const currentQuestion = testQuestions[currentQuestionIndex];
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
+  
+  const answeredCount = testQuestions.filter(q => q.status === 'answered').length;
+  const unansweredCount = testQuestions.filter(q => q.status === 'unanswered').length;
+  const markedForReviewCount = testQuestions.filter(q => q.status === 'review').length;
+  const progress = ((answeredCount + markedForReviewCount) / testQuestions.length) * 100;
 
   const getStatusColor = (status: TestQuestion['status']) => {
     switch (status) {
@@ -180,10 +202,13 @@ export default function TestPage() {
     <div className="fixed inset-0 bg-background flex flex-col">
       {/* Header */}
       <header className="flex justify-between items-center p-4 border-b">
-        <h1 className="text-2xl font-headline font-bold text-primary">{testConfig.name}</h1>
+        <div>
+            <h1 className="text-2xl font-headline font-bold text-primary">{testConfig.name}</h1>
+            <p className="text-muted-foreground">Question {currentQuestionIndex + 1} of {testQuestions.length}</p>
+        </div>
         <div className="flex items-center gap-4">
           <Badge variant="outline" className="text-lg font-semibold tabular-nums p-2">
-            <Timer className="mr-2" />
+            <Timer className="mr-2 h-5 w-5" />
             {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
           </Badge>
            <AlertDialog>
@@ -212,17 +237,32 @@ export default function TestPage() {
         <div className="lg:col-span-3 flex flex-col">
           <Card className="flex-1 flex flex-col">
             <CardContent className="p-6 flex-1 flex flex-col">
-              <div className="mb-4">
-                <p className="text-lg font-semibold">Question {currentQuestionIndex + 1} of {testQuestions.length}</p>
-                <p className="mt-2 text-base">{currentQuestion.text}</p>
+              <div className="flex justify-between items-start mb-4">
+                  <p className="text-lg font-semibold flex-1">
+                      Question {currentQuestionIndex + 1}: {currentQuestion.text}
+                  </p>
+                  <div className="flex items-center gap-2">
+                      <Badge
+                          variant={currentQuestion.difficulty === 'Easy' ? 'secondary' : currentQuestion.difficulty === 'Hard' ? 'destructive' : 'default'}
+                      >
+                          {currentQuestion.difficulty}
+                      </Badge>
+                        {currentQuestion.isPastPaper && (
+                          <Badge variant="outline" className="border-amber-500 text-amber-500">
+                              <Flame className="mr-1.5 h-3.5 w-3.5" />
+                              Past Paper
+                          </Badge>
+                      )}
+                  </div>
               </div>
+
               <RadioGroup
                 value={currentQuestion.userAnswer}
                 onValueChange={handleAnswerChange}
                 className="space-y-3 my-4"
               >
                 {currentQuestion.options.map((option, i) => (
-                  <Label key={i} htmlFor={`${currentQuestion.id}-option-${i}`} className="flex items-center p-4 border rounded-md cursor-pointer hover:bg-secondary has-[:checked]:bg-primary/10 has-[:checked]:border-primary transition-colors">
+                  <Label key={i} htmlFor={`${currentQuestion.id}-option-${i}`} className={cn("flex items-center p-4 border rounded-md cursor-pointer hover:bg-secondary has-[:checked]:bg-primary/10 has-[:checked]:border-primary transition-colors", {'border-primary': currentQuestion.userAnswer === option})}>
                     <RadioGroupItem value={option} id={`${currentQuestion.id}-option-${i}`} className="mr-3" />
                     <span>{option}</span>
                   </Label>
@@ -230,51 +270,66 @@ export default function TestPage() {
               </RadioGroup>
             </CardContent>
             <div className="p-4 border-t flex justify-between items-center bg-secondary/30">
-               <Button variant="outline" onClick={handleMarkForReview}>
+               <Button onClick={handlePrevious} disabled={currentQuestionIndex === 0}>
+                    <ChevronsLeft className="mr-2 h-4 w-4" />
+                    Previous
+                </Button>
+                 <Button variant="outline" onClick={handleMarkForReview}>
                     <Flag className="mr-2 h-4 w-4" />
                     Mark for Review & Next
                 </Button>
-                <div className="flex gap-2">
-                    <Button onClick={handlePrevious} disabled={currentQuestionIndex === 0}>Previous</Button>
-                    <Button onClick={handleNext} disabled={currentQuestionIndex === testQuestions.length - 1}>Next</Button>
-                </div>
+                {currentQuestionIndex === testQuestions.length - 1 ? (
+                     <Button onClick={submitTest} variant="accent">
+                        <CheckCircle className="mr-2 h-4 w-4" />
+                        Submit Test
+                    </Button>
+                ) : (
+                    <Button onClick={handleNext}>
+                        Next
+                        <ChevronsRight className="ml-2 h-4 w-4" />
+                    </Button>
+                )}
             </div>
           </Card>
         </div>
 
         {/* Question Palette */}
         <div className="lg:col-span-1">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-headline">Question Palette</CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-5 gap-2">
-              {testQuestions.map((q, index) => (
-                <Button
-                  key={q.id}
-                  variant="default"
-                  size="icon"
-                  className={cn(
-                    'h-10 w-10 text-white',
-                    getStatusColor(q.status),
-                    index === currentQuestionIndex && 'ring-2 ring-primary ring-offset-2'
-                  )}
-                  onClick={() => handlePaletteClick(index)}
-                >
-                  {index + 1}
-                </Button>
-              ))}
-            </CardContent>
-             <div className="p-4 space-y-2 text-sm">
-                <div className="flex items-center gap-2"><div className="h-4 w-4 rounded-full bg-green-500"></div>Answered</div>
-                <div className="flex items-center gap-2"><div className="h-4 w-4 rounded-full bg-muted-foreground/50"></div>Not Answered</div>
-                <div className="flex items-center gap-2"><div className="h-4 w-4 rounded-full bg-purple-500"></div>Marked for Review</div>
-            </div>
-          </Card>
+             <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg font-headline">Question Palette</CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-5 gap-2">
+                {testQuestions.map((q, index) => (
+                    <Button
+                    key={q.id}
+                    variant="default"
+                    size="icon"
+                    className={cn(
+                        'h-10 w-10 text-white',
+                        getStatusColor(q.status),
+                        index === currentQuestionIndex && 'ring-2 ring-primary ring-offset-2'
+                    )}
+                    onClick={() => handlePaletteClick(index)}
+                    >
+                    {index + 1}
+                    </Button>
+                ))}
+                </CardContent>
+                <div className="p-4 space-y-3">
+                    <div className='p-4'>
+                        <Progress value={progress} className="w-full" />
+                        <p className='text-sm text-muted-foreground mt-2 text-center'>{testQuestions.length - unansweredCount} of {testQuestions.length} questions visited</p>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2"><div className="h-4 w-4 rounded-full bg-green-500"></div>{answeredCount} Answered</div>
+                        <div className="flex items-center gap-2"><div className="h-4 w-4 rounded-full bg-muted-foreground/50"></div>{unansweredCount} Not Answered</div>
+                        <div className="flex items-center gap-2"><div className="h-4 w-4 rounded-full bg-purple-500"></div>{markedForReviewCount} Marked for Review</div>
+                    </div>
+                </div>
+            </Card>
         </div>
       </div>
     </div>
   );
 }
-
-    
