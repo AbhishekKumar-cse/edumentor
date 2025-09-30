@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Check, X, Repeat, ChevronsRight, Loader2, Wand2, Lightbulb } from 'lucide-react';
+import { Check, X, Repeat, ChevronsRight, Loader2, Wand2, Lightbulb, BookOpen } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 
@@ -151,7 +151,7 @@ function ReviewPageComponent() {
                 <Card key={item.originalQuestion.id} className="bg-secondary/30 border-white/20">
                     <CardHeader>
                         <CardTitle>Review Question {index + 1}</CardTitle>
-                        <CardDescription>You answered this question incorrectly. Review the correct solution below and then attempt the AI-generated practice question.</CardDescription>
+                        <CardDescription>You answered this question incorrectly. Review the correct solution and related topics, then attempt the AI-generated practice question.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         {/* Original Question - Read-only */}
@@ -169,15 +169,25 @@ function ReviewPageComponent() {
                             </div>
                             <div className="mt-2 p-3 rounded-md bg-blue-500/20 text-blue-200 border border-blue-500/50 flex items-center gap-2">
                                 <Lightbulb className="h-5 w-5" />
-                                <span>Correct Answer: <strong>{item.originalQuestion.answer}</strong></span>
+                                <span>Your Answer: <strong>{item.originalQuestion.userAnswer || "Not Answered"}</strong>. Correct Answer: <strong>{item.originalQuestion.answer}</strong></span>
                             </div>
                         </div>
-                        
-                        <div className="border-t border-white/10 pt-6">
-                            <h4 className="font-semibold text-lg mb-2 flex items-center gap-2"><Wand2 className="text-primary"/> AI-Generated Practice Question</h4>
-                             {item.isLoading ? (
-                                <div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin"/> Generating...</div>
-                            ) : item.alternativeQuestion && (
+
+                         {item.isLoading ? (
+                            <div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin"/> Generating practice question and topics...</div>
+                        ) : item.alternativeQuestion && (
+                        <>
+                            <div className="border-t border-white/10 pt-6">
+                                <h4 className="font-semibold text-lg mb-3 flex items-center gap-2"><BookOpen className="text-primary"/>Related Topics to Study</h4>
+                                <div className="flex flex-wrap gap-2">
+                                    {item.alternativeQuestion.relatedTopics.map((topic, topicIndex) => (
+                                        <Badge key={topicIndex} variant="outline" className="text-sm">{topic}</Badge>
+                                    ))}
+                                </div>
+                            </div>
+                            
+                            <div className="border-t border-white/10 pt-6">
+                                <h4 className="font-semibold text-lg mb-2 flex items-center gap-2"><Wand2 className="text-primary"/> AI-Generated Practice Question</h4>
                                 <div>
                                     <p className="font-semibold text-base mb-2">{item.alternativeQuestion.text}</p>
                                     <RadioGroup
@@ -194,10 +204,15 @@ function ReviewPageComponent() {
                                         </Label>
                                         ))}
                                     </RadioGroup>
-                                    {item.isAlternativeCorrect && <Badge className="bg-green-500/20 text-green-300 border-green-500">Correct!</Badge>}
+                                    {item.userAnswerAlternative && (
+                                        item.isAlternativeCorrect ? 
+                                        <Badge className="bg-green-500/20 text-green-300 border-green-500">Correct!</Badge>
+                                        : <Badge variant="destructive">Incorrect. The correct answer is {item.alternativeQuestion.answer}.</Badge>
+                                    )}
                                 </div>
-                            )}
-                        </div>
+                            </div>
+                        </>
+                        )}
                     </CardContent>
                 </Card>
             ))}

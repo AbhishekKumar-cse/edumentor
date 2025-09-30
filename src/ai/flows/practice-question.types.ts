@@ -40,6 +40,7 @@ export const GeneratePracticeQuestionOutputSchema = z.object({
     .length(4)
     .describe('A list of four multiple-choice options.'),
   answer: z.string().describe('The correct answer to the new question.'),
+  relatedTopics: z.array(z.string()).describe("A list of related topics for the student to study."),
 });
 export type GeneratePracticeQuestionOutput = z.infer<
   typeof GeneratePracticeQuestionOutputSchema

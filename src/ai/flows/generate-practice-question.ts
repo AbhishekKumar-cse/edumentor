@@ -39,13 +39,14 @@ const practiceQuestionPrompt = ai.definePrompt({
 **Generated Question Requirements:**
 1.  **Relevance:** The new question must test the same core concepts: {{#each concepts}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}.
 2.  **Difficulty:** The new question must match the original's difficulty level: **{{difficulty}}**.
-3.  **Format:** Provide the output in a structured format with four multiple-choice options and clearly identify the correct answer.
+3.  **Related Topics:** Provide a list of 2-3 related topics or prerequisite concepts the student should study to better understand this question.
+4.  **Format:** Provide the output in a structured format with four multiple-choice options and clearly identify the correct answer.
 
 **Example for a Physics Question:**
-*   If the original question was about calculating projectile range with an angle of 30 degrees, the new question could be about calculating the initial velocity needed to achieve a certain range at an angle of 60 degrees.
+*   If the original question was about calculating projectile range with an angle of 30 degrees, the new question could be about calculating the initial velocity needed to achieve a certain range at an angle of 60 degrees. The related topics might be "Projectile Motion Equations" and "Trigonometric Identities".
 
 **Example for a Chemistry Question:**
-*   If the original question was about balancing a redox reaction, the new question should use different chemical species but test the same balancing principles.
+*   If the original question was about balancing a redox reaction, the new question should use different chemical species but test the same balancing principles. The related topics might be "Oxidation States" and "Half-Reaction Method".
 
 Please generate one new practice question now based on the provided details.
 `,
