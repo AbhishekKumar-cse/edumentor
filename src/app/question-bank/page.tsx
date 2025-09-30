@@ -11,23 +11,10 @@ export default function QuestionBankPage() {
         <header className="space-y-2">
           <h1 className="text-4xl font-headline font-bold">Question Bank</h1>
           <p className="text-muted-foreground">
-            Browse and practice questions from all chapters.
+            Analyze topics, filter by subject and chapter, and practice questions from a vast library.
           </p>
         </header>
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3">
-              <FileQuestion className="w-6 h-6 text-primary" />
-              <span className="font-headline text-2xl">Chapter-wise Questions</span>
-            </CardTitle>
-            <CardDescription>
-              Select a subject and chapter to view all available questions.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <QuestionBankView subjects={subjects} />
-          </CardContent>
-        </Card>
+        <QuestionBankView subjects={subjects} />
       </div>
     </div>
   );

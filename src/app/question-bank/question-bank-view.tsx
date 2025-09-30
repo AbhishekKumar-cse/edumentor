@@ -1,32 +1,64 @@
 
-"use client";
+'use client';
 
 import { useState, useMemo } from 'react';
-import type { Subject, Chapter, Question } from '@/lib/data';
+import type { Subject, Question } from '@/lib/data';
 import { Badge } from '@/components/ui/badge';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, Flame, Atom, FlaskConical, Book, FileQuestion, Calculator } from 'lucide-react';
+import { Check, Flame, Atom, FlaskConical, Calculator, BookOpen, BarChart3, ChevronRight, Filter, SortAsc, FileQuestion, X, Telescope } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { useRouter } from 'next/navigation';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+  DrawerClose,
+  DrawerTrigger,
+} from "@/components/ui/drawer"
+import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart"
+import { Pie, PieChart, Cell } from "recharts"
 
-interface QuestionBankProps {
-  subjects: Subject[];
-}
+type Concept = {
+  name: string;
+  questionCount: number;
+  pastPaperCount: number;
+  difficulty: {
+    Easy: number;
+    Medium: number;
+    Hard: number;
+  };
+  questions: Question[];
+  chapterName: string;
+  subjectName: string;
+};
 
 const subjectIcons: { [key: string]: React.ElementType } = {
   Physics: Atom,
   Chemistry: FlaskConical,
   Mathematics: Calculator,
 };
+
+const difficultyColors = {
+  Easy: "hsl(var(--chart-2))",
+  Medium: "hsl(var(--chart-3))",
+  Hard: "hsl(var(--chart-5))",
+}
 
 const QuestionCard = ({ question, index }: { question: Question; index: number }) => {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -37,42 +69,24 @@ const QuestionCard = ({ question, index }: { question: Question; index: number }
   };
 
   const getOptionClass = (option: string) => {
-    if (!isSubmitted) return '';
-    if (option === question.answer) return 'text-green-600 dark:text-green-400 font-bold';
-    if (option === selectedOption) return 'text-red-600 dark:text-red-400 line-through';
+    if (!isSubmitted) return 'hover:bg-accent/50';
+    if (option === question.answer) return 'bg-green-100 dark:bg-green-900/30 border-green-500';
+    if (option === selectedOption) return 'bg-red-100 dark:bg-red-900/30 border-red-500';
     return '';
   };
 
-  const difficultyVariantMap: { [key: string]: 'default' | 'secondary' | 'destructive' } = {
-    Easy: 'secondary',
-    Medium: 'default',
-    Hard: 'destructive',
-  };
-
   return (
-    <div className="p-4 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors border hover:border-primary/50 hover:shadow-md hover:shadow-primary/10">
+    <div className="p-4 rounded-lg bg-secondary/50 transition-colors border">
        <div className="flex justify-between items-start mb-2">
-            <p className="font-semibold flex-1">
+            <p className="font-semibold flex-1 pr-4">
                 Q{index + 1}: {question.text}
             </p>
-            <div className="flex items-center gap-2">
-                <Badge
-                    variant={difficultyVariantMap[question.difficulty]}
-                    className={cn('text-xs', {
-                    'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800': question.difficulty === 'Easy',
-                    'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-800': question.difficulty === 'Medium',
-                    'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800': question.difficulty === 'Hard',
-                    })}
-                >
-                    {question.difficulty}
+            {question.isPastPaper && (
+                <Badge variant="outline" className="ml-4 border-amber-500 text-amber-500 flex-shrink-0">
+                    <Flame className="mr-1.5 h-3.5 w-3.5" />
+                    Past Paper
                 </Badge>
-                {question.isPastPaper && (
-                    <Badge variant="outline" className="ml-2 border-amber-500 text-amber-500 flex-shrink-0">
-                        <Flame className="mr-1.5 h-3.5 w-3.5" />
-                        Past Paper
-                    </Badge>
-                )}
-            </div>
+            )}
        </div>
       <RadioGroup
         value={selectedOption || undefined}
@@ -83,7 +97,7 @@ const QuestionCard = ({ question, index }: { question: Question; index: number }
         {question.options.map((option, i) => (
           <div key={i} className="flex items-center space-x-2">
             <RadioGroupItem value={option} id={`${question.id}-option-${i}`} />
-            <Label htmlFor={`${question.id}-option-${i}`} className={cn("cursor-pointer", getOptionClass(option))}>
+            <Label htmlFor={`${question.id}-option-${i}`} className={cn("cursor-pointer flex-1 p-3 rounded-md border transition-all", getOptionClass(option))}>
               {option}
             </Label>
           </div>
@@ -108,132 +122,222 @@ const QuestionCard = ({ question, index }: { question: Question; index: number }
   );
 };
 
-const DppSection = ({ subjects }: { subjects: Subject[] }) => {
-  const router = useRouter();
 
-  const getChapterCount = (subjectName: string) => {
-    return subjects.find(s => s.name === subjectName)?.chapters.length || 0;
-  };
-  
-  const subjectColors: {[key: string]: string} = {
-    Physics: "border-orange-500/50 hover:bg-orange-900/20",
-    Chemistry: "border-green-500/50 hover:bg-green-900/20",
-    Mathematics: "border-blue-500/50 hover:bg-blue-900/20",
+export default function QuestionBankView({ subjects }: { subjects: Subject[] }) {
+  const [activeConcept, setActiveConcept] = useState<Concept | null>(null);
+  const [filterSubject, setFilterSubject] = useState<string>('all');
+  const [filterChapter, setFilterChapter] = useState<string>('all');
+  const [sortOrder, setSortOrder] = useState<string>('pastPaperCount');
+
+  const allConcepts: Concept[] = useMemo(() => {
+    const conceptsMap = new Map<string, Concept>();
+    subjects.forEach(subject => {
+        subject.chapters.forEach(chapter => {
+            chapter.questions.forEach(question => {
+                question.concepts.forEach(conceptName => {
+                    const normalizedConcept = conceptName.toLowerCase().trim();
+                    if (!conceptsMap.has(normalizedConcept)) {
+                        conceptsMap.set(normalizedConcept, {
+                            name: conceptName,
+                            questionCount: 0,
+                            pastPaperCount: 0,
+                            difficulty: { Easy: 0, Medium: 0, Hard: 0 },
+                            questions: [],
+                            chapterName: chapter.name,
+                            subjectName: subject.name,
+                        });
+                    }
+                    const concept = conceptsMap.get(normalizedConcept)!;
+                    concept.questionCount++;
+                    if (question.isPastPaper) {
+                        concept.pastPaperCount++;
+                    }
+                    concept.difficulty[question.difficulty]++;
+                    concept.questions.push(question);
+                });
+            });
+        });
+    });
+    return Array.from(conceptsMap.values());
+  }, [subjects]);
+
+  const chaptersForSelectedSubject = useMemo(() => {
+    if (filterSubject === 'all') return [];
+    const subject = subjects.find(s => s.name === filterSubject);
+    return subject ? subject.chapters : [];
+  }, [filterSubject, subjects]);
+
+
+  const filteredAndSortedConcepts = useMemo(() => {
+    let concepts = allConcepts;
+    
+    if (filterSubject !== 'all') {
+        concepts = concepts.filter(c => c.subjectName === filterSubject);
+    }
+    
+    if (filterChapter !== 'all') {
+        concepts = concepts.filter(c => c.chapterName === filterChapter);
+    }
+
+    return concepts.sort((a, b) => {
+        if (sortOrder === 'questionCount') return b.questionCount - a.questionCount;
+        if (sortOrder === 'name') return a.name.localeCompare(b.name);
+        // default to pastPaperCount
+        return b.pastPaperCount - a.pastPaperCount;
+    });
+  }, [allConcepts, filterSubject, filterChapter, sortOrder]);
+
+
+  const chartConfig = {
+      questions: { label: "Questions" },
+      Easy: { label: "Easy", color: difficultyColors.Easy },
+      Medium: { label: "Medium", color: difficultyColors.Medium },
+      Hard: { label: "Hard", color: difficultyColors.Hard },
   }
-  const iconBgColors: {[key: string]: string} = {
-    Physics: "bg-orange-500/80",
-    Chemistry: "bg-green-500/80",
-    Mathematics: "bg-blue-500/80",
+
+  const handleSubjectChange = (subject: string) => {
+    setFilterSubject(subject);
+    setFilterChapter('all');
   }
 
   return (
-    <Card className="mb-8 bg-secondary/30">
-      <CardHeader>
-        <div className="flex justify-between items-center">
-            <CardTitle className="font-headline text-2xl flex items-center gap-2">
-                Solve DPPs
-                <Badge variant="outline" className="text-amber-400 border-amber-400 bg-amber-900/50">PREMIUM</Badge>
+    <Card className="border-0 shadow-none">
+        <CardHeader>
+             <CardTitle className="flex items-center gap-3">
+              <Telescope className="w-6 h-6 text-primary" />
+              <span className="font-headline text-2xl">Hot Topics Analysis</span>
             </CardTitle>
-        </div>
-        <CardDescription className="flex items-center gap-2">
-            520+ ASPIRANTS SOLVED DPP IN 1 LAST HR! <Flame className="h-4 w-4 text-amber-500" />
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="text-center p-3 rounded-lg bg-primary/10 border border-primary/20">
-            <p className="font-semibold text-primary">NOW SOLVE 700+ DIFFICULTY-WISE DPPS HANDPICKED BY EXPERTS FOR EACH CHAPTER!</p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {['Physics', 'Chemistry', 'Mathematics'].map(subjectName => {
-             const Icon = subjectIcons[subjectName];
-             return (
-                <div key={subjectName} className={cn("p-6 rounded-lg border-2 cursor-pointer transition-all duration-300 relative overflow-hidden group", subjectColors[subjectName])} onClick={() => router.push('/dpp')}>
-                    <h3 className="text-2xl font-bold">{subjectName} &gt;</h3>
-                    <p className="text-muted-foreground">{getChapterCount(subjectName)} Chapters</p>
-                    <div className={cn("absolute -bottom-4 -right-4 w-20 h-20 rounded-full flex items-center justify-center transition-transform group-hover:scale-110", iconBgColors[subjectName])}>
-                        <Icon className="h-8 w-8 text-white" />
-                    </div>
+            <CardDescription>
+              Discover which concepts appear most frequently, analyze their difficulty, and practice relevant questions.
+            </CardDescription>
+        </CardHeader>
+        <CardContent>
+            <div className="flex flex-col sm:flex-row gap-4 mb-6 p-4 bg-secondary/50 rounded-lg border">
+                <div className="flex items-center gap-2 flex-1">
+                    <Filter className="w-5 h-5" />
+                    <Label htmlFor="subject-filter" className="font-semibold shrink-0">Filter by Subject:</Label>
+                    <Select value={filterSubject} onValueChange={handleSubjectChange}>
+                        <SelectTrigger id="subject-filter" className="w-full sm:w-auto">
+                            <SelectValue placeholder="Select subject" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Subjects</SelectItem>
+                            {subjects.map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
                 </div>
-             )
-          })}
-        </div>
-      </CardContent>
+                 <div className="flex items-center gap-2 flex-1">
+                    <Filter className="w-5 h-5" />
+                    <Label htmlFor="chapter-filter" className="font-semibold shrink-0">Filter by Chapter:</Label>
+                    <Select value={filterChapter} onValueChange={setFilterChapter} disabled={filterSubject === 'all'}>
+                        <SelectTrigger id="chapter-filter" className="w-full sm:w-auto">
+                            <SelectValue placeholder="Select chapter" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Chapters</SelectItem>
+                            {chaptersForSelectedSubject.map(c => <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                </div>
+                 <div className="flex items-center gap-2 flex-1">
+                    <SortAsc className="w-5 h-5" />
+                    <Label htmlFor="sort-order" className="font-semibold shrink-0">Sort by:</Label>
+                    <Select value={sortOrder} onValueChange={setSortOrder}>
+                        <SelectTrigger id="sort-order" className="w-full sm:w-auto">
+                            <SelectValue placeholder="Sort order" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="pastPaperCount">Most Past Paper Questions</SelectItem>
+                            <SelectItem value="questionCount">Most Questions</SelectItem>
+                            <SelectItem value="name">Alphabetical</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
+
+            <Drawer>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredAndSortedConcepts.map(concept => {
+                        const chartData = [
+                            { name: 'Easy', value: concept.difficulty.Easy, fill: difficultyColors.Easy },
+                            { name: 'Medium', value: concept.difficulty.Medium, fill: difficultyColors.Medium },
+                            { name: 'Hard', value: concept.difficulty.Hard, fill: difficultyColors.Hard },
+                        ].filter(d => d.value > 0);
+
+                        return (
+                            <DrawerTrigger asChild key={concept.name}>
+                                <Card className="flex flex-col bg-secondary/30 hover:bg-secondary/50 hover:shadow-lg transition-all duration-300 cursor-pointer" onClick={() => setActiveConcept(concept)}>
+                                    <CardHeader className="pb-4">
+                                        <CardTitle className="font-headline text-xl">{concept.name}</CardTitle>
+                                        <CardDescription>{concept.subjectName} - {concept.chapterName}</CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="flex-1 grid grid-cols-2 gap-4 items-center">
+                                        <div className="space-y-3">
+                                            <div className="flex items-center gap-2">
+                                                <FileQuestion className="w-5 h-5 text-primary" />
+                                                <div>
+                                                    <p className="font-bold text-lg">{concept.questionCount}</p>
+                                                    <p className="text-xs text-muted-foreground">Total Questions</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Flame className="w-5 h-5 text-amber-500" />
+                                                 <div>
+                                                    <p className="font-bold text-lg">{concept.pastPaperCount}</p>
+                                                    <p className="text-xs text-muted-foreground">Past Papers</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center justify-center">
+                                            {chartData.length > 0 ? (
+                                                <ChartContainer config={chartConfig} className="w-full h-[80px]">
+                                                    <PieChart>
+                                                         <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+                                                        <Pie data={chartData} dataKey="value" nameKey="name" innerRadius={20} outerRadius={35} strokeWidth={2}>
+                                                             {chartData.map((entry) => (
+                                                                <Cell key={`cell-${entry.name}`} fill={entry.fill} />
+                                                            ))}
+                                                        </Pie>
+                                                    </PieChart>
+                                                </ChartContainer>
+                                            ) : <p className="text-xs text-muted-foreground">No data</p>}
+                                        </div>
+                                    </CardContent>
+                                    <div className="p-4 pt-0">
+                                        <Button className="w-full">
+                                            View Questions <ChevronRight className="w-4 h-4 ml-2" />
+                                        </Button>
+                                    </div>
+                                </Card>
+                            </DrawerTrigger>
+                        )
+                    })}
+                </div>
+
+                {activeConcept && (
+                    <DrawerContent className="h-[90vh]">
+                        <div className="p-4 h-full flex flex-col">
+                            <DrawerHeader className="text-left">
+                                <DrawerTitle className="font-headline text-3xl">{activeConcept.name}</DrawerTitle>
+                                <DrawerDescription>
+                                    {activeConcept.questionCount} questions found for this topic.
+                                </DrawerDescription>
+                                <DrawerClose asChild className="absolute top-4 right-4">
+                                  <Button variant="ghost" size="icon"><X className="h-5 w-5"/></Button>
+                                </DrawerClose>
+                            </DrawerHeader>
+                            <ScrollArea className="flex-1 mt-4">
+                                <div className="space-y-4 px-4 pb-4">
+                                    {activeConcept.questions
+                                        .sort((a, b) => (a.isPastPaper === b.isPastPaper ? 0 : a.isPastPaper ? -1 : 1))
+                                        .map((q, i) => <QuestionCard key={q.id} question={q} index={i} />)}
+                                </div>
+                            </ScrollArea>
+                        </div>
+                    </DrawerContent>
+                )}
+            </Drawer>
+        </CardContent>
     </Card>
   )
-}
-
-
-export default function QuestionBankView({ subjects }: QuestionBankProps) {
-  const [activeChapter, setActiveChapter] = useState<Chapter | null>(null);
-
-  return (
-    <div className="space-y-8">
-      <DppSection subjects={subjects} />
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="md:col-span-1">
-          <h3 className="font-headline text-lg font-semibold mb-4">Select a Chapter</h3>
-          <Accordion type="multiple" className="w-full space-y-2">
-            {subjects.map((subject) => {
-              const Icon = subjectIcons[subject.name] || Book;
-              return (
-                <AccordionItem value={subject.name} key={subject.name} className="border rounded-lg">
-                  <AccordionTrigger className="px-4 py-3 font-semibold hover:no-underline">
-                    <div className="flex items-center gap-3">
-                      <Icon className="h-5 w-5" />
-                      <span>{subject.name}</span>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="flex flex-col items-start p-2">
-                      {subject.chapters.map(chapter => (
-                          <Button
-                              key={chapter.id}
-                              variant="ghost"
-                              className={cn("w-full justify-start", { "bg-accent text-accent-foreground": activeChapter?.id === chapter.id })}
-                              onClick={() => setActiveChapter(chapter)}
-                          >
-                              {chapter.name}
-                          </Button>
-                      ))}
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              )
-            })}
-          </Accordion>
-        </div>
-
-        <div className="md:col-span-2">
-          {activeChapter ? (
-              <Card>
-                  <CardHeader>
-                  <CardTitle className="font-headline text-2xl flex items-center justify-between">
-                      <span>{activeChapter.name}</span>
-                      <Badge variant="outline">{activeChapter.questions.length} Questions</Badge>
-                  </CardTitle>
-                  <CardDescription>
-                      Practice questions from the chapter: {activeChapter.name}.
-                  </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                      <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-4">
-                          {activeChapter.questions.map((q, i) => (
-                          <QuestionCard key={q.id} question={q} index={i} />
-                          ))}
-                      </div>
-                  </CardContent>
-              </Card>
-          ) : (
-              <div className="flex flex-col items-center justify-center h-full rounded-lg border border-dashed p-8 text-center bg-secondary/30">
-                  <FileQuestion className="h-16 w-16 text-muted-foreground mb-4" />
-                  <h3 className="font-headline text-2xl font-semibold">Select a chapter to begin</h3>
-                  <p className="text-muted-foreground mt-2">
-                      Choose a subject and then a chapter from the list on the left to see its questions.
-                  </p>
-              </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
 }
