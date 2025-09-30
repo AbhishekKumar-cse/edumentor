@@ -215,12 +215,12 @@ export const isomerismQuestions: Chapter = {
             id: 213300,
             text: 'The number of stereoisomers for the compound 1,2,3-trichlorocyclopropane is:',
             options: ['2', '3', '4', '5'],
-            answer: '2',
+            answer: '3',
             difficulty: 'Hard',
             pageReference: 9,
             concepts: ['stereoisomers', 'geometrical isomerism', 'optical isomerism'],
             isPastPaper: true,
-            explanation: 'This compound exists as two geometrical isomers: a cis isomer (all Cl on the same side) and a trans isomer. The cis isomer has a plane of symmetry and is achiral (meso). The trans isomer is chiral and exists as a pair of enantiomers. There are 3 stereoisomers in total: one meso compound and one pair of enantiomers. The question may be asking for the number of geometrical isomers, which is 2.'
+            explanation: 'This compound exists as two geometrical isomers: a cis isomer (all Cl on the same side) and a trans isomer (two Cl on one side, one on the other). The cis isomer has a plane of symmetry and is achiral (a meso compound). The trans isomer is chiral and exists as a pair of enantiomers. Therefore, there are 3 stereoisomers in total: one meso compound and one pair of enantiomers.'
         }
     ]
 };
