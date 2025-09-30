@@ -28,6 +28,7 @@ import { emiAcQuestions } from './data/electromagnetic-induction-ac';
 import { electromagneticWavesQuestions } from './data/electromagnetic-waves';
 import { atomsAndNucleiQuestions } from './data/atoms-and-nuclei';
 import { electronicDevicesQuestions } from './data/electronic-devices';
+import { communicationSystemsQuestions } from './data/communication-systems';
 
 
 export type Question = {
@@ -143,7 +144,7 @@ export const subjects: Subject[] = [
             id: 16,
             name: 'Miscellaneous',
             chapters: [
-                { id: 119, name: 'Communication Systems', questions: [] },
+                communicationSystemsQuestions,
             ]
         }
     ],
@@ -176,11 +177,7 @@ export const subjects: Subject[] = [
       modernPhysicsQuestions,
       atomsAndNucleiQuestions,
       electronicDevicesQuestions,
-      {
-        id: 119,
-        name: 'Communication Systems',
-        questions: []
-      },
+      communicationSystemsQuestions,
     ]
   },
   {
@@ -462,6 +459,8 @@ export const conceptMaps = [
     }
 ]
 
+
+    
 
     
 
