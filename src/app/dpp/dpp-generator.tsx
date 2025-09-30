@@ -15,7 +15,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Lightbulb, BookCopy, FileText, Atom, FlaskConical, Calculator, Loader2, History, Trash2, Repeat } from 'lucide-react';
+import { Lightbulb, BookCopy, FileText, Atom, FlaskConical, Calculator, Loader2, History, Trash2, Repeat, Clock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
@@ -68,6 +68,7 @@ export default function DppGenerator({ subjects }: DppGeneratorProps) {
   const [dppName, setDppName] = useState('');
   const [examType, setExamType] = useState<'jee' | 'neet'>('jee');
   const [difficulty, setDifficulty] = useState<'Easy' | 'Medium' | 'Hard' | 'Mixed'>('Mixed');
+  const [duration, setDuration] = useState<number>(0);
   const [dppHistory, setDppHistory] = useState<DppHistoryItem[]>([]);
 
 
@@ -185,6 +186,7 @@ export default function DppGenerator({ subjects }: DppGeneratorProps) {
       const result = await generateDpp(dppInput);
       
       sessionStorage.setItem('dppResult', JSON.stringify(result));
+      sessionStorage.setItem('dppDuration', JSON.stringify(duration));
       router.push('/dpp/start');
 
     } catch (error) {
@@ -238,9 +240,27 @@ export default function DppGenerator({ subjects }: DppGeneratorProps) {
                                </Select>
                             </div>
                         </div>
-                        <div className='space-y-2'>
-                            <Label htmlFor='dpp-name'>DPP Name (Optional)</Label>
-                            <Input id="dpp-name" placeholder="e.g., Kinematics Practice Sheet 1" value={dppName} onChange={(e) => setDppName(e.target.value)} />
+
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className='space-y-2'>
+                                <Label htmlFor='dpp-name'>DPP Name (Optional)</Label>
+                                <Input id="dpp-name" placeholder="e.g., Kinematics Practice Sheet 1" value={dppName} onChange={(e) => setDppName(e.target.value)} />
+                            </div>
+                             <div className='space-y-2'>
+                                <Label htmlFor="duration">Test Duration (minutes)</Label>
+                                <Select value={String(duration)} onValueChange={(val) => setDuration(Number(val))}>
+                                <SelectTrigger id="duration">
+                                    <SelectValue placeholder="Set duration" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="0">No Timer</SelectItem>
+                                    <SelectItem value="15">15 minutes</SelectItem>
+                                    <SelectItem value="20">20 minutes</SelectItem>
+                                    <SelectItem value="30">30 minutes</SelectItem>
+                                    <SelectItem value="45">45 minutes</SelectItem>
+                                </SelectContent>
+                                </Select>
+                            </div>
                         </div>
 
                          <RadioGroup value={dppType} onValueChange={(val: 'full' | 'chapterwise') => setDppType(val)} className="grid grid-cols-2 gap-4">
@@ -408,9 +428,26 @@ export default function DppGenerator({ subjects }: DppGeneratorProps) {
                         </Select>
                     </div>
                 </div>
-                <div className='space-y-2'>
-                    <Label htmlFor='dpp-name-custom'>DPP Name (Optional)</Label>
-                    <Input id="dpp-name-custom" placeholder="e.g., Mixed Practice Set" value={dppName} onChange={(e) => setDppName(e.target.value)} />
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className='space-y-2'>
+                        <Label htmlFor='dpp-name-custom'>DPP Name (Optional)</Label>
+                        <Input id="dpp-name-custom" placeholder="e.g., Mixed Practice Set" value={dppName} onChange={(e) => setDppName(e.target.value)} />
+                    </div>
+                    <div className='space-y-2'>
+                        <Label htmlFor="duration-custom">Test Duration (minutes)</Label>
+                        <Select value={String(duration)} onValueChange={(val) => setDuration(Number(val))}>
+                        <SelectTrigger id="duration-custom">
+                            <SelectValue placeholder="Set duration" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="0">No Timer</SelectItem>
+                            <SelectItem value="15">15 minutes</SelectItem>
+                            <SelectItem value="20">20 minutes</SelectItem>
+                            <SelectItem value="30">30 minutes</SelectItem>
+                            <SelectItem value="45">45 minutes</SelectItem>
+                        </SelectContent>
+                        </Select>
+                    </div>
                 </div>
                 <Accordion type="multiple" className="w-full space-y-2">
                     {subjects.map(subject => (

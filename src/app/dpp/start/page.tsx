@@ -1,17 +1,17 @@
 
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Question } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { ArrowLeft, CheckCircle, Flame, Lightbulb, ChevronsRight, ChevronsLeft, Flag } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Flame, Lightbulb, ChevronsRight, ChevronsLeft, Flag, Timer } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
 
@@ -30,6 +30,8 @@ export default function DppStartPage() {
   const [dppData, setDppData] = useState<DppResult | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [originalQuestions, setOriginalQuestions] = useState<Question[]>([]);
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
+
   const router = useRouter();
 
   const questionTimers = useRef<number[]>([]);
@@ -37,13 +39,38 @@ export default function DppStartPage() {
   const totalTimeTaken = useRef<number>(0);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  const submitDpp = useCallback(() => {
+    if (!dppData) return;
+    
+    if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+    }
+    updateQuestionTime(currentQuestionIndex); // Final update
+
+    sessionStorage.setItem('dppSubmission', JSON.stringify(dppData.questions));
+    sessionStorage.setItem('dppName', dppData.name);
+    sessionStorage.setItem('dppTotalTime', JSON.stringify(totalTimeTaken.current));
+    sessionStorage.removeItem('dppResult'); // Clear the initial data
+    sessionStorage.removeItem('dppDuration');
+    router.replace('/dpp/results');
+  }, [dppData, currentQuestionIndex, router]);
+
+
   useEffect(() => {
     const configStr = sessionStorage.getItem('dppResult');
+    const durationStr = sessionStorage.getItem('dppDuration');
+
     if (!configStr) {
       router.replace('/dpp');
       return;
     }
     const parsedData = JSON.parse(configStr);
+    const duration = durationStr ? JSON.parse(durationStr) : 0;
+    
+    if(duration > 0) {
+        setTimeLeft(duration * 60);
+    }
+
     setOriginalQuestions(parsedData.questions);
     setDppData({
       ...parsedData,
@@ -68,6 +95,19 @@ export default function DppStartPage() {
         }
     }
   }, [router]);
+
+  useEffect(() => {
+     if (timeLeft === null) return;
+     if (timeLeft <= 0) {
+        submitDpp();
+        return;
+     }
+     const interval = setInterval(() => {
+        setTimeLeft(prev => (prev !== null ? prev - 1 : null));
+     }, 1000);
+
+     return () => clearInterval(interval);
+  }, [timeLeft, submitDpp]);
 
   const updateQuestionTime = (index: number) => {
     const timeSpent = (Date.now() - questionStartTime.current) / 1000;
@@ -129,21 +169,6 @@ export default function DppStartPage() {
     }
   }
 
-  const submitDpp = () => {
-    if (!dppData) return;
-    
-    if (timerIntervalRef.current) {
-        clearInterval(timerIntervalRef.current);
-    }
-    updateQuestionTime(currentQuestionIndex); // Final update
-
-    sessionStorage.setItem('dppSubmission', JSON.stringify(dppData.questions));
-    sessionStorage.setItem('dppName', dppData.name);
-    sessionStorage.setItem('dppTotalTime', JSON.stringify(totalTimeTaken.current));
-    sessionStorage.removeItem('dppResult'); // Clear the initial data
-    router.replace('/dpp/results');
-  };
-
   if (!dppData) {
     return (
       <div className="flex items-center justify-center h-screen bg-secondary">
@@ -167,6 +192,13 @@ export default function DppStartPage() {
     }
   };
 
+  const formatTime = (seconds: number | null) => {
+    if (seconds === null) return 'No Timer';
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  };
+
 
   return (
     <div className="fixed inset-0 bg-background flex flex-col">
@@ -177,6 +209,12 @@ export default function DppStartPage() {
             <p className="text-muted-foreground">Question {currentQuestionIndex + 1} of {dppData.questions.length}</p>
         </div>
         <div className="flex items-center gap-4">
+           {timeLeft !== null && (
+             <Badge variant="outline" className="text-lg font-semibold tabular-nums p-2">
+                <Timer className="mr-2 h-5 w-5" />
+                {formatTime(timeLeft)}
+            </Badge>
+           )}
            <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="destructive">End Practice</Button>
