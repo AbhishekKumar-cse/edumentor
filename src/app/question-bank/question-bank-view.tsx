@@ -1,11 +1,11 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
-import type { Subject, Question } from '@/lib/data';
+import { useState, useMemo, useEffect } from 'react';
+import type { Subject, Chapter, Question } from '@/lib/data';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, Flame, Atom, FlaskConical, Calculator, BookOpen, BarChart3, ChevronRight, Filter, SortAsc, FileQuestion, X, Telescope } from 'lucide-react';
+import { Flame, Telescope, X, Check, Filter, SortAsc } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -17,48 +17,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerDescription,
-  DrawerClose,
-  DrawerTrigger,
-} from "@/components/ui/drawer"
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart"
-import { Pie, PieChart, Cell } from "recharts"
-
-type Concept = {
-  name: string;
-  questionCount: number;
-  pastPaperCount: number;
-  difficulty: {
-    Easy: number;
-    Medium: number;
-    Hard: number;
-  };
-  questions: Question[];
-  chapterName: string;
-  subjectName: string;
-};
-
-const subjectIcons: { [key: string]: React.ElementType } = {
-  Physics: Atom,
-  Chemistry: FlaskConical,
-  Mathematics: Calculator,
-};
-
-const difficultyColors = {
-  Easy: "hsl(var(--chart-2))",
-  Medium: "hsl(var(--chart-3))",
-  Hard: "hsl(var(--chart-5))",
-}
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 
 const QuestionCard = ({ question, index }: { question: Question; index: number }) => {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -81,12 +47,15 @@ const QuestionCard = ({ question, index }: { question: Question; index: number }
             <p className="font-semibold flex-1 pr-4">
                 Q{index + 1}: {question.text}
             </p>
-            {question.isPastPaper && (
-                <Badge variant="outline" className="ml-4 border-amber-500 text-amber-500 flex-shrink-0">
-                    <Flame className="mr-1.5 h-3.5 w-3.5" />
-                    Past Paper
-                </Badge>
-            )}
+            <div className="flex items-center gap-2">
+              <Badge variant={question.difficulty === 'Easy' ? 'secondary' : question.difficulty === 'Hard' ? 'destructive' : 'default'} className="capitalize">{question.difficulty}</Badge>
+              {question.isPastPaper && (
+                  <Badge variant="outline" className="ml-4 border-amber-500 text-amber-500 flex-shrink-0">
+                      <Flame className="mr-1.5 h-3.5 w-3.5" />
+                      Past Paper
+                  </Badge>
+              )}
+            </div>
        </div>
       <RadioGroup
         value={selectedOption || undefined}
@@ -123,221 +92,155 @@ const QuestionCard = ({ question, index }: { question: Question; index: number }
 };
 
 
-export default function QuestionBankView({ subjects }: { subjects: Subject[] }) {
-  const [activeConcept, setActiveConcept] = useState<Concept | null>(null);
-  const [filterSubject, setFilterSubject] = useState<string>('all');
-  const [filterChapter, setFilterChapter] = useState<string>('all');
-  const [sortOrder, setSortOrder] = useState<string>('pastPaperCount');
+export default function QuestionBankView({ subject }: { subject: Subject }) {
+  const [selectedChapters, setSelectedChapters] = useState<number[]>([]);
+  const [difficultyFilter, setDifficultyFilter] = useState<'All' | 'Easy' | 'Medium' | 'Hard'>('All');
+  const [isStarted, setIsStarted] = useState(false);
+  const [openUnits, setOpenUnits] = useState<string[]>([]);
 
-  const allConcepts: Concept[] = useMemo(() => {
-    const conceptsMap = new Map<string, Concept>();
-    subjects.forEach(subject => {
-        subject.chapters.forEach(chapter => {
-            chapter.questions.forEach(question => {
-                question.concepts.forEach(conceptName => {
-                    const normalizedConcept = conceptName.toLowerCase().trim();
-                    if (!conceptsMap.has(normalizedConcept)) {
-                        conceptsMap.set(normalizedConcept, {
-                            name: conceptName,
-                            questionCount: 0,
-                            pastPaperCount: 0,
-                            difficulty: { Easy: 0, Medium: 0, Hard: 0 },
-                            questions: [],
-                            chapterName: chapter.name,
-                            subjectName: subject.name,
-                        });
-                    }
-                    const concept = conceptsMap.get(normalizedConcept)!;
-                    concept.questionCount++;
-                    if (question.isPastPaper) {
-                        concept.pastPaperCount++;
-                    }
-                    concept.difficulty[question.difficulty]++;
-                    concept.questions.push(question);
-                });
-            });
-        });
-    });
-    return Array.from(conceptsMap.values());
-  }, [subjects]);
-
-  const chaptersForSelectedSubject = useMemo(() => {
-    if (filterSubject === 'all') return [];
-    const subject = subjects.find(s => s.name === filterSubject);
-    return subject ? subject.chapters : [];
-  }, [filterSubject, subjects]);
-
-
-  const filteredAndSortedConcepts = useMemo(() => {
-    let concepts = allConcepts;
-    
-    if (filterSubject !== 'all') {
-        concepts = concepts.filter(c => c.subjectName === filterSubject);
+  useEffect(() => {
+    // Expand the first unit by default
+    if (subject?.units.length > 0) {
+      setOpenUnits([subject.units[0].name]);
     }
+  }, [subject]);
+  
+  const handleChapterToggle = (chapterId: number) => {
+    setSelectedChapters((prev) =>
+      prev.includes(chapterId)
+        ? prev.filter((id) => id !== chapterId)
+        : [...prev, chapterId]
+    );
+  };
+  
+  const handleUnitToggle = (unit: any) => {
+    const chapterIds = unit.chapters.map((c: Chapter) => c.id);
+    const allSelected = chapterIds.every((id: number) => selectedChapters.includes(id));
+    if (allSelected) {
+      setSelectedChapters(prev => prev.filter(id => !chapterIds.includes(id)));
+    } else {
+      setSelectedChapters(prev => [...new Set([...prev, ...chapterIds])]);
+    }
+  };
+
+
+  const filteredQuestions = useMemo(() => {
+    if (selectedChapters.length === 0) return [];
     
-    if (filterChapter !== 'all') {
-        concepts = concepts.filter(c => c.chapterName === filterChapter);
+    let questions = subject.chapters
+      .filter(c => selectedChapters.includes(c.id))
+      .flatMap(c => c.questions);
+      
+    if (difficultyFilter !== 'All') {
+      questions = questions.filter(q => q.difficulty === difficultyFilter);
     }
 
-    return concepts.sort((a, b) => {
-        if (sortOrder === 'questionCount') return b.questionCount - a.questionCount;
-        if (sortOrder === 'name') return a.name.localeCompare(b.name);
-        // default to pastPaperCount
-        return b.pastPaperCount - a.pastPaperCount;
-    });
-  }, [allConcepts, filterSubject, filterChapter, sortOrder]);
+    return questions;
+  }, [selectedChapters, difficultyFilter, subject]);
 
-
-  const chartConfig = {
-      questions: { label: "Questions" },
-      Easy: { label: "Easy", color: difficultyColors.Easy },
-      Medium: { label: "Medium", color: difficultyColors.Medium },
-      Hard: { label: "Hard", color: difficultyColors.Hard },
+  if (!subject) {
+    return <p>Subject not found.</p>;
   }
 
-  const handleSubjectChange = (subject: string) => {
-    setFilterSubject(subject);
-    setFilterChapter('all');
-  }
+  const renderSelectionScreen = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle className="font-headline text-3xl">{subject.name} Question Bank</CardTitle>
+        <CardDescription>Select chapters to start practicing.</CardDescription>
+      </CardHeader>
+      <CardContent>
+          <div className="flex justify-between items-center mb-4">
+              <h4 className="font-semibold">Select Units/Chapters:</h4>
+              <Button variant="link" size="sm" onClick={() => setOpenUnits(openUnits.length === subject.units.length ? [] : subject.units.map(u => u.name))}>
+                  {openUnits.length === subject.units.length ? 'Collapse All' : 'Expand All'}
+              </Button>
+          </div>
+          <ScrollArea className="h-96 pr-4">
+            <Accordion type="multiple" value={openUnits} onValueChange={setOpenUnits} className="w-full space-y-2">
+                {subject.units.map(unit => {
+                    const allChaptersInUnitSelected = unit.chapters.every(c => selectedChapters.includes(c.id));
 
-  return (
-    <Card className="border-0 shadow-none">
-        <CardHeader>
-             <CardTitle className="flex items-center gap-3">
-              <Telescope className="w-6 h-6 text-primary" />
-              <span className="font-headline text-2xl">Hot Topics Analysis</span>
-            </CardTitle>
-            <CardDescription>
-              Discover which concepts appear most frequently, analyze their difficulty, and practice relevant questions.
-            </CardDescription>
-        </CardHeader>
-        <CardContent>
-            <div className="flex flex-col sm:flex-row gap-4 mb-6 p-4 bg-secondary/50 rounded-lg border">
-                <div className="flex items-center gap-2 flex-1">
-                    <Filter className="w-5 h-5" />
-                    <Label htmlFor="subject-filter" className="font-semibold shrink-0">Filter by Subject:</Label>
-                    <Select value={filterSubject} onValueChange={handleSubjectChange}>
-                        <SelectTrigger id="subject-filter" className="w-full sm:w-auto">
-                            <SelectValue placeholder="Select subject" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All Subjects</SelectItem>
-                            {subjects.map(s => <SelectItem key={s.id} value={s.name}>{s.name}</SelectItem>)}
-                        </SelectContent>
-                    </Select>
-                </div>
-                 <div className="flex items-center gap-2 flex-1">
-                    <Filter className="w-5 h-5" />
-                    <Label htmlFor="chapter-filter" className="font-semibold shrink-0">Filter by Chapter:</Label>
-                    <Select value={filterChapter} onValueChange={setFilterChapter} disabled={filterSubject === 'all'}>
-                        <SelectTrigger id="chapter-filter" className="w-full sm:w-auto">
-                            <SelectValue placeholder="Select chapter" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All Chapters</SelectItem>
-                            {chaptersForSelectedSubject.map(c => <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>)}
-                        </SelectContent>
-                    </Select>
-                </div>
-                 <div className="flex items-center gap-2 flex-1">
-                    <SortAsc className="w-5 h-5" />
-                    <Label htmlFor="sort-order" className="font-semibold shrink-0">Sort by:</Label>
-                    <Select value={sortOrder} onValueChange={setSortOrder}>
-                        <SelectTrigger id="sort-order" className="w-full sm:w-auto">
-                            <SelectValue placeholder="Sort order" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="pastPaperCount">Most Past Paper Questions</SelectItem>
-                            <SelectItem value="questionCount">Most Questions</SelectItem>
-                            <SelectItem value="name">Alphabetical</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-            </div>
-
-            <Drawer>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredAndSortedConcepts.map(concept => {
-                        const chartData = [
-                            { name: 'Easy', value: concept.difficulty.Easy, fill: difficultyColors.Easy },
-                            { name: 'Medium', value: concept.difficulty.Medium, fill: difficultyColors.Medium },
-                            { name: 'Hard', value: concept.difficulty.Hard, fill: difficultyColors.Hard },
-                        ].filter(d => d.value > 0);
-
-                        return (
-                            <DrawerTrigger asChild key={concept.name}>
-                                <Card className="flex flex-col bg-secondary/30 hover:bg-secondary/50 hover:shadow-lg transition-all duration-300 cursor-pointer" onClick={() => setActiveConcept(concept)}>
-                                    <CardHeader className="pb-4">
-                                        <CardTitle className="font-headline text-xl">{concept.name}</CardTitle>
-                                        <CardDescription>{concept.subjectName} - {concept.chapterName}</CardDescription>
-                                    </CardHeader>
-                                    <CardContent className="flex-1 grid grid-cols-2 gap-4 items-center">
-                                        <div className="space-y-3">
-                                            <div className="flex items-center gap-2">
-                                                <FileQuestion className="w-5 h-5 text-primary" />
-                                                <div>
-                                                    <p className="font-bold text-lg">{concept.questionCount}</p>
-                                                    <p className="text-xs text-muted-foreground">Total Questions</p>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <Flame className="w-5 h-5 text-amber-500" />
-                                                 <div>
-                                                    <p className="font-bold text-lg">{concept.pastPaperCount}</p>
-                                                    <p className="text-xs text-muted-foreground">Past Papers</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center justify-center">
-                                            {chartData.length > 0 ? (
-                                                <ChartContainer config={chartConfig} className="w-full h-[80px]">
-                                                    <PieChart>
-                                                         <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-                                                        <Pie data={chartData} dataKey="value" nameKey="name" innerRadius={20} outerRadius={35} strokeWidth={2}>
-                                                             {chartData.map((entry) => (
-                                                                <Cell key={`cell-${entry.name}`} fill={entry.fill} />
-                                                            ))}
-                                                        </Pie>
-                                                    </PieChart>
-                                                </ChartContainer>
-                                            ) : <p className="text-xs text-muted-foreground">No data</p>}
-                                        </div>
-                                    </CardContent>
-                                    <div className="p-4 pt-0">
-                                        <Button className="w-full">
-                                            View Questions <ChevronRight className="w-4 h-4 ml-2" />
-                                        </Button>
+                    return (
+                        <AccordionItem value={unit.name} key={unit.id} className="border rounded-lg bg-secondary/30 px-4">
+                            <div className="flex items-center">
+                                <Checkbox
+                                    id={`unit-${unit.id}`}
+                                    checked={allChaptersInUnitSelected}
+                                    onCheckedChange={() => handleUnitToggle(unit)}
+                                    className="mr-3"
+                                />
+                                <AccordionTrigger className="font-semibold hover:no-underline text-base flex-1">
+                                    <div>
+                                        <p>{unit.name}</p>
+                                        <p className="text-sm text-muted-foreground font-normal">{unit.chapters.length} Chapters</p>
                                     </div>
-                                </Card>
-                            </DrawerTrigger>
-                        )
-                    })}
-                </div>
-
-                {activeConcept && (
-                    <DrawerContent className="h-[90vh]">
-                        <div className="p-4 h-full flex flex-col">
-                            <DrawerHeader className="text-left">
-                                <DrawerTitle className="font-headline text-3xl">{activeConcept.name}</DrawerTitle>
-                                <DrawerDescription>
-                                    {activeConcept.questionCount} questions found for this topic.
-                                </DrawerDescription>
-                                <DrawerClose asChild className="absolute top-4 right-4">
-                                  <Button variant="ghost" size="icon"><X className="h-5 w-5"/></Button>
-                                </DrawerClose>
-                            </DrawerHeader>
-                            <ScrollArea className="flex-1 mt-4">
-                                <div className="space-y-4 px-4 pb-4">
-                                    {activeConcept.questions
-                                        .sort((a, b) => (a.isPastPaper === b.isPastPaper ? 0 : a.isPastPaper ? -1 : 1))
-                                        .map((q, i) => <QuestionCard key={q.id} question={q} index={i} />)}
-                                </div>
-                            </ScrollArea>
-                        </div>
-                    </DrawerContent>
-                )}
-            </Drawer>
-        </CardContent>
+                                </AccordionTrigger>
+                            </div>
+                            <AccordionContent className="p-2 space-y-1">
+                                {unit.chapters.map(chapter => (
+                                    <div key={chapter.id} className="flex items-center space-x-3 p-2 rounded-md hover:bg-background/50 pl-8">
+                                        <Checkbox
+                                            id={`chapter-${chapter.id}`}
+                                            checked={selectedChapters.includes(chapter.id)}
+                                            onCheckedChange={() => handleChapterToggle(chapter.id)}
+                                        />
+                                        <Label htmlFor={`chapter-${chapter.id}`} className="flex-1 cursor-pointer font-normal">{chapter.name}</Label>
+                                    </div>
+                                ))}
+                            </AccordionContent>
+                        </AccordionItem>
+                    );
+                })}
+            </Accordion>
+          </ScrollArea>
+           <div className="flex justify-end mt-6">
+              <Button onClick={() => setIsStarted(true)} disabled={selectedChapters.length === 0} size="lg">
+                View {filteredQuestions.length} Questions
+              </Button>
+          </div>
+      </CardContent>
     </Card>
   )
+
+  const renderQuestionList = () => (
+    <div>
+        <div className="flex flex-col sm:flex-row gap-4 mb-6 p-4 bg-secondary/50 rounded-lg border justify-between items-center">
+            <div className='flex-1'>
+               <h2 className="text-2xl font-bold font-headline">
+                  {subject.chapters.filter(c => selectedChapters.includes(c.id)).map(c => c.name).join(', ')}
+               </h2>
+               <p className="text-muted-foreground">{filteredQuestions.length} questions found</p>
+            </div>
+            <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                    <Filter className="w-5 h-5" />
+                    <Label htmlFor="difficulty-filter" className="font-semibold shrink-0">Difficulty:</Label>
+                    <Select value={difficultyFilter} onValueChange={(val: 'All' | 'Easy' | 'Medium' | 'Hard') => setDifficultyFilter(val)}>
+                        <SelectTrigger id="difficulty-filter" className="w-[120px]">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="All">All</SelectItem>
+                            <SelectItem value="Easy">Easy</SelectItem>
+                            <SelectItem value="Medium">Medium</SelectItem>
+                            <SelectItem value="Hard">Hard</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                <Button variant="outline" onClick={() => setIsStarted(false)}>Back to Chapters</Button>
+            </div>
+        </div>
+        <div className="space-y-4">
+            {filteredQuestions.length > 0 ? (
+                filteredQuestions.map((q, i) => <QuestionCard key={q.id} question={q} index={i} />)
+            ) : (
+                <div className="text-center py-12">
+                    <p className="text-muted-foreground">No questions match the current filters.</p>
+                </div>
+            )}
+        </div>
+    </div>
+  )
+  
+  return isStarted ? renderQuestionList() : renderSelectionScreen();
 }
