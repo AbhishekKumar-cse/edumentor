@@ -4,7 +4,8 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Question } from '@/lib/data';
-import { generatePracticeQuestion, GeneratePracticeQuestionOutput } from '@/ai/flows/generate-practice-question';
+import { generatePracticeQuestion } from '@/ai/flows/generate-practice-question';
+import type { GeneratePracticeQuestionOutput } from '@/ai/flows/practice-question.types';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -81,8 +82,10 @@ function ReviewPageComponent() {
       }).then(altQ => {
         setPracticeItems(prev => {
             const newItems = [...prev];
-            newItems[index].alternativeQuestion = altQ;
-            newItems[index].isLoading = false;
+            if (newItems[index]) {
+                newItems[index].alternativeQuestion = altQ;
+                newItems[index].isLoading = false;
+            }
             return newItems;
         });
       });
