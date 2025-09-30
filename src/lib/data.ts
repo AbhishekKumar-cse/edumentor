@@ -29,6 +29,7 @@ import { electromagneticWavesQuestions } from './data/electromagnetic-waves';
 import { atomsAndNucleiQuestions } from './data/atoms-and-nuclei';
 import { electronicDevicesQuestions } from './data/electronic-devices';
 import { communicationSystemsQuestions } from './data/communication-systems';
+import { isomerismQuestions } from './data/isomerism';
 
 
 export type Question = {
@@ -217,6 +218,7 @@ export const subjects: Subject[] = [
             name: 'Organic Chemistry',
             chapters: [
                 generalOrganicChemistryQuestions,
+                isomerismQuestions,
                 alcoholsPhenolsEthersQuestions,
             ]
         },
@@ -234,6 +236,7 @@ export const subjects: Subject[] = [
       generalOrganicChemistryQuestions,
       coordinationCompoundQuestions,
       alcoholsPhenolsEthersQuestions,
+      isomerismQuestions,
     ]
   },
   {
