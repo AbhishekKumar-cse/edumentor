@@ -22,7 +22,7 @@ export default function MockTestPage() {
               <h2 className="text-2xl font-bold">Create Your Own Test &gt;</h2>
               <div className="flex items-center gap-2 text-gray-400">
                 <Users className="w-8 h-8" />
-                <span>554+ students took a <br /> Custom Test in last hour!</span>
+                <span>many students took a <br /> Custom Test in last hour!</span>
               </div>
             </div>
             <div className="p-3 bg-gray-700/50 rounded-lg">
@@ -44,7 +44,7 @@ export default function MockTestPage() {
               <h2 className="text-2xl font-bold">PYQ Mock Tests &gt;</h2>
               <div className="flex items-center gap-2 text-gray-400">
                 <Users className="w-8 h-8" />
-                <span>560+ students took a <br /> PYQ Mock Test in last hour!</span>
+                <span>many students took a <br /> PYQ Mock Test in last hour!</span>
               </div>
             </div>
             <div className="p-3 bg-gray-700/50 rounded-lg">
