@@ -48,14 +48,17 @@ function ReviewPageComponent() {
     }
 
     const sectionResults: SubmittedQuestion[] = JSON.parse(resultsStr);
-    setTestConfig(JSON.parse(configStr));
-    setCurrentSectionIndex(JSON.parse(sectionIndexStr));
+    const config = JSON.parse(configStr);
+    const sectionIndex = JSON.parse(sectionIndexStr);
+
+    setTestConfig(config);
+    setCurrentSectionIndex(sectionIndex);
     
     const incorrectQuestions = sectionResults.filter(q => q.userAnswer !== q.answer);
 
     if (incorrectQuestions.length === 0) {
-      // If no incorrect answers, proceed to the next section immediately
-      proceedToNextSection();
+      // If no incorrect answers, proceed to the next section or results immediately
+      proceedToNextStep(sectionIndex, config);
       return;
     }
 
@@ -102,17 +105,32 @@ function ReviewPageComponent() {
         item.isCorrected = answer === item.originalQuestion.answer;
       } else {
         item.userAnswerAlternative = answer;
-        item.isAlternativeCorrect = answer === item.alternativeQuestion?.answer;
+        if(item.alternativeQuestion) {
+          item.isAlternativeCorrect = answer === item.alternativeQuestion.answer;
+        }
       }
       return newItems;
     });
   };
   
-  const proceedToNextSection = () => {
-    const nextSectionIndex = currentSectionIndex + 1;
-    sessionStorage.setItem('resumeSectionIndex', nextSectionIndex.toString());
-    sessionStorage.removeItem('testSectionResults'); // Clean up
-    router.push('/mock-test/start');
+  const proceedToNextStep = (sectionIndex: number, config: any) => {
+    const isLastSection = sectionIndex >= (config.sections?.length - 1);
+
+    if (isLastSection) {
+      // Submit the whole test for final results
+      const allQuestions = config.sections.flatMap((s: any) => s.questions);
+      const totalTimeTaken = allQuestions.reduce((acc: number, q: any) => acc + q.timeTaken, 0);
+      sessionStorage.setItem('testResults', JSON.stringify(allQuestions));
+      sessionStorage.setItem('totalTimeTaken', JSON.stringify(totalTimeTaken));
+      router.push('/mock-test/results');
+
+    } else {
+      // Proceed to the next section
+      const nextSectionIndex = sectionIndex + 1;
+      sessionStorage.setItem('resumeSectionIndex', nextSectionIndex.toString());
+      sessionStorage.removeItem('testSectionResults'); // Clean up
+      router.push('/mock-test/start');
+    }
   };
 
   const allCorrect = practiceItems.every(item => item.isCorrected && item.isAlternativeCorrect);
@@ -153,13 +171,13 @@ function ReviewPageComponent() {
                                 value={item.userAnswerOriginal}
                                 onValueChange={(val) => handleAnswerChange(index, 'original', val)}
                                 className="space-y-2 my-4"
+                                disabled={item.isCorrected}
                             >
                                 {item.originalQuestion.options.map((option, i) => (
-                                <Label key={`orig-${i}`} htmlFor={`orig-${item.originalQuestion.id}-${i}`} className={cn("flex items-center p-3 border rounded-md transition-all", getOptionClass(option, item.originalQuestion.answer, item.isCorrected ? item.userAnswerOriginal : undefined))}>
+                                <Label key={`orig-${i}`} htmlFor={`orig-${item.originalQuestion.id}-${i}`} className={cn("flex items-center p-3 border rounded-md transition-all", item.isCorrected ? getOptionClass(option, item.originalQuestion.answer, item.userAnswerOriginal) : 'cursor-pointer hover:bg-white/10')}>
                                     <RadioGroupItem value={option} id={`orig-${item.originalQuestion.id}-${i}`} className="mr-3" />
                                     <span>{option}</span>
                                     {item.isCorrected && option === item.originalQuestion.answer && <Check className="ml-auto h-5 w-5 text-green-500" />}
-                                    {!item.isCorrected && item.userAnswerOriginal === option && <X className="ml-auto h-5 w-5 text-red-500" />}
                                 </Label>
                                 ))}
                             </RadioGroup>
@@ -177,13 +195,13 @@ function ReviewPageComponent() {
                                         value={item.userAnswerAlternative}
                                         onValueChange={(val) => handleAnswerChange(index, 'alternative', val)}
                                         className="space-y-2 my-4"
+                                        disabled={item.isAlternativeCorrect}
                                     >
                                         {item.alternativeQuestion.options.map((option, i) => (
-                                        <Label key={`alt-${i}`} htmlFor={`alt-${item.originalQuestion.id}-${i}`} className={cn("flex items-center p-3 border rounded-md transition-all", getOptionClass(option, item.alternativeQuestion!.answer, item.isAlternativeCorrect ? item.userAnswerAlternative : undefined))}>
+                                        <Label key={`alt-${i}`} htmlFor={`alt-${item.originalQuestion.id}-${i}`} className={cn("flex items-center p-3 border rounded-md transition-all", item.isAlternativeCorrect ? getOptionClass(option, item.alternativeQuestion!.answer, item.userAnswerAlternative) : 'cursor-pointer hover:bg-white/10')}>
                                             <RadioGroupItem value={option} id={`alt-${item.originalQuestion.id}-${i}`} className="mr-3" />
                                             <span>{option}</span>
                                             {item.isAlternativeCorrect && option === item.alternativeQuestion.answer && <Check className="ml-auto h-5 w-5 text-green-500" />}
-                                            {!item.isAlternativeCorrect && item.userAnswerAlternative === option && <X className="ml-auto h-5 w-5 text-red-500" />}
                                         </Label>
                                         ))}
                                     </RadioGroup>
@@ -197,7 +215,7 @@ function ReviewPageComponent() {
         </div>
 
         <footer className="text-center mt-8">
-            <Button onClick={proceedToNextSection} disabled={!allCorrect} size="lg">
+            <Button onClick={() => proceedToNextStep(currentSectionIndex, testConfig)} disabled={!allCorrect} size="lg">
                 {allCorrect ? 'Proceed to Next Section' : 'Answer All Questions Correctly to Proceed'}
                 <ChevronsRight className="ml-2 h-5 w-5" />
             </Button>

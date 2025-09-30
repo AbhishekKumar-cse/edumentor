@@ -27,6 +27,7 @@ const difficultyVariantMap: { [key: string]: 'default' | 'secondary' | 'destruct
 };
 
 const formatTime = (seconds: number) => {
+    if (isNaN(seconds)) return '0s';
     if (seconds < 60) return `${Math.round(seconds)}s`;
     const mins = Math.floor(seconds / 60);
     const secs = Math.round(seconds % 60);

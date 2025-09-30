@@ -48,27 +48,6 @@ export default function TestPage() {
   const activeSection = testConfig?.sections ? testConfig.sections[currentSectionIndex] : null;
   const currentQuestion = activeSection ? activeSection.questions[currentQuestionIndex] : testQuestions[currentQuestionIndex];
 
-  const submitSection = useCallback(() => {
-    if (!testConfig || !activeSection) return;
-    
-    updateQuestionTime(currentQuestionIndex); // Final update for the current question
-
-    sessionStorage.setItem('testSectionResults', JSON.stringify(activeSection.questions));
-    sessionStorage.setItem('testConfig', JSON.stringify(testConfig));
-    sessionStorage.setItem('currentSectionIndex', JSON.stringify(currentSectionIndex));
-
-    if (activeSection.name === 'Easy') {
-      router.replace('/mock-test/review');
-    } else {
-       // For Medium and Hard, or other tests, go to next section or final results
-      if (testConfig.sections && currentSectionIndex < testConfig.sections.length - 1) {
-        handleNextSection();
-      } else {
-        submitTest();
-      }
-    }
-  }, [testConfig, activeSection, currentQuestionIndex, router]);
-
   const submitTest = useCallback(() => {
     if (!testConfig) return;
     
@@ -93,6 +72,21 @@ export default function TestPage() {
   }, [testConfig, testQuestions, currentQuestionIndex, router]);
 
 
+  const submitSection = useCallback(() => {
+    if (!testConfig || (!activeSection && testQuestions.length === 0)) return;
+    
+    updateQuestionTime(currentQuestionIndex); // Final update for the current question
+
+    const questionsToReview = activeSection ? activeSection.questions : testQuestions;
+    sessionStorage.setItem('testSectionResults', JSON.stringify(questionsToReview));
+    sessionStorage.setItem('mockTestConfig', JSON.stringify(testConfig));
+    sessionStorage.setItem('currentSectionIndex', JSON.stringify(currentSectionIndex));
+
+    router.replace('/mock-test/review');
+    
+  }, [testConfig, activeSection, testQuestions, currentQuestionIndex, router]);
+
+
   useEffect(() => {
     const configStr = sessionStorage.getItem('mockTestConfig');
     if (!configStr) {
@@ -101,7 +95,6 @@ export default function TestPage() {
     }
     const config: TestConfig = JSON.parse(configStr);
     
-    // Resume from a specific section if specified, e.g., after completing practice
     const resumeSectionIndex = sessionStorage.getItem('resumeSectionIndex');
     const sectionIndex = resumeSectionIndex ? parseInt(resumeSectionIndex, 10) : 0;
     setCurrentSectionIndex(sectionIndex);
@@ -109,27 +102,33 @@ export default function TestPage() {
 
 
     if (config.sections) {
-        const processedSections = config.sections.map(section => ({
-            ...section,
-            questions: section.questions.map(q => ({
-                ...q,
-                status: 'unanswered' as const,
-                timeTaken: 0,
-                userAnswer: undefined,
-            }))
-        }));
-        config.sections = processedSections;
-        setTimeLeft(processedSections[sectionIndex].duration);
+        const isResuming = config.sections[sectionIndex].questions.some(q => q.status !== 'unanswered');
+        if (!isResuming) {
+             const processedSections = config.sections.map(section => ({
+                ...section,
+                questions: section.questions.map(q => ({
+                    ...q,
+                    status: 'unanswered' as const,
+                    timeTaken: 0,
+                    userAnswer: undefined,
+                }))
+            }));
+            config.sections = processedSections;
+        }
+        setTimeLeft(config.sections[sectionIndex].duration);
     } else {
        // Legacy or single-section tests
-       const questions = (config.questions || []).map(q => ({
-         ...q,
-         status: 'unanswered' as const,
-         timeTaken: 0,
-         userAnswer: undefined,
-       }));
-       setTestQuestions(questions);
-       config.questions = questions;
+       const isResuming = (config.questions || []).some(q => q.status !== 'unanswered');
+       if(!isResuming) {
+           const questions = (config.questions || []).map(q => ({
+             ...q,
+             status: 'unanswered' as const,
+             timeTaken: 0,
+             userAnswer: undefined,
+           }));
+           config.questions = questions;
+           setTestQuestions(questions);
+       }
        setTimeLeft(config.duration ? config.duration * 60 : 0);
     }
     
@@ -139,11 +138,8 @@ export default function TestPage() {
   
   useEffect(() => {
      if (timeLeft <= 0 && testConfig) {
-        // If time is up for a section, move to next or submit
-        if (activeSection) {
+        if (activeSection || testQuestions.length > 0) {
           submitSection();
-        } else {
-          submitTest();
         }
         return;
      }
@@ -153,7 +149,7 @@ export default function TestPage() {
       }, 1000);
       return () => clearInterval(timerIntervalRef.current as NodeJS.Timeout);
      }
-  }, [timeLeft, submitTest, submitSection, testConfig, activeSection]);
+  }, [timeLeft, submitSection, testConfig, activeSection, testQuestions]);
 
   const updateQuestionTime = (index: number) => {
       const timeSpent = (Date.now() - questionStartTime.current) / 1000;
@@ -232,17 +228,6 @@ export default function TestPage() {
     }
   }
 
-  const handleNextSection = () => {
-    updateQuestionTime(currentQuestionIndex);
-    if (testConfig?.sections && currentSectionIndex < testConfig.sections.length - 1) {
-        setCurrentSectionIndex(prev => prev + 1);
-        setCurrentQuestionIndex(0);
-        setTimeLeft(testConfig.sections[currentSectionIndex + 1].duration);
-    } else {
-        submitTest();
-    }
-  };
-
   const handleNext = () => {
     const questions = activeSection ? activeSection.questions : testQuestions;
     if (currentQuestionIndex < questions.length - 1) {
@@ -310,18 +295,18 @@ export default function TestPage() {
             </Badge>
            <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="destructive">Submit Test</Button>
+                <Button variant="destructive">Submit Section</Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure you want to submit?</AlertDialogTitle>
+                  <AlertDialogTitle>Are you sure you want to submit this section?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This will end the entire test and submit all your answers for evaluation.
+                    Your answers for this section will be evaluated for the practice round.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={submitTest}>Confirm & Submit</AlertDialogAction>
+                  <AlertDialogAction onClick={submitSection}>Confirm & Submit Section</AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
@@ -377,9 +362,7 @@ export default function TestPage() {
                 </Button>
                 {isLastQuestionInSection ? (
                      <Button onClick={submitSection} variant="accent">
-                        {testConfig.sections && currentSectionIndex < testConfig.sections.length - 1 
-                            ? "Submit Section" 
-                            : "Submit Test"}
+                        Submit Section
                         <CheckCircle className="ml-2 h-4 w-4" />
                     </Button>
                 ) : (
