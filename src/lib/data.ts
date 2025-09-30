@@ -23,6 +23,7 @@ import { modernPhysicsQuestions } from './data/modern-physics';
 import { kinematicsQuestions } from './data/kinematics';
 import { capacitorQuestions } from './data/capacitors';
 import { magneticEffectsQuestions } from './data/magnetic-effects';
+import { emiAcQuestions } from './data/electromagnetic-induction-ac';
 
 export type Question = {
   id: number;
@@ -119,7 +120,7 @@ export const subjects: Subject[] = [
                 currentElectricityQuestions,
                 capacitorQuestions,
                 magneticEffectsQuestions,
-                { id: 113, name: 'Electromagnetic Induction and Alternating Currents', questions: [] },
+                emiAcQuestions,
                 { id: 114, name: 'Electromagnetic Waves', questions: [] },
             ]
         },
@@ -162,11 +163,7 @@ export const subjects: Subject[] = [
       currentElectricityQuestions,
       capacitorQuestions,
       magneticEffectsQuestions,
-      {
-        id: 113,
-        name: 'Electromagnetic Induction and Alternating Currents',
-        questions: []
-      },
+      emiAcQuestions,
       {
         id: 114,
         name: 'Electromagnetic Waves',
@@ -324,16 +321,28 @@ export const formulas: FormulaSubject[] = [
             {
                 name: 'Laws of Motion',
                 formulae: [
-                    { name: 'Newton\'s Second Law', formula: 'F = ma = dp/dt', derivation: 'Force is directly proportional to the rate of change of momentum.' },
-                    { name: 'Impulse', formula: 'J = FΔt = Δp', derivation: 'Change in momentum produced by a force acting for a short duration.' },
-                    { name: 'Static Friction', formula: 'f_s ≤ μ_s * N', derivation: 'Frictional force that prevents an object from starting to move.' },
-                    { name: 'Kinetic Friction', formula: 'f_k = μ_k * N', derivation: 'Frictional force that opposes motion when an object is sliding.' },
-                    { name: 'Centripetal Force', formula: 'F_c = mv^2/r', derivation: 'The net force required to keep an object in uniform circular motion.' },
-                    { name: 'Banking Angle', formula: 'tan(θ) = v^2 / (rg)', derivation: 'The angle at which a curved road is banked to provide necessary centripetal force.' },
+                     {
+                        title: 'Newton\'s Second Law',
+                        explanation: 'The rate of change of momentum of a body is directly proportional to the force applied, and this change in momentum takes place in the direction of the applied force.',
+                        formula: 'F = ma = dp/dt',
+                        derivation: 'This is a fundamental law based on experimental observations. F ∝ dp/dt. The constant of proportionality is taken as 1.'
+                    },
+                    {
+                        title: 'Friction',
+                        explanation: 'A force that opposes relative motion between surfaces in contact.',
+                        formula: 'Static Friction: f_s ≤ μ_s * N\nKinetic Friction: f_k = μ_k * N',
+                        derivation: 'Friction is an empirical force. The formulas are approximations based on observation. The static friction adjusts itself to be equal to the applied force up to a maximum limit (limiting friction).'
+                    },
+                     {
+                        title: 'Centripetal Force',
+                        explanation: 'A force that acts on a body moving in a circular path and is directed towards the center around which the body is moving.',
+                        formula: 'F_c = mv^2/r',
+                        derivation: 'Derived from the centripetal acceleration a_c = v²/r, and Newton\'s Second Law, F=ma.'
+                    },
                 ]
             },
             {
-                name: 'Work, Energy, and Power',
+                name: 'Work, Power, and Energy',
                 concepts: [
                     {
                         title: 'Work-Energy Theorem',
