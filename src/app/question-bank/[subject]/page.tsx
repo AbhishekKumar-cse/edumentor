@@ -26,8 +26,13 @@ export default function SubjectQuestionBankPage() {
   }
 
   return (
-    <div className="p-6 md:p-10">
-        <QuestionBankView subject={subjectData} />
+     <div className="relative min-h-full w-full overflow-hidden p-6 md:p-10 bg-gray-900/50">
+        <div className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 w-[60rem] h-[60rem] rounded-full bg-gradient-cyan-purple-pink-fast opacity-20 blur-3xl animate-rotate" />
+        <div className="absolute bottom-0 right-0 translate-x-1/2 translate-y-1/2 w-[50rem] h-[50rem] rounded-full bg-gradient-cyan-purple-pink opacity-30 blur-3xl animate-rotate" style={{animationDelay: '5s'}} />
+        
+        <div className="relative z-10">
+            <QuestionBankView subject={subjectData} />
+        </div>
     </div>
   );
 }
